@@ -1,0 +1,58 @@
+<header class="entete">
+  <div>
+    <h1>Tes evenements</h1>
+    <p class="muted">Salut {{ prenom }}. Ouvre-en un, ou lance-toi dans un nouveau.</p>
+  </div>
+  <button type="button" class="discret" (click)="deconnecter()">Se deconnecter</button>
+</header>
+
+<section class="card creation">
+  <label class="champ">
+    <span>Nouvel evenement</span>
+    <div class="ligne">
+      <input
+        type="text"
+        [value]="nouveauNom()"
+        (input)="majNom($event)"
+        (keyup.enter)="creer()"
+        placeholder="Anniv de Paul"
+      />
+      <button type="button" class="primaire" [disabled]="occupe()" (click)="creer()">
+        {{ occupe() ? 'Creation…' : 'Creer' }}
+      </button>
+    </div>
+  </label>
+</section>
+
+@if (erreur()) {
+  <p class="erreur">{{ erreur() }}</p>
+}
+
+@if (chargement()) {
+  <p class="vide">Chargement…</p>
+} @else if (evenements().length === 0) {
+  <p class="vide">Aucun evenement pour l'instant. Cree le premier ci-dessus.</p>
+} @else {
+  <ul class="liste">
+    @for (evenement of evenements(); track evenement.code) {
+      <li>
+        <a class="carte" [routerLink]="['/e', evenement.code]">
+          <span class="nom">{{ evenement.nom }}</span>
+          <span class="meta muted">
+            <span class="num">{{ evenement.organisateurs }}</span> organisateur(s) ·
+            <span class="num">{{ date(evenement.creeLe) }}</span>
+          </span>
+          <span class="code num">{{ evenement.code }}</span>
+        </a>
+        <button
+          type="button"
+          class="discret supprimer"
+          [title]="'Supprimer ' + evenement.nom"
+          (click)="supprimer(evenement)"
+        >
+          ×
+        </button>
+      </li>
+    }
+  </ul>
+}

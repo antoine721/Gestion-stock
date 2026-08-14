@@ -1,0 +1,223 @@
+<section class="card">
+  <div class="card-head">
+    <h2>La liste de courses</h2>
+    <span class="muted num">{{ store.lignesCourses().length }} references</span>
+  </div>
+
+  @if (store.lignesCourses().length === 0) {
+    <p class="vide">Rien a acheter pour l'instant.</p>
+  } @else {
+    <div class="totaux">
+      <div>
+        <span class="muted">Base</span>
+        <strong class="num">{{ fmtEuro(store.panier().coutBase) }}</strong>
+        <span class="muted num">{{ fmtEuro(parPersonne().base) }} / pers.</span>
+      </div>
+      <div>
+        <span class="muted">Extras</span>
+        <strong class="num">{{ fmtEuro(store.panier().coutPlaisir) }}</strong>
+        <span class="muted">hors ratio</span>
+      </div>
+      <div>
+        <span class="muted">Tireuse</span>
+        <strong class="num">{{ fmtEuro(store.panier().coutMateriel) }}</strong>
+        <span class="muted">cout unique</span>
+      </div>
+      <div class="total">
+        <span class="muted">Total</span>
+        <strong class="num">{{ fmtEuro(store.panier().coutTotal) }}</strong>
+        <span class="muted num">{{ fmtEuro(parPersonne().total) }} / pers.</span>
+      </div>
+    </div>
+
+    <!-- Un seul tableau pour tous les rayons : les colonnes s'alignent d'un
+         bout a l'autre de la liste, ce que des tableaux separes ne font pas. -->
+    <table class="courses">
+      <colgroup>
+        <col />
+        <col class="col-qte" />
+        <col class="col-prix" />
+        <col class="col-reste" />
+        <col class="col-actions" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Produit</th>
+          <th class="droite">Qte</th>
+          <th class="droite">Prix</th>
+          <th class="droite">Reste</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      @for (bloc of blocs(); track bloc.categorie) {
+        <tbody>
+          <tr class="rayon">
+            <th colspan="3">{{ bloc.libelle }}</th>
+            <td class="droite num" colspan="2">{{ fmtEuro(bloc.cout) }}</td>
+          </tr>
+
+          @for (ligne of bloc.lignes; track ligne.produit.id) {
+            <tr>
+              <td>
+                <button
+                  type="button"
+                  class="discret nom-produit"
+                  (click)="basculerDetail(ligne.produit.id)"
+                  [attr.aria-expanded]="deplie().has(ligne.produit.id)"
+                >
+                  {{ deplie().has(ligne.produit.id) ? '▾' : '▸' }} {{ ligne.produit.nom }}
+                  @if (ligne.produit.formatNom) {
+                    <span class="muted">· {{ ligne.produit.formatNom }}</span>
+                  }
+                </button>
+                <div class="meta">
+                  <span class="muted num">
+                    {{ fmtVolume(ligne.produit.contenanceMl) }} ·
+                    {{ fmtEuro(ligne.produit.prixEur) }}
+                  </span>
+                  @if (ligne.produit.generique) {
+                    <span class="tag">marque libre</span>
+                  }
+                  @if (ligne.forfait) {
+                    <span class="tag">forfait</span>
+                  }
+                  @if (store.estModifie(ligne.produit.id)) {
+                    <span class="tag accent">modifie</span>
+                  }
+                  @if (ligne.produit.requiertTireuse) {
+                    <span class="tag">tireuse requise</span>
+                  }
+                </div>
+              </td>
+
+              <td class="droite">
+                <input
+                  type="number"
+                  class="mini"
+                  min="0"
+                  step="1"
+                  [value]="ligne.bouteilles"
+                  (input)="majQuantite(ligne.produit.id, $any($event.target).value)"
+                  [attr.aria-label]="'Bouteilles de ' + ligne.produit.nom"
+                />
+              </td>
+
+              <td class="droite num">{{ fmtEuro(ligne.prixTotal) }}</td>
+
+              <td class="droite num" [class.manque]="ligne.resteMl < 0">
+                {{ fmtVolume(ligne.resteMl) }}
+              </td>
+
+              <td class="droite actions-ligne">
+                @if (ligne.forfait) {
+                  <button
+                    type="button"
+                    class="discret"
+                    title="Revenir a la quantite calculee"
+                    (click)="store.libererQuantite(ligne.produit.id)"
+                  >
+                    ↺
+                  </button>
+                }
+              </td>
+            </tr>
+
+            @if (deplie().has(ligne.produit.id)) {
+              <tr class="detail">
+                <td colspan="5">
+                  @if (ligne.produit.format) {
+                    <div class="segments format">
+                      @for (option of conditionnements(ligne.produit.format); track option.id) {
+                        <button
+                          type="button"
+                          [attr.aria-pressed]="ligne.produit.id === option.id"
+                          (click)="store.choisirFormat(ligne.produit.format!, option.id)"
+                        >
+                          {{ option.formatNom }}
+                        </button>
+                      }
+                    </div>
+                  }
+
+                  <div class="reglages">
+                    <label class="champ">
+                      <span>Prix unitaire (€)</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        [value]="ligne.produit.prixEur"
+                        (input)="majPrix(ligne.produit.id, $any($event.target).value)"
+                      />
+                    </label>
+                    <label class="champ">
+                      <span>Contenance (ml)</span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="10"
+                        [value]="ligne.produit.contenanceMl"
+                        (input)="majContenance(ligne.produit.id, $any($event.target).value)"
+                      />
+                    </label>
+                    @if (store.estModifie(ligne.produit.id)) {
+                      <button
+                        type="button"
+                        class="discret"
+                        (click)="store.reinitialiserProduit(ligne.produit.id)"
+                      >
+                        ↺ Valeurs du catalogue
+                      </button>
+                    }
+                  </div>
+
+                  @if (ligne.detail.length === 0) {
+                    <p class="muted">
+                      Aucune boisson prevue ne consomme ce produit : c'est un achat ajoute a la
+                      main.
+                    </p>
+                  } @else {
+                    <p class="muted">
+                      Besoin {{ fmtVolume(ligne.mlNecessaire) }}, marge comprise
+                      {{ fmtVolume(ligne.mlAvecMarge) }} —
+                      @for (part of ligne.detail; track part.boissonNom) {
+                        <span class="part num">
+                          {{ part.boissonNom }} {{ fmtVolume(part.ml) }}
+                        </span>
+                      }
+                    </p>
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      }
+    </table>
+
+    <div class="materiel">
+      <label class="champ">
+        <span>Tireuse a biere — prix total (€)</span>
+        <input
+          type="number"
+          min="0"
+          step="5"
+          [value]="store.materiel().prixTireuse"
+          (input)="majPrixTireuse($any($event.target).value)"
+        />
+      </label>
+      <p class="muted">
+        Location ou achat, a toi de voir : c'est un cout unique, ni par jour ni par personne. Les
+        futs de 20 et 30 L en ont besoin ; un mini-fut de 5 L a son propre robinet. Passe une biere
+        en fut en depliant sa ligne ci-dessus.
+      </p>
+    </div>
+
+    <p class="hint">
+      Les quantites sont arrondies a la bouteille superieure, marge de securite comprise (+10 % sur
+      l'alcool, +25 % sur les diluants). « Reste » indique ce qu'il te restera apres l'evenement :
+      c'est ce chiffre qui aide a decider d'arrondir en dessous.
+    </p>
+  }
+</section>

@@ -1,0 +1,76 @@
+<section class="card">
+  <div class="card-head">
+    <h2>Le cadre commun</h2>
+    <div class="segments">
+      @for (profil of profils; track profil) {
+        <button
+          type="button"
+          [attr.aria-pressed]="store.partage().profil === profil"
+          (click)="store.choisirProfil(profil)"
+        >
+          {{ libelleProfil[profil] }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="grid-champs">
+    <label class="champ">
+      <span>Nom de l'evenement</span>
+      <input
+        type="text"
+        [value]="store.partage().nom"
+        (change)="majNom($any($event.target).value)"
+      />
+    </label>
+
+    <label class="champ">
+      <span>Jours</span>
+      <input
+        type="number"
+        min="1"
+        step="1"
+        [value]="store.partage().jours"
+        (input)="majJours($any($event.target).value)"
+      />
+    </label>
+  </div>
+
+  <p class="hint">
+    <strong class="num">{{ store.cadre().invites }}</strong> invites au total, dont
+    <strong class="num">{{ store.buveurs() }}</strong> buveurs et
+    <strong class="num">{{ store.nonBuveurs() }}</strong> non-buveurs, sur
+    <span class="num">{{ store.partage().jours }}</span>
+    {{ store.partage().jours > 1 ? 'jours' : 'jour' }}. Ces totaux sont la somme de ce que chacun a
+    declare dans son onglet.
+  </p>
+
+  <details class="cibles" (toggle)="ciblesOuvertes.set($any($event.target).open)">
+    <summary>
+      <span class="tag accent">
+        {{ ciblesOuvertes() ? 'Masquer' : 'Ajuster' }} les ratios cibles
+      </span>
+    </summary>
+
+    <div class="grid-champs">
+      @for (cible of champs; track cible.champ) {
+        <label class="champ">
+          <span>{{ cible.label }}</span>
+          <input
+            type="number"
+            min="0"
+            [step]="cible.pas"
+            [value]="store.cibles()[cible.champ]"
+            (input)="majCible(cible.champ, $any($event.target).value)"
+          />
+        </label>
+      }
+    </div>
+
+    <div class="actions" style="margin-top: 0.875rem">
+      <button type="button" class="discret" (click)="store.reinitialiserCibles()">
+        Revenir aux cibles du profil
+      </button>
+    </div>
+  </details>
+</section>

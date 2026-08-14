@@ -1,0 +1,55 @@
+<section class="card">
+  <div class="card-head">
+    <h2>Ma contribution</h2>
+  </div>
+
+  <div class="chiffres">
+    <div>
+      <span class="valeur num">{{ store.invitesDuParticipant() }}</span>
+      <span class="muted">invites</span>
+    </div>
+    <div>
+      <span class="valeur num">{{ store.buveursDuParticipant() }}</span>
+      <span class="muted">buveurs</span>
+    </div>
+    <div>
+      <span class="valeur num">{{ fmtEntier(maPart()?.verres ?? 0) }}</span>
+      <span class="muted">verres</span>
+    </div>
+    <div class="accentue">
+      <span class="valeur num">{{ fmtEuro(maPart()?.montant ?? 0) }}</span>
+      <span class="muted">ma part</span>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>L'evenement</h2>
+    <span class="muted num">{{ store.participants().length }} organisateurs</span>
+  </div>
+
+  <div class="chiffres">
+    <div>
+      <span class="valeur num">{{ store.cadre().invites }}</span>
+      <span class="muted">invites</span>
+    </div>
+    <div>
+      <span class="valeur num">{{ fmtEntier(store.panier().verresTotal) }}</span>
+      <span class="muted">verres</span>
+    </div>
+    <div>
+      <span class="valeur num">{{ store.lignesCourses().length }}</span>
+      <span class="muted">references</span>
+    </div>
+    <div class="accentue">
+      <span class="valeur num">{{ fmtEuro(store.panier().coutTotal) }}</span>
+      <span class="muted">total</span>
+    </div>
+  </div>
+
+  <p class="hint">
+    La liste de courses complete et les ratios de validation sont dans l'onglet
+    <strong>Evenement</strong>.
+  </p>
+</section>
