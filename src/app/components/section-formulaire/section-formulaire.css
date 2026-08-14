@@ -1,0 +1,60 @@
+.intro {
+  margin-bottom: 1rem;
+}
+
+.champ.large {
+  grid-column: 1 / -1;
+}
+
+.envoi {
+  margin-top: 1.25rem;
+}
+
+.reponse {
+  padding: 0.875rem;
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon-petit);
+  background: var(--surface-2);
+}
+
+.reponse + .reponse {
+  margin-top: 0.75rem;
+}
+
+.reponse-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0 0;
+}
+
+.details dt {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texte-doux);
+}
+
+.details dd {
+  margin: 0.125rem 0 0;
+  font-size: 0.8125rem;
+}
+
+.reponse-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+}
+
+.reponse-actions select {
+  width: auto;
+}

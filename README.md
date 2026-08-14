@@ -15,7 +15,7 @@ millilitres d'ingredients**. La conversion en bouteilles n'arrive qu'a la toute 
 sur le total agrege de tous les participants. C'est ce qui fait que le prosecco du spritz et celui
 servi en coupe ne sont achetes qu'une fois, et que les diluants n'ont jamais le mauvais ratio.
 
-On ne compte pas des bouteilles, on compte **des gens**. Un *profil* decrit une personne type de
+On ne compte pas des bouteilles, on compte **des gens**. Un _profil_ decrit une personne type de
 la bande — « le buveur de biere », « la team spritz » — et ce qu'elle boit **par jour**. Chaque
 co-organisateur declare ensuite combien de personnes de chaque profil il amene. Le nombre d'invites
 et la part de buveurs en decoulent : plus rien a saisir a la main.
@@ -25,13 +25,13 @@ peuvent l'utiliser pour leurs propres invites, le dupliquer ou l'ajuster.
 
 ## Structure
 
-| Dossier | Role |
-| --- | --- |
-| `src/app/domain/` | Modeles, catalogue et moteur de calcul. Fonctions pures, sans Angular, testees. |
-| `src/app/state/` | Signals, client HTTP, session. |
-| `src/app/components/` | Composants d'interface. |
-| `src/app/pages/` | Accueil (creer / rejoindre) et planificateur. |
-| `api/` | Fonctions serverless Vercel + schema SQL. |
+| Dossier               | Role                                                                            |
+| --------------------- | ------------------------------------------------------------------------------- |
+| `src/app/domain/`     | Modeles, catalogue et moteur de calcul. Fonctions pures, sans Angular, testees. |
+| `src/app/state/`      | Signals, client HTTP, session.                                                  |
+| `src/app/components/` | Composants d'interface.                                                         |
+| `src/app/pages/`      | Accueil (creer / rejoindre) et planificateur.                                   |
+| `api/`                | Fonctions serverless Vercel + schema SQL.                                       |
 
 Le catalogue (`src/app/domain/catalogue.ts`) est statique : produits, prix indicatifs et recettes.
 Les prix et contenances sont modifiables dans l'app, produit par produit — ce sont des valeurs de

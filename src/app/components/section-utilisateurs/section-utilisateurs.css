@@ -1,0 +1,52 @@
+.intro {
+  margin-bottom: 1rem;
+}
+
+.avertissement {
+  margin-bottom: 1rem;
+  padding: 0.5625rem 0.75rem;
+  border-radius: var(--rayon-petit);
+  background: var(--warn-doux);
+  color: var(--warn);
+  font-size: 0.8125rem;
+}
+
+.fiche {
+  padding: 0.875rem;
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon-petit);
+  background: var(--surface-2);
+}
+
+.fiche + .fiche {
+  margin-top: 0.75rem;
+}
+
+.ligne {
+  display: grid;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.principale {
+  grid-template-columns: 1fr 1fr 1fr 1.25fr auto;
+}
+
+.secondaire {
+  margin-top: 0.75rem;
+  grid-template-columns: 1fr 1.25fr 1.25fr 1.5fr;
+}
+
+.ajout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 52rem) {
+  .principale,
+  .secondaire {
+    grid-template-columns: 1fr 1fr;
+  }
+}
