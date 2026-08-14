@@ -48,6 +48,7 @@ const PARTAGE_TEST = {
   reponsesFormulaire: [],
   categoriesPaiement: [],
   coursesCochees: [],
+  programme: { creneaux: [], tracklist: [] },
 };
 
 describe('resoudre', () => {

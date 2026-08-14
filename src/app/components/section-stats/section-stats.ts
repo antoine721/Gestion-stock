@@ -41,7 +41,14 @@ export class SectionStats {
   /** Ce qui reste a faire, toutes pieces confondues : la todo de la fete. */
   protected readonly resteAFaire = computed(() => {
     const taches: {
-      espace: 'alcool' | 'nourriture' | 'utilisateurs' | 'materiel' | 'courses' | 'formulaire';
+      espace:
+        | 'alcool'
+        | 'nourriture'
+        | 'utilisateurs'
+        | 'materiel'
+        | 'courses'
+        | 'programme'
+        | 'formulaire';
       texte: string;
     }[] = [];
     const nourriture = this.store.budgetNourriture();
@@ -85,6 +92,13 @@ export class SectionStats {
       taches.push({
         espace: 'courses',
         texte: `${courses.lignes - courses.cochees} ligne(s) de courses a acheter`,
+      });
+    }
+    const programme = this.store.resumeProgramme();
+    if (programme.creneaux > 0 && programme.joursVides > 0) {
+      taches.push({
+        espace: 'programme',
+        texte: `${programme.joursVides} jour(s) sans creneau au programme`,
       });
     }
     return taches;

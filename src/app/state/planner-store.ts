@@ -34,15 +34,24 @@ import { articleVierge, budgetMateriel } from '../domain/materiel-liste';
 import { budgetGlobal, repartitionGlobale } from '../domain/stats';
 import { listeCoursesUnifiee, resumerCourses } from '../domain/courses';
 import {
+  creneauVierge,
+  demandesMusicales,
+  morceauVierge,
+  resumerProgramme,
+  volontaires,
+} from '../domain/programme';
+import {
   Ajustement,
   Article,
   CategoriePaiement,
   Cibles,
+  Creneau,
   ExtraNourriture,
   IngredientRepas,
   Invite,
   Materiel,
   MomentRepas,
+  Morceau,
   Override,
   Partage,
   Participant,
@@ -72,6 +81,7 @@ export type Espace =
   | 'utilisateurs'
   | 'materiel'
   | 'courses'
+  | 'programme'
   | 'stats'
   | 'formulaire';
 
@@ -88,6 +98,7 @@ export const ESPACES: readonly {
   { id: 'utilisateurs', libelle: 'Invites', emoji: '🧑‍🤝‍🧑', teinte: 'bleu' },
   { id: 'materiel', libelle: 'Materiel', emoji: '🛠️', teinte: 'violet' },
   { id: 'courses', libelle: 'Courses', emoji: '🛒', teinte: 'olive' },
+  { id: 'programme', libelle: 'Programme & DJ', emoji: '🎶', teinte: 'indigo' },
   { id: 'stats', libelle: 'Stats & budget', emoji: '📊', teinte: 'vert' },
   { id: 'formulaire', libelle: 'Formulaire', emoji: '📝', teinte: 'rose' },
 ];
@@ -108,6 +119,7 @@ export const PARTAGE_INITIAL: Partage = {
   reponsesFormulaire: [],
   categoriesPaiement: [],
   coursesCochees: [],
+  programme: { creneaux: [], tracklist: [] },
 };
 
 /** Bibliotheque de depart, posee a la creation de l'evenement. */
@@ -296,6 +308,20 @@ export class PlannerStore {
 
   readonly resumeCourses = computed(() => resumerCourses(this.listeCourses()));
 
+  readonly programme = computed(() => this.partage().programme);
+
+  readonly resumeProgramme = computed(() =>
+    resumerProgramme(this.programme(), this.partage().jours),
+  );
+
+  /** Les envies musicales du formulaire et des fiches, a ajouter d'un clic. */
+  readonly demandesMusicales = computed(() =>
+    demandesMusicales(this.reponsesFormulaire(), this.invitesNommes(), this.programme().tracklist),
+  );
+
+  /** Les invites qui veulent faire quelque chose : DJ, jeux, animation... */
+  readonly volontaires = computed(() => volontaires(this.invitesNommes()));
+
   /** Les effectifs anonymes herites de l'ancienne saisie par profil. */
   readonly effectifsAnonymes = computed(() =>
     this.participants().reduce(
@@ -337,6 +363,10 @@ export class PlannerStore {
       nourriture: {
         repas: (partage.nourriture.repas ?? []).map((x) => normaliserRepas(x)),
         extras: partage.nourriture.extras ?? [],
+      },
+      programme: {
+        creneaux: partage.programme.creneaux ?? [],
+        tracklist: partage.programme.tracklist ?? [],
       },
     });
     this.participants.set(
@@ -769,6 +799,66 @@ export class PlannerStore {
     if (cochees.has(ligneId)) cochees.delete(ligneId);
     else cochees.add(ligneId);
     this.majPartage({ coursesCochees: [...cochees] });
+  }
+
+  // -- Programme : planning et tracklist -----------------------------------
+
+  ajouterCreneau(jour: number): string {
+    const id = identifiant();
+    const programme = this.programme();
+    this.majPartage({
+      programme: { ...programme, creneaux: [...programme.creneaux, creneauVierge(id, jour)] },
+    });
+    return id;
+  }
+
+  majCreneau(creneauId: string, patch: Partial<Omit<Creneau, 'id'>>): void {
+    const programme = this.programme();
+    this.majPartage({
+      programme: {
+        ...programme,
+        creneaux: programme.creneaux.map((x) => (x.id === creneauId ? { ...x, ...patch } : x)),
+      },
+    });
+  }
+
+  supprimerCreneau(creneauId: string): void {
+    const programme = this.programme();
+    this.majPartage({
+      programme: { ...programme, creneaux: programme.creneaux.filter((x) => x.id !== creneauId) },
+    });
+  }
+
+  ajouterMorceau(modele: Partial<Omit<Morceau, 'id'>> = {}): string {
+    const id = identifiant();
+    const programme = this.programme();
+    this.majPartage({
+      programme: {
+        ...programme,
+        tracklist: [...programme.tracklist, { ...morceauVierge(id), ...modele }],
+      },
+    });
+    return id;
+  }
+
+  majMorceau(morceauId: string, patch: Partial<Omit<Morceau, 'id'>>): void {
+    const programme = this.programme();
+    this.majPartage({
+      programme: {
+        ...programme,
+        tracklist: programme.tracklist.map((x) => (x.id === morceauId ? { ...x, ...patch } : x)),
+      },
+    });
+  }
+
+  supprimerMorceau(morceauId: string): void {
+    const programme = this.programme();
+    this.majPartage({
+      programme: {
+        ...programme,
+        tracklist: programme.tracklist.filter((x) => x.id !== morceauId),
+      },
+    });
   }
 
   // -- Formulaire invite ---------------------------------------------------

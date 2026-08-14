@@ -1,0 +1,190 @@
+<section class="card">
+  <div class="card-head">
+    <h2>Le planning</h2>
+    <span class="muted num">{{ fmtEntier(store.resumeProgramme().creneaux) }} creneau(x)</span>
+  </div>
+
+  <p class="intro muted">
+    Ce qui a ete mis en place, jour par jour : activites, repas, musique, logistique. Les heures
+    sont libres — « 15:00 », « apres le diner » — et le tri suit les heures renseignees.
+  </p>
+
+  @if (store.resumeProgramme().joursVides > 0 && store.resumeProgramme().creneaux > 0) {
+    <p class="avertissement">
+      <span class="num">{{ store.resumeProgramme().joursVides }}</span> jour(s) sans aucun creneau :
+      le programme a des trous.
+    </p>
+  }
+
+  @for (journee of journees(); track journee.jour) {
+    <div class="jour">
+      <div class="jour-head">
+        <h3>Jour {{ journee.jour }}</h3>
+        <button type="button" class="discret" (click)="store.ajouterCreneau(journee.jour)">
+          + Creneau
+        </button>
+      </div>
+
+      @if (journee.creneaux.length === 0) {
+        <p class="vide">Rien de prevu ce jour-la.</p>
+      }
+
+      @for (creneau of journee.creneaux; track creneau.id) {
+        <div class="creneau">
+          <div class="heures">
+            <input
+              type="text"
+              placeholder="15:00"
+              title="Debut"
+              [value]="creneau.debut"
+              (input)="maj(creneau, { debut: $any($event.target).value })"
+            />
+            <span class="muted">→</span>
+            <input
+              type="text"
+              placeholder="17:00"
+              title="Fin"
+              [value]="creneau.fin"
+              (input)="maj(creneau, { fin: $any($event.target).value })"
+            />
+          </div>
+          <input
+            class="titre"
+            type="text"
+            placeholder="Tournoi de petanque, set DJ, brief benevoles..."
+            [value]="creneau.titre"
+            (input)="maj(creneau, { titre: $any($event.target).value })"
+          />
+          <select (change)="maj(creneau, { type: $any($event.target).value })">
+            @for (type of types; track type.id) {
+              <option [value]="type.id" [selected]="type.id === creneau.type">
+                {{ type.emoji }} {{ type.libelle }}
+              </option>
+            }
+          </select>
+          <input
+            type="text"
+            placeholder="Qui s'en occupe ?"
+            [value]="creneau.responsable"
+            (input)="maj(creneau, { responsable: $any($event.target).value })"
+          />
+          <input
+            type="text"
+            placeholder="Ou ?"
+            [value]="creneau.lieu"
+            (input)="maj(creneau, { lieu: $any($event.target).value })"
+          />
+          <input
+            class="notes"
+            type="text"
+            placeholder="Materiel a prevoir, details..."
+            [value]="creneau.notes"
+            (input)="maj(creneau, { notes: $any($event.target).value })"
+          />
+          <button
+            type="button"
+            class="discret"
+            title="Retirer ce creneau"
+            (click)="supprimerCreneau(creneau)"
+          >
+            ×
+          </button>
+        </div>
+      }
+    </div>
+  }
+</section>
+
+<div class="colonnes-dj">
+  <section class="card">
+    <div class="card-head">
+      <h2>🎧 La tracklist</h2>
+      <span class="muted num">{{ fmtEntier(store.programme().tracklist.length) }} morceau(x)</span>
+    </div>
+
+    <p class="intro muted">
+      La playlist commune du festival : ce que le DJ doit passer, et qui l'a demande.
+    </p>
+
+    @if (store.programme().tracklist.length === 0) {
+      <p class="vide">Rien pour l'instant : ajoute un morceau ou pioche dans les demandes.</p>
+    }
+
+    @for (morceau of store.programme().tracklist; track morceau.id) {
+      <div class="morceau">
+        <input
+          type="text"
+          placeholder="Titre ou playlist"
+          [value]="morceau.titre"
+          (input)="majMorceau(morceau, { titre: $any($event.target).value })"
+        />
+        <input
+          type="text"
+          placeholder="Artiste"
+          [value]="morceau.artiste"
+          (input)="majMorceau(morceau, { artiste: $any($event.target).value })"
+        />
+        <input
+          class="demande-par"
+          type="text"
+          placeholder="Demande par"
+          [value]="morceau.demandePar"
+          (input)="majMorceau(morceau, { demandePar: $any($event.target).value })"
+        />
+        <button
+          type="button"
+          class="discret"
+          title="Retirer"
+          (click)="store.supprimerMorceau(morceau.id)"
+        >
+          ×
+        </button>
+      </div>
+    }
+
+    <div class="ajout">
+      <button type="button" (click)="store.ajouterMorceau()">+ Ajouter un morceau</button>
+    </div>
+
+    @if (store.demandesMusicales().length > 0) {
+      <div class="demandes">
+        <h3>Demandes des invites</h3>
+        @for (demande of store.demandesMusicales(); track demande.cle) {
+          <button type="button" class="demande" (click)="ajouterDemande(demande)">
+            <span>{{ demande.texte }}</span>
+            <span class="muted">— {{ demande.demandePar }}</span>
+            <span class="plus" aria-hidden="true">+</span>
+          </button>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>🙋 Les volontaires</h2>
+      <span class="muted num">{{ fmtEntier(store.volontaires().length) }}</span>
+    </div>
+
+    <p class="intro muted">
+      Ce que les invites ont envie de faire, d'apres leurs fiches : de quoi remplir le planning.
+    </p>
+
+    @if (store.volontaires().length === 0) {
+      <p class="vide">Personne ne s'est encore propose. Le formulaire pose la question !</p>
+    }
+
+    <ul class="liste-volontaires">
+      @for (invite of store.volontaires(); track invite.id) {
+        <li>
+          <strong>{{ invite.prenom }} {{ invite.nom }}</strong>
+          <span class="muted">{{ invite.envies }}</span>
+        </li>
+      }
+    </ul>
+
+    <p class="hint">
+      Un volontaire DJ ? Cree un creneau « Musique » a son nom dans le planning ci-dessus.
+    </p>
+  </section>
+</div>
