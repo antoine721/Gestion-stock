@@ -1,0 +1,185 @@
+<section class="card">
+  <div class="card-head">
+    <h2>Location &amp; achat de materiel</h2>
+    <span class="muted num">{{ fmtEuro(store.budgetMateriel().total) }}</span>
+  </div>
+
+  <p class="intro muted">
+    Decoration, generateur, sono, tables… tout ce qui coute de l'argent sans se boire ni se manger.
+    La caution est suivie a part : elle revient apres l'evenement.
+  </p>
+
+  <div class="resume">
+    <span class="tag"
+      >Achat · <span class="num">{{ fmtEuro(store.budgetMateriel().totalAchat) }}</span></span
+    >
+    <span class="tag"
+      >Location · <span class="num">{{ fmtEuro(store.budgetMateriel().totalLocation) }}</span></span
+    >
+    @if (store.budgetMateriel().cautionTotale > 0) {
+      <span class="tag"
+        >Cautions a avancer ·
+        <span class="num">{{ fmtEuro(store.budgetMateriel().cautionTotale) }}</span></span
+      >
+    }
+    @if (store.budgetMateriel().aPrevoir > 0) {
+      <span class="tag warn"
+        >A prevoir · <span class="num">{{ store.budgetMateriel().aPrevoir }}</span></span
+      >
+    }
+  </div>
+
+  @if (store.articles().length === 0) {
+    <p class="vide">Rien pour l'instant. Pioche dans les idees ou ajoute une ligne.</p>
+  } @else {
+    <div class="defilement">
+      <table>
+        <thead>
+          <tr>
+            <th>Article</th>
+            <th>Categorie</th>
+            <th>Mode</th>
+            <th>Statut</th>
+            <th class="droite">Qte</th>
+            <th class="droite">Prix unit.</th>
+            <th class="droite">Caution</th>
+            <th>Paye par</th>
+            <th class="droite">Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (article of store.articles(); track article.id) {
+            <tr>
+              <td class="article">
+                <input
+                  type="text"
+                  placeholder="Guirlandes, generateur..."
+                  [value]="article.nom"
+                  (input)="maj(article, { nom: $any($event.target).value })"
+                />
+                <input
+                  class="notes"
+                  type="text"
+                  placeholder="Ou, chez qui, reference..."
+                  [value]="article.notes"
+                  (input)="maj(article, { notes: $any($event.target).value })"
+                />
+              </td>
+              <td>
+                <select (change)="maj(article, { categorie: $any($event.target).value })">
+                  @for (categorie of categories; track categorie.id) {
+                    <option [value]="categorie.id" [selected]="categorie.id === article.categorie">
+                      {{ categorie.emoji }} {{ categorie.libelle }}
+                    </option>
+                  }
+                </select>
+              </td>
+              <td>
+                <select (change)="maj(article, { mode: $any($event.target).value })">
+                  @for (mode of modes; track mode.id) {
+                    <option [value]="mode.id" [selected]="mode.id === article.mode">
+                      {{ mode.libelle }}
+                    </option>
+                  }
+                </select>
+              </td>
+              <td>
+                <select
+                  [class.fait]="article.statut === 'achete' || article.statut === 'recupere'"
+                  (change)="maj(article, { statut: $any($event.target).value })"
+                >
+                  @for (statut of statuts; track statut.id) {
+                    <option [value]="statut.id" [selected]="statut.id === article.statut">
+                      {{ statut.libelle }}
+                    </option>
+                  }
+                </select>
+              </td>
+              <td class="droite">
+                <input
+                  class="etroit"
+                  type="number"
+                  min="0"
+                  step="1"
+                  [value]="article.quantite"
+                  (input)="majNombre(article, 'quantite', $any($event.target).value)"
+                />
+              </td>
+              <td class="droite">
+                <input
+                  class="etroit"
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  [value]="article.prixUnitaire"
+                  (input)="majNombre(article, 'prixUnitaire', $any($event.target).value)"
+                />
+              </td>
+              <td class="droite">
+                <input
+                  class="etroit"
+                  type="number"
+                  min="0"
+                  step="5"
+                  [disabled]="article.mode !== 'location'"
+                  [value]="article.caution"
+                  (input)="majNombre(article, 'caution', $any($event.target).value)"
+                />
+              </td>
+              <td>
+                <select (change)="maj(article, { payeParId: $any($event.target).value })">
+                  <option value="" [selected]="!article.payeParId">— A decider</option>
+                  @for (participant of store.participants(); track participant.id) {
+                    <option
+                      [value]="participant.id"
+                      [selected]="participant.id === article.payeParId"
+                    >
+                      {{ participant.nom }}
+                    </option>
+                  }
+                </select>
+              </td>
+              <td class="droite num">{{ fmtEuro(coutArticle(article)) }}</td>
+              <td class="droite">
+                <button type="button" class="discret" title="Retirer" (click)="supprimer(article)">
+                  ×
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <div class="ajout">
+    <button type="button" class="primaire" (click)="store.ajouterArticle()">
+      + Ajouter une ligne
+    </button>
+    <select (change)="ajouterIdee($event)">
+      <option value="">Piocher une idee…</option>
+      @for (idee of idees(); track idee.nom) {
+        <option [value]="idee.nom">{{ idee.nom }}</option>
+      }
+    </select>
+  </div>
+
+  @if (store.budgetMateriel().parCategorie.length > 0) {
+    <div class="par-categorie">
+      <h3>Par categorie</h3>
+      <div class="etiquettes">
+        @for (poste of store.budgetMateriel().parCategorie; track poste.categorie) {
+          <span class="tag"
+            >{{ poste.libelle }} · <span class="num">{{ fmtEuro(poste.montant) }}</span></span
+          >
+        }
+      </div>
+    </div>
+  }
+
+  <p class="hint">
+    La tireuse a biere garde son prix dans l'espace Bar &amp; boissons (reglages) : elle est liee
+    aux futs de la liste de courses.
+  </p>
+</section>

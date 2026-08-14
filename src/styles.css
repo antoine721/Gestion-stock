@@ -28,6 +28,27 @@
   --ko: #b3392c;
   --ko-doux: #f8e8e6;
 
+  /* Couleurs de donnees des stats, validees daltonisme (voir section-stats). */
+  --donnee-alcool: #0891b2;
+  --donnee-nourriture: #b45309;
+  --donnee-materiel: #6d28d9;
+
+  /* Les teintes des pieces du hub : une couleur par espace, cards et sidebar. */
+  --teinte-ardoise: #5a666b;
+  --teinte-ardoise-doux: #eceff0;
+  --teinte-petrole: #0891b2;
+  --teinte-petrole-doux: #e0f2f7;
+  --teinte-orange: #b45309;
+  --teinte-orange-doux: #f9ecdf;
+  --teinte-violet: #6d28d9;
+  --teinte-violet-doux: #eee8fb;
+  --teinte-bleu: #1d4ed8;
+  --teinte-bleu-doux: #e3eafc;
+  --teinte-vert: #2c7a4b;
+  --teinte-vert-doux: #e7f2ea;
+  --teinte-rose: #be185d;
+  --teinte-rose-doux: #fae5ee;
+
   --rayon: 12px;
   --rayon-petit: 8px;
   --ombre: 0 1px 2px rgba(18, 23, 26, 0.05);
@@ -68,6 +89,25 @@
 
     --ombre: none;
     --ombre-haute: 0 20px 50px rgba(0, 0, 0, 0.5);
+
+    --donnee-alcool: #0a97ad;
+    --donnee-nourriture: #b57b2e;
+    --donnee-materiel: #8b68e0;
+
+    --teinte-ardoise: #939fa3;
+    --teinte-ardoise-doux: #232a2d;
+    --teinte-petrole: #5fd3e0;
+    --teinte-petrole-doux: #123239;
+    --teinte-orange: #e0ad55;
+    --teinte-orange-doux: #33270f;
+    --teinte-violet: #b79df5;
+    --teinte-violet-doux: #261d3d;
+    --teinte-bleu: #93b4f5;
+    --teinte-bleu-doux: #17233d;
+    --teinte-vert: #6fce97;
+    --teinte-vert-doux: #172c20;
+    --teinte-rose: #f191bd;
+    --teinte-rose-doux: #341a26;
   }
 }
 
@@ -363,6 +403,40 @@ button:disabled {
 .tag.accent {
   background: var(--accent-doux);
   color: var(--accent);
+}
+
+/**
+ * Teintes des pieces du hub : chaque classe pose la paire vive/douce dans
+ * --vive et --douce, que la sidebar et les cards consomment chacune a leur
+ * facon.
+ */
+.teinte-ardoise {
+  --vive: var(--teinte-ardoise);
+  --douce: var(--teinte-ardoise-doux);
+}
+.teinte-petrole {
+  --vive: var(--teinte-petrole);
+  --douce: var(--teinte-petrole-doux);
+}
+.teinte-orange {
+  --vive: var(--teinte-orange);
+  --douce: var(--teinte-orange-doux);
+}
+.teinte-bleu {
+  --vive: var(--teinte-bleu);
+  --douce: var(--teinte-bleu-doux);
+}
+.teinte-violet {
+  --vive: var(--teinte-violet);
+  --douce: var(--teinte-violet-doux);
+}
+.teinte-vert {
+  --vive: var(--teinte-vert);
+  --douce: var(--teinte-vert-doux);
+}
+.teinte-rose {
+  --vive: var(--teinte-rose);
+  --douce: var(--teinte-rose-doux);
 }
 
 /* -- Tableaux ------------------------------------------------------------- */

@@ -42,6 +42,10 @@ const PARTAGE_TEST = {
   overrides: [] as [string, Override][],
   ajustements: [] as [string, Ajustement][],
   materiel: MATERIEL_PAR_DEFAUT,
+  invites: [],
+  nourriture: { repas: [], extras: [] },
+  articles: [],
+  reponsesFormulaire: [],
 };
 
 describe('resoudre', () => {

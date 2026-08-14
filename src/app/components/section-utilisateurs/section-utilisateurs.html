@@ -1,0 +1,132 @@
+<section class="card">
+  <div class="card-head">
+    <h2>Les invites, un par un</h2>
+    <span class="muted num">{{ fmtEntier(store.invitesNommes().length) }} fiche(s)</span>
+  </div>
+
+  <p class="intro muted">
+    Une fiche par personne : qui l'amene, ce qu'elle boit, ce qu'elle mange. Chaque fiche compte
+    comme une tete dans le calcul du bar et de la nourriture, en plus des effectifs anonymes saisis
+    par profil dans l'espace Bar.
+  </p>
+
+  @if (sansProfil() > 0) {
+    <p class="avertissement">
+      <span class="num">{{ sansProfil() }}</span> invite(s) sans profil de consommation : ils
+      comptent comme des tetes a nourrir, mais ne boivent rien dans le calcul du bar.
+    </p>
+  }
+
+  @if (store.invitesNommes().length === 0) {
+    <p class="vide">
+      Personne pour l'instant. Ajoute une fiche, ou importe les reponses du formulaire.
+    </p>
+  }
+
+  @for (invite of store.invitesNommes(); track invite.id) {
+    <article class="fiche">
+      <div class="ligne principale">
+        <label class="champ">
+          <span>Prenom</span>
+          <input
+            type="text"
+            [value]="invite.prenom"
+            (input)="maj(invite, { prenom: $any($event.target).value })"
+          />
+        </label>
+        <label class="champ">
+          <span>Nom</span>
+          <input
+            type="text"
+            [value]="invite.nom"
+            (input)="maj(invite, { nom: $any($event.target).value })"
+          />
+        </label>
+        <label class="champ">
+          <span>Amene par</span>
+          <select (change)="maj(invite, { participantId: $any($event.target).value })">
+            @for (participant of store.participants(); track participant.id) {
+              <option [value]="participant.id" [selected]="participant.id === invite.participantId">
+                {{ participant.nom }}
+              </option>
+            }
+          </select>
+        </label>
+        <label class="champ">
+          <span>Profil alcool</span>
+          <select (change)="maj(invite, { personneTypeId: $any($event.target).value })">
+            <option value="" [selected]="!invite.personneTypeId">— Ne boit pas / a definir</option>
+            @for (type of store.personnesTypes(); track type.id) {
+              <option [value]="type.id" [selected]="type.id === invite.personneTypeId">
+                {{ type.emoji }} {{ type.nom }}
+              </option>
+            }
+          </select>
+        </label>
+        <button
+          type="button"
+          class="discret"
+          title="Retirer cet invite"
+          (click)="supprimer(invite)"
+        >
+          ×
+        </button>
+      </div>
+      <div class="ligne secondaire">
+        <label class="champ">
+          <span>Regime</span>
+          <select (change)="maj(invite, { regime: $any($event.target).value })">
+            @for (regime of regimes; track regime.id) {
+              <option [value]="regime.id" [selected]="regime.id === invite.regime">
+                {{ regime.libelle }}
+              </option>
+            }
+          </select>
+        </label>
+        <label class="champ">
+          <span>Allergies</span>
+          <input
+            type="text"
+            placeholder="Arachide, lactose..."
+            [value]="invite.allergies"
+            (input)="maj(invite, { allergies: $any($event.target).value })"
+          />
+        </label>
+        <label class="champ">
+          <span>Envies</span>
+          <input
+            type="text"
+            placeholder="DJ, jeux, karaoke..."
+            [value]="invite.envies"
+            (input)="maj(invite, { envies: $any($event.target).value })"
+          />
+        </label>
+        <label class="champ">
+          <span>Remarques</span>
+          <input
+            type="text"
+            placeholder="Arrive samedi, dort sur place..."
+            [value]="invite.remarques"
+            (input)="maj(invite, { remarques: $any($event.target).value })"
+          />
+        </label>
+      </div>
+    </article>
+  }
+
+  <div class="ajout">
+    <button type="button" class="primaire" (click)="ajouter()" [disabled]="!porteurParDefaut()">
+      + Ajouter un invite
+    </button>
+    @if (store.reponsesFormulaire().length > 0) {
+      <button type="button" (click)="store.espace.set('formulaire')">
+        Importer depuis le formulaire ({{ store.reponsesFormulaire().length }})
+      </button>
+    }
+  </div>
+
+  <p class="hint">
+    Les profils de consommation se creent et se reglent dans l'espace Bar &amp; boissons, section «
+    Les profils ». Ici, tu les attaches a des personnes.
+  </p>
+</section>

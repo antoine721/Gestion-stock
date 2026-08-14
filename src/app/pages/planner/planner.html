@@ -1,122 +1,177 @@
 @if (store.chargement()) {
   <p class="vide">Chargement de l'evenement…</p>
 } @else {
-  <header class="entete">
-    <div class="titre">
-      <h1>{{ store.partage().nom }}</h1>
-      <p class="muted">
-        <span class="num">{{ store.cadre().invites }}</span> invites ·
-        <span class="num">{{ store.participants().length }}</span> organisateurs · code
-        <button
-          type="button"
-          class="code num"
-          (click)="copierLien()"
-          title="Copier le lien de partage"
-        >
-          {{ store.code() }}
-        </button>
-        @if (lienCopie()) {
-          <span class="tag accent">lien copie</span>
-        }
-      </p>
-    </div>
-
-    <!-- L'addition, toujours sous les yeux : c'est la question de l'app. -->
-    <div class="addition">
-      <span class="montant num">{{ fmtEuro(store.panier().coutTotal) }}</span>
-      <span class="detail muted num">{{ fmtEuro(coutParPersonne()) }} / pers.</span>
-    </div>
-
-    <div class="etat">
-      <span class="sync muted">
-        @if (store.enregistrement()) {
-          Enregistrement…
-        } @else if (store.erreur()) {
-          <span class="etat-ko">{{ store.erreur() }}</span>
-        } @else {
-          Enregistre
-        }
-      </span>
-      <button type="button" class="discret" (click)="quitter()">Quitter</button>
-    </div>
-  </header>
-
-  <nav class="onglets">
-    @for (participant of store.participants(); track participant.id) {
-      <button
-        type="button"
-        [attr.aria-pressed]="store.onglet() === participant.id"
-        (click)="store.onglet.set(participant.id)"
-      >
-        {{ participant.nom }}
-        <span class="num compte">{{ invitesDe(participant) }}</span>
-      </button>
-    }
-    <button
-      type="button"
-      class="discret ajout"
-      (click)="ajouterParticipant()"
-      title="Ajouter un co-organisateur"
-    >
-      +
-    </button>
-    <button
-      type="button"
-      class="onglet-evenement"
-      [attr.aria-pressed]="store.onglet() === evenement"
-      (click)="store.onglet.set(evenement)"
-    >
-      L'evenement
-    </button>
-  </nav>
-
-  @if (store.onglet() === evenement) {
-    <nav class="sections">
-      @for (section of sections; track section.id) {
-        <button
-          type="button"
-          [attr.aria-pressed]="store.section() === section.id"
-          (click)="store.section.set(section.id)"
-        >
-          {{ section.libelle }}
-        </button>
-      }
-    </nav>
-
-    @switch (store.section()) {
-      @case ('courses') {
-        <app-liste-courses />
-      }
-      @case ('profils') {
-        <app-personnes-types />
-      }
-      @case ('extras') {
-        <app-extras />
-      }
-      @case ('bilan') {
-        <div class="colonnes">
-          <div class="saisie"><app-validation-panel /></div>
-          <div class="resultat"><app-repartition-panel /></div>
-        </div>
-      }
-      @case ('reglages') {
-        <app-reglages-form />
-      }
-    }
-  } @else if (store.participantEdite(); as participant) {
-    <div class="colonnes">
-      <div class="saisie">
-        <app-effectifs-form />
-
-        <div class="retrait">
-          <button type="button" class="discret" (click)="retirer(participant.id, participant.nom)">
-            Retirer {{ participant.nom }} de l'evenement
+  <div class="hub">
+    <aside class="sidebar">
+      <div class="marque">
+        <p class="app-nom muted">Combien acheter ?</p>
+        <h1>{{ store.partage().nom }}</h1>
+        <p class="code-ligne muted">
+          code
+          <button
+            type="button"
+            class="code num"
+            (click)="copierLien()"
+            title="Copier le lien de partage"
+          >
+            {{ store.code() }}
           </button>
-        </div>
+          @if (lienCopie()) {
+            <span class="tag accent">lien copie</span>
+          }
+        </p>
       </div>
-      <div class="resultat">
-        <app-resume-panel />
+
+      <!-- L'addition globale, toujours sous les yeux : la question de l'app. -->
+      <div class="budget">
+        <span class="montant num">{{ fmtEuro(store.budgetGlobal().total) }}</span>
+        <span class="detail muted num">
+          {{ fmtEuro(store.budgetGlobal().parPersonne) }} / pers. ·
+          {{ fmtEntier(store.cadre().invites) }} invites
+        </span>
       </div>
-    </div>
-  }
+
+      <nav class="espaces">
+        @for (espace of espaces; track espace.id) {
+          <button
+            type="button"
+            [class]="'teinte-' + espace.teinte"
+            [attr.aria-pressed]="store.espace() === espace.id"
+            (click)="store.espace.set(espace.id)"
+          >
+            <span class="emoji" aria-hidden="true">{{ espace.emoji }}</span>
+            <span class="lib">{{ espace.libelle }}</span>
+            @if (indicateurDe(espace.id); as valeur) {
+              <span class="valeur num">{{ valeur }}</span>
+            }
+          </button>
+        }
+      </nav>
+
+      <div class="pied">
+        <span class="sync muted">
+          @if (store.enregistrement()) {
+            Enregistrement…
+          } @else if (store.erreur()) {
+            <span class="etat-ko">{{ store.erreur() }}</span>
+          } @else {
+            Enregistre
+          }
+        </span>
+        <button type="button" class="discret" (click)="quitter()">Quitter</button>
+      </div>
+    </aside>
+
+    <main class="contenu">
+      @switch (store.espace()) {
+        @case ('accueil') {
+          <app-hub-accueil />
+        }
+        @case ('alcool') {
+          <div class="entete-espace">
+            <h2>🍹 Bar &amp; boissons</h2>
+            <span class="addition num">{{ fmtEuro(store.panier().coutTotal) }}</span>
+          </div>
+
+          <nav class="onglets">
+            @for (participant of store.participantsComplets(); track participant.id) {
+              <button
+                type="button"
+                [attr.aria-pressed]="store.onglet() === participant.id"
+                (click)="store.onglet.set(participant.id)"
+              >
+                {{ participant.nom }}
+                <span class="num compte">{{ invitesDe(participant) }}</span>
+              </button>
+            }
+            <button
+              type="button"
+              class="discret ajout"
+              (click)="ajouterParticipant()"
+              title="Ajouter un co-organisateur"
+            >
+              +
+            </button>
+            <button
+              type="button"
+              class="onglet-evenement"
+              [attr.aria-pressed]="store.onglet() === evenement"
+              (click)="store.onglet.set(evenement)"
+            >
+              L'evenement
+            </button>
+          </nav>
+
+          @if (store.onglet() === evenement) {
+            <nav class="sections">
+              @for (section of sections; track section.id) {
+                <button
+                  type="button"
+                  [attr.aria-pressed]="store.section() === section.id"
+                  (click)="store.section.set(section.id)"
+                >
+                  {{ section.libelle }}
+                </button>
+              }
+            </nav>
+
+            @switch (store.section()) {
+              @case ('courses') {
+                <app-liste-courses />
+              }
+              @case ('profils') {
+                <app-personnes-types />
+              }
+              @case ('extras') {
+                <app-extras />
+              }
+              @case ('bilan') {
+                <div class="colonnes">
+                  <div class="saisie"><app-validation-panel /></div>
+                  <div class="resultat"><app-repartition-panel /></div>
+                </div>
+              }
+              @case ('reglages') {
+                <app-reglages-form />
+              }
+            }
+          } @else if (store.participantEdite(); as participant) {
+            <div class="colonnes">
+              <div class="saisie">
+                <app-effectifs-form />
+
+                <div class="retrait">
+                  <button
+                    type="button"
+                    class="discret"
+                    (click)="retirer(participant.id, participant.nom)"
+                  >
+                    Retirer {{ participant.nom }} de l'evenement
+                  </button>
+                </div>
+              </div>
+              <div class="resultat">
+                <app-resume-panel />
+              </div>
+            </div>
+          }
+        }
+        @case ('nourriture') {
+          <app-section-nourriture />
+        }
+        @case ('utilisateurs') {
+          <app-section-utilisateurs />
+        }
+        @case ('materiel') {
+          <app-section-materiel />
+        }
+        @case ('stats') {
+          <app-section-stats />
+        }
+        @case ('formulaire') {
+          <app-section-formulaire />
+        }
+      }
+    </main>
+  </div>
 }
