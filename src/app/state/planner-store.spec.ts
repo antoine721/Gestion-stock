@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ONGLET_EVENEMENT, PARTAGE_INITIAL, PlannerStore } from './planner-store';
+import { PARTAGE_INITIAL, PlannerStore } from './planner-store';
 import { Api, EvenementDistant } from './api';
 import { Participant, PersonneType } from '../domain/models';
 
@@ -114,31 +114,21 @@ describe('PlannerStore', () => {
     expect(store.panier().verresTotal).toBe(avant * 3);
   });
 
-  it("n'edite que les effectifs de l'onglet ouvert", () => {
-    store.onglet.set('m');
-    store.majEffectif('p2', 10);
+  it('compte un invite nomme avec profil comme une tete qui boit', () => {
+    const id = store.ajouterInvite('a');
+    store.majInvite(id, { prenom: 'Paul', personneTypeId: 'p2' });
 
-    expect(store.participants().find((x) => x.id === 'm')?.effectifs).toEqual([
-      { personneTypeId: 'p2', nombre: 10 },
-    ]);
-    expect(store.participants().find((x) => x.id === 'a')?.effectifs).toHaveLength(2);
+    expect(store.cadre().invites).toBe(13);
+    // 4 anonymes de Marie + le Paul d'Antoine.
+    expect(store.resumePersonnesTypes().find((x) => x.personneType.id === 'p2')?.effectif).toBe(5);
   });
 
-  it('retire un effectif tombe a zero', () => {
-    store.onglet.set('a');
-    store.majEffectif('p3', 0);
+  it('vide les effectifs anonymes herites de l’ancienne saisie', () => {
+    expect(store.effectifsAnonymes()).toBe(12);
+    store.viderEffectifsAnonymes();
 
-    expect(store.effectifs().some((x) => x.personneTypeId === 'p3')).toBe(false);
-    expect(store.cadre().invites).toBe(10);
-  });
-
-  it('partage la bibliotheque de profils entre co-organisateurs', () => {
-    store.onglet.set('a');
-    // Marie a cree la team spritz ; Antoine peut la compter dans ses invites.
-    store.majEffectif('p2', 3);
-
-    expect(store.invitesDuParticipant()).toBe(11);
-    expect(store.resumePersonnesTypes().find((x) => x.personneType.id === 'p2')?.effectif).toBe(7);
+    expect(store.effectifsAnonymes()).toBe(0);
+    expect(store.cadre().invites).toBe(0);
   });
 
   it('cree un profil signe par celui qui le cree', () => {
@@ -169,14 +159,16 @@ describe('PlannerStore', () => {
     expect(store.personnesTypes().find((x) => x.id === 'p1')?.consommation).toHaveLength(1);
   });
 
-  it('supprime un profil et les effectifs qui le visaient', () => {
+  it('supprime un profil, les effectifs et les rattachements qui le visaient', () => {
+    const invite = store.ajouterInvite('a');
+    store.majInvite(invite, { personneTypeId: 'p1' });
     store.supprimerPersonneType('p1');
 
     expect(store.personnesTypes().some((x) => x.id === 'p1')).toBe(false);
     expect(store.participants().find((x) => x.id === 'a')?.effectifs).toEqual([
       { personneTypeId: 'p3', nombre: 2 },
     ]);
-    expect(store.cadre().invites).toBe(6);
+    expect(store.invitesNommes().find((x) => x.id === invite)?.personneTypeId).toBe('');
   });
 
   it('repartit le cout au prorata du volume consomme', () => {
@@ -188,17 +180,40 @@ describe('PlannerStore', () => {
     expect(repartition[0].invites).toBe(8);
   });
 
-  it('ne montre aucun effectif sur la vue totale', () => {
-    store.onglet.set(ONGLET_EVENEMENT);
-    expect(store.effectifs()).toHaveLength(0);
-    expect(store.participantEdite()).toBeUndefined();
+  it('suit les encaissements des invites', () => {
+    const categorie = store.ajouterCategoriePaiement();
+    store.majCategoriePaiement(categorie, { nom: 'Week-end complet', montant: 40 });
+    const invite = store.ajouterInvite('a');
+    store.majInvite(invite, { prenom: 'Paul', categoriePaiementId: categorie });
+
+    expect(store.encaissements().attendu).toBe(40);
+    expect(store.encaissements().enAttente).toBe(1);
+
+    store.majInvite(invite, { paye: true, montantPaye: 40 });
+    expect(store.encaissements().encaisse).toBe(40);
+    expect(store.encaissements().reste).toBe(0);
   });
 
-  it('retombe sur la vue totale si le participant affiche disparait', () => {
-    store.onglet.set('m');
-    api.evenement.participants = [participant('a', 'Antoine', [['p1', 6]])];
-    store['appliquer'](api.evenement);
+  it('agrege la cuisine et la verse dans la liste de courses unifiee', () => {
+    store.appliquerIdee(1, 'diner', 'Barbecue');
 
-    expect(store.onglet()).toBe(ONGLET_EVENEMENT);
+    const viande = store.lignesCuisine().find((x) => x.nom === 'Viande a griller');
+    // 12 tetes x 180 g, agreges avant l'arrondi en paquets.
+    expect(viande?.besoin).toBe(2160);
+    expect(viande?.paquets).toBe(3);
+
+    const ligne = store.listeCourses().find((x) => x.groupe === 'cuisine');
+    expect(ligne).toBeDefined();
+    store.basculerCourse(ligne!.id);
+    expect(store.listeCourses().find((x) => x.id === ligne!.id)?.cochee).toBe(true);
+  });
+
+  it('cocher une ligne materiel bascule le statut de l’article', () => {
+    const id = store.ajouterArticle({ nom: 'Guirlandes' });
+    store.basculerCourse(`materiel:${id}`);
+
+    expect(store.articles().find((x) => x.id === id)?.statut).toBe('achete');
+    store.basculerCourse(`materiel:${id}`);
+    expect(store.articles().find((x) => x.id === id)?.statut).toBe('a-prevoir');
   });
 });

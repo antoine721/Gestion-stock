@@ -1,5 +1,22 @@
 <section class="card">
   <div class="card-head">
+    <h2>Le lien a partager</h2>
+    @if (lienCopie()) {
+      <span class="tag accent">lien copie</span>
+    }
+  </div>
+  <p class="intro muted">
+    Les invites remplissent leur fiche eux-memes, sans mot de passe : ils s'identifient, repondent,
+    et leur reponse arrive ici. C'est le seul lien public de l'app.
+  </p>
+  <div class="lien">
+    <code class="num">{{ store.lienFormulaire() }}</code>
+    <button type="button" class="primaire" (click)="copierLien()">Copier le lien</button>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-head">
     <h2>La fiche invite</h2>
     @if (envoye()) {
       <span class="tag accent">Reponse enregistree</span>
@@ -7,9 +24,8 @@
   </div>
 
   <p class="intro muted">
-    A faire remplir par tes invites (ou pour eux) : qui ils sont, ce qu'ils mangent, ce qu'ils ont
-    envie d'apporter a la fete. Chaque reponse attend ensuite d'etre rattachee a un co-organisateur
-    pour devenir un invite nomme.
+    La meme fiche, remplie d'ici : pratique pour saisir a la place de quelqu'un. Chaque reponse
+    attend ensuite d'etre rattachee a un co-organisateur pour devenir un invite nomme.
   </p>
 
   <div class="grid-champs">
@@ -102,11 +118,6 @@
       Enregistrer la reponse
     </button>
   </div>
-
-  <p class="hint">
-    Partage le lien de l'evenement (le code en haut de la sidebar) pour que chacun vienne remplir sa
-    fiche ici.
-  </p>
 </section>
 
 <section class="card">

@@ -1,14 +1,154 @@
 <section class="card">
   <div class="card-head">
-    <h2>Les invites, un par un</h2>
-    <span class="muted num">{{ fmtEntier(store.invitesNommes().length) }} fiche(s)</span>
+    <h2>Les co-organisateurs</h2>
+    <span class="muted num">{{ fmtEntier(store.participants().length) }}</span>
+  </div>
+  <div class="organisateurs">
+    @for (participant of store.participants(); track participant.id) {
+      <span class="organisateur">
+        <strong>{{ participant.nom }}</strong>
+        <span class="muted num">{{ fichesDe(participant.id) }} invite(s)</span>
+        <button
+          type="button"
+          class="discret"
+          title="Retirer ce co-organisateur"
+          (click)="retirerCoOrganisateur(participant)"
+        >
+          ×
+        </button>
+      </span>
+    }
+    <button type="button" class="discret ajout-org" (click)="ajouterCoOrganisateur()">
+      + Ajouter
+    </button>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Les tarifs</h2>
+    <span class="muted num">
+      {{ fmtEuro(store.encaissements().encaisse) }} /
+      {{ fmtEuro(store.encaissements().attendu) }} encaisses
+    </span>
   </div>
 
   <p class="intro muted">
-    Une fiche par personne : qui l'amene, ce qu'elle boit, ce qu'elle mange. Chaque fiche compte
-    comme une tete dans le calcul du bar et de la nourriture, en plus des effectifs anonymes saisis
-    par profil dans l'espace Bar.
+    Les categories de paiement : week-end complet, une journee, gratuit… Le paiement se fait hors de
+    l'app ; ici tu attribues un tarif a chaque invite et tu coches quand c'est regle.
   </p>
+
+  @if (store.categoriesPaiement().length > 0) {
+    <table class="tarifs">
+      <thead>
+        <tr>
+          <th>Categorie</th>
+          <th class="droite">Tarif</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (categorie of store.categoriesPaiement(); track categorie.id) {
+          <tr>
+            <td>
+              <input
+                type="text"
+                placeholder="Week-end complet, une journee..."
+                [value]="categorie.nom"
+                (input)="majCategorieNom(categorie, $any($event.target).value)"
+              />
+            </td>
+            <td class="droite">
+              <input
+                class="etroit"
+                type="number"
+                min="0"
+                step="1"
+                [value]="categorie.montant"
+                (input)="majCategorieMontant(categorie, $any($event.target).value)"
+              />
+            </td>
+            <td class="droite">
+              <button
+                type="button"
+                class="discret"
+                title="Supprimer"
+                (click)="supprimerCategorie(categorie)"
+              >
+                ×
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  <div class="ajout">
+    <button type="button" (click)="store.ajouterCategoriePaiement()">
+      + Ajouter une categorie
+    </button>
+    @if (store.encaissements().enAttente > 0) {
+      <span class="tag warn">
+        {{ store.encaissements().enAttente }} paiement(s) en attente ·
+        <span class="num">{{ fmtEuro(store.encaissements().reste) }}</span>
+      </span>
+    }
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Les invites, un par un</h2>
+    <span class="muted num">
+      {{ fmtEntier(invitesFiltres().length) }}/{{ fmtEntier(store.invitesNommes().length) }}
+      fiche(s)
+    </span>
+  </div>
+
+  <p class="intro muted">
+    Une fiche par personne : qui l'amene, ce qu'elle boit, ce qu'elle mange, ce qu'elle paye. Chaque
+    fiche compte comme une tete dans le calcul du bar et de la nourriture.
+  </p>
+
+  <div class="filtres">
+    <label class="champ">
+      <span>Amene par</span>
+      <select (change)="filtreParticipant.set($any($event.target).value)">
+        <option value="" [selected]="filtreParticipant() === ''">Tout le monde</option>
+        @for (participant of store.participants(); track participant.id) {
+          <option [value]="participant.id" [selected]="filtreParticipant() === participant.id">
+            {{ participant.nom }}
+          </option>
+        }
+      </select>
+    </label>
+    <label class="champ">
+      <span>Profil alcool</span>
+      <select (change)="filtreProfil.set($any($event.target).value)">
+        <option value="" [selected]="filtreProfil() === ''">Tous</option>
+        <option value="sans" [selected]="filtreProfil() === 'sans'">Sans profil</option>
+        @for (type of store.personnesTypes(); track type.id) {
+          <option [value]="type.id" [selected]="filtreProfil() === type.id">
+            {{ type.emoji }} {{ type.nom }}
+          </option>
+        }
+      </select>
+    </label>
+    <label class="champ">
+      <span>Paiement</span>
+      <select (change)="filtrePaiement.set($any($event.target).value)">
+        <option value="tous" [selected]="filtrePaiement() === 'tous'">Tous</option>
+        <option value="paye" [selected]="filtrePaiement() === 'paye'">A paye</option>
+        <option value="non-paye" [selected]="filtrePaiement() === 'non-paye'">N'a pas paye</option>
+      </select>
+    </label>
+    @if (filtresActifs()) {
+      <button type="button" class="discret" (click)="reinitialiserFiltres()">
+        Effacer les filtres
+      </button>
+    }
+  </div>
 
   @if (sansProfil() > 0) {
     <p class="avertissement">
@@ -17,13 +157,26 @@
     </p>
   }
 
-  @if (store.invitesNommes().length === 0) {
-    <p class="vide">
-      Personne pour l'instant. Ajoute une fiche, ou importe les reponses du formulaire.
+  @if (store.effectifsAnonymes() > 0) {
+    <p class="avertissement">
+      <span class="num">{{ store.effectifsAnonymes() }}</span> invite(s) anonymes herites de
+      l'ancienne saisie par profil comptent encore dans le calcul. Recree-les en fiches puis :
+      <button type="button" class="discret" (click)="store.viderEffectifsAnonymes()">
+        vider les effectifs anonymes
+      </button>
     </p>
   }
 
-  @for (invite of store.invitesNommes(); track invite.id) {
+  @if (store.invitesNommes().length === 0) {
+    <p class="vide">
+      Personne pour l'instant. Ajoute une fiche, ou partage le formulaire (espace Formulaire) et
+      importe les reponses.
+    </p>
+  } @else if (invitesFiltres().length === 0) {
+    <p class="vide">Aucune fiche ne passe ces filtres.</p>
+  }
+
+  @for (invite of invitesFiltres(); track invite.id) {
     <article class="fiche">
       <div class="ligne principale">
         <label class="champ">
@@ -110,6 +263,56 @@
             (input)="maj(invite, { remarques: $any($event.target).value })"
           />
         </label>
+      </div>
+      <div class="ligne paiement">
+        <label class="champ">
+          <span>Tarif</span>
+          <select (change)="maj(invite, { categoriePaiementId: $any($event.target).value })">
+            <option value="" [selected]="!invite.categoriePaiementId">— A definir</option>
+            @for (categorie of store.categoriesPaiement(); track categorie.id) {
+              <option
+                [value]="categorie.id"
+                [selected]="categorie.id === invite.categoriePaiementId"
+              >
+                {{ categorie.nom || 'Sans nom' }} — {{ fmtEuro(categorie.montant) }}
+              </option>
+            }
+          </select>
+        </label>
+        <label class="champ">
+          <span>Jours sur place</span>
+          <input
+            type="number"
+            min="0"
+            step="1"
+            placeholder="tous"
+            [value]="invite.joursPresence || ''"
+            (input)="majNombre(invite, 'joursPresence', $any($event.target).value)"
+          />
+        </label>
+        <label class="paye" [class.regle]="invite.paye">
+          <input type="checkbox" [checked]="invite.paye" (change)="basculerPaye(invite)" />
+          <span>A paye</span>
+        </label>
+        <label class="champ">
+          <span>Montant verse</span>
+          <input
+            type="number"
+            min="0"
+            step="1"
+            [value]="invite.montantPaye"
+            (input)="majNombre(invite, 'montantPaye', $any($event.target).value)"
+          />
+        </label>
+        @if (tarifDe(invite); as tarif) {
+          @if (invite.paye && invite.montantPaye < tarif.montant) {
+            <span class="tag warn num">
+              manque {{ fmtEuro(tarif.montant - invite.montantPaye) }}
+            </span>
+          } @else if (invite.paye) {
+            <span class="tag ok">Regle</span>
+          }
+        }
       </div>
     </article>
   }
