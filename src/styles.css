@@ -48,6 +48,8 @@
   --teinte-vert-doux: #e7f2ea;
   --teinte-rose: #be185d;
   --teinte-rose-doux: #fae5ee;
+  --teinte-olive: #64751b;
+  --teinte-olive-doux: #eef2dd;
 
   --rayon: 12px;
   --rayon-petit: 8px;
@@ -108,6 +110,8 @@
     --teinte-vert-doux: #172c20;
     --teinte-rose: #f191bd;
     --teinte-rose-doux: #341a26;
+    --teinte-olive: #bccf6d;
+    --teinte-olive-doux: #262c11;
   }
 }
 
@@ -437,6 +441,10 @@ button:disabled {
 .teinte-rose {
   --vive: var(--teinte-rose);
   --douce: var(--teinte-rose-doux);
+}
+.teinte-olive {
+  --vive: var(--teinte-olive);
+  --douce: var(--teinte-olive-doux);
 }
 
 /* -- Tableaux ------------------------------------------------------------- */

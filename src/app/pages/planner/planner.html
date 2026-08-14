@@ -73,88 +73,41 @@
             <span class="addition num">{{ fmtEuro(store.panier().coutTotal) }}</span>
           </div>
 
-          <nav class="onglets">
-            @for (participant of store.participantsComplets(); track participant.id) {
+          <nav class="sections">
+            @for (section of sections; track section.id) {
               <button
                 type="button"
-                [attr.aria-pressed]="store.onglet() === participant.id"
-                (click)="store.onglet.set(participant.id)"
+                [attr.aria-pressed]="store.section() === section.id"
+                (click)="store.section.set(section.id)"
               >
-                {{ participant.nom }}
-                <span class="num compte">{{ invitesDe(participant) }}</span>
+                {{ section.libelle }}
               </button>
             }
-            <button
-              type="button"
-              class="discret ajout"
-              (click)="ajouterParticipant()"
-              title="Ajouter un co-organisateur"
-            >
-              +
-            </button>
-            <button
-              type="button"
-              class="onglet-evenement"
-              [attr.aria-pressed]="store.onglet() === evenement"
-              (click)="store.onglet.set(evenement)"
-            >
-              L'evenement
-            </button>
           </nav>
 
-          @if (store.onglet() === evenement) {
-            <nav class="sections">
-              @for (section of sections; track section.id) {
-                <button
-                  type="button"
-                  [attr.aria-pressed]="store.section() === section.id"
-                  (click)="store.section.set(section.id)"
-                >
-                  {{ section.libelle }}
-                </button>
-              }
-            </nav>
-
-            @switch (store.section()) {
-              @case ('courses') {
-                <app-liste-courses />
-              }
-              @case ('profils') {
-                <app-personnes-types />
-              }
-              @case ('extras') {
-                <app-extras />
-              }
-              @case ('bilan') {
-                <div class="colonnes">
-                  <div class="saisie"><app-validation-panel /></div>
-                  <div class="resultat"><app-repartition-panel /></div>
-                </div>
-              }
-              @case ('reglages') {
-                <app-reglages-form />
-              }
+          @switch (store.section()) {
+            @case ('courses') {
+              <app-liste-courses />
             }
-          } @else if (store.participantEdite(); as participant) {
-            <div class="colonnes">
-              <div class="saisie">
-                <app-effectifs-form />
-
-                <div class="retrait">
-                  <button
-                    type="button"
-                    class="discret"
-                    (click)="retirer(participant.id, participant.nom)"
-                  >
-                    Retirer {{ participant.nom }} de l'evenement
-                  </button>
-                </div>
+            @case ('profils') {
+              <app-personnes-types />
+            }
+            @case ('extras') {
+              <app-extras />
+            }
+            @case ('bilan') {
+              <div class="colonnes">
+                <div class="saisie"><app-validation-panel /></div>
+                <div class="resultat"><app-repartition-panel /></div>
               </div>
-              <div class="resultat">
-                <app-resume-panel />
-              </div>
-            </div>
+            }
+            @case ('reglages') {
+              <app-reglages-form />
+            }
           }
+        }
+        @case ('courses') {
+          <app-section-courses />
         }
         @case ('nourriture') {
           <app-section-nourriture />

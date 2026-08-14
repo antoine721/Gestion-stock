@@ -46,6 +46,8 @@ const PARTAGE_TEST = {
   nourriture: { repas: [], extras: [] },
   articles: [],
   reponsesFormulaire: [],
+  categoriesPaiement: [],
+  coursesCochees: [],
 };
 
 describe('resoudre', () => {
