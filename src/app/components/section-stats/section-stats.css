@@ -1,0 +1,162 @@
+/* -- Tuiles KPI ------------------------------------------------------------ */
+
+.tuiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.tuile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.125rem;
+  background: var(--surface);
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+}
+
+.etiquette {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--texte-doux);
+}
+
+.valeur {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.sous {
+  font-size: 0.6875rem;
+}
+
+/* -- Barre de composition du budget ---------------------------------------- */
+
+/* Marques fines, bouts arrondis, 2px d'ecart entre segments : la surface
+   fait le trait de separation. */
+.composition {
+  display: flex;
+  gap: 2px;
+  height: 14px;
+  margin-bottom: 0.875rem;
+}
+
+.segment {
+  min-width: 6px;
+  border-radius: 4px;
+}
+
+.poste-alcool {
+  background: var(--donnee-alcool);
+}
+.poste-nourriture {
+  background: var(--donnee-nourriture);
+}
+.poste-materiel {
+  background: var(--donnee-materiel);
+}
+
+.legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+}
+
+.legende li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4375rem;
+}
+
+.legende .pastille {
+  align-self: center;
+}
+
+/* -- Qui paye quoi --------------------------------------------------------- */
+
+.defilement {
+  overflow-x: auto;
+}
+
+.defilement table {
+  min-width: 42rem;
+}
+
+.nom {
+  font-weight: 500;
+}
+
+.total {
+  font-weight: 600;
+}
+
+.credit {
+  color: var(--ok);
+}
+
+th.part {
+  text-align: left;
+}
+
+td.part {
+  min-width: 8rem;
+}
+
+.jauge {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  overflow: hidden;
+  margin-bottom: 0.25rem;
+}
+
+.remplissage {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+}
+
+/* -- Colonnes du bas ------------------------------------------------------- */
+
+.colonnes-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.colonnes-stats .card + .card {
+  margin-top: 0;
+}
+
+.chiffres,
+.taches {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+}
+
+.chiffres li,
+.taches li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.chiffres li + li,
+.taches li + li {
+  border-top: 1px solid var(--bord);
+}

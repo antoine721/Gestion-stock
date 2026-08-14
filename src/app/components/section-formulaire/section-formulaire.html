@@ -1,0 +1,183 @@
+<section class="card">
+  <div class="card-head">
+    <h2>La fiche invite</h2>
+    @if (envoye()) {
+      <span class="tag accent">Reponse enregistree</span>
+    }
+  </div>
+
+  <p class="intro muted">
+    A faire remplir par tes invites (ou pour eux) : qui ils sont, ce qu'ils mangent, ce qu'ils ont
+    envie d'apporter a la fete. Chaque reponse attend ensuite d'etre rattachee a un co-organisateur
+    pour devenir un invite nomme.
+  </p>
+
+  <div class="grid-champs">
+    <label class="champ">
+      <span>Prenom *</span>
+      <input type="text" [value]="prenom()" (input)="prenom.set($any($event.target).value)" />
+    </label>
+    <label class="champ">
+      <span>Nom</span>
+      <input type="text" [value]="nom()" (input)="nom.set($any($event.target).value)" />
+    </label>
+    <label class="champ">
+      <span>Invite par</span>
+      <input
+        type="text"
+        placeholder="Qui t'invite ?"
+        [value]="invitePar()"
+        (input)="invitePar.set($any($event.target).value)"
+      />
+    </label>
+    <label class="champ">
+      <span>Personnes en plus</span>
+      <input
+        type="number"
+        min="0"
+        step="1"
+        [value]="accompagnants()"
+        (input)="majAccompagnants($any($event.target).value)"
+      />
+    </label>
+    <label class="champ">
+      <span>Regime</span>
+      <select (change)="regime.set($any($event.target).value)">
+        @for (option of regimes; track option.id) {
+          <option [value]="option.id" [selected]="option.id === regime()">
+            {{ option.libelle }}
+          </option>
+        }
+      </select>
+    </label>
+    <label class="champ">
+      <span>Allergies</span>
+      <input
+        type="text"
+        placeholder="Arachide, lactose..."
+        [value]="allergies()"
+        (input)="allergies.set($any($event.target).value)"
+      />
+    </label>
+    <label class="champ">
+      <span>Ce que tu bois</span>
+      <input
+        type="text"
+        placeholder="Biere, spritz, sans alcool..."
+        [value]="preferencesBoissons()"
+        (input)="preferencesBoissons.set($any($event.target).value)"
+      />
+    </label>
+    <label class="champ">
+      <span>Envie de faire quoi ?</span>
+      <input
+        type="text"
+        placeholder="DJ, jeux, karaoke, petanque..."
+        [value]="envies()"
+        (input)="envies.set($any($event.target).value)"
+      />
+    </label>
+    <label class="champ large">
+      <span>Musique a passer</span>
+      <input
+        type="text"
+        placeholder="Artistes, morceaux, playlists..."
+        [value]="recommandations()"
+        (input)="recommandations.set($any($event.target).value)"
+      />
+    </label>
+    <label class="champ large">
+      <span>Un mot pour les organisateurs</span>
+      <input
+        type="text"
+        placeholder="Tout ce qui peut aider..."
+        [value]="commentaire()"
+        (input)="commentaire.set($any($event.target).value)"
+      />
+    </label>
+  </div>
+
+  <div class="actions envoi">
+    <button type="button" class="primaire" [disabled]="!valide()" (click)="envoyer()">
+      Enregistrer la reponse
+    </button>
+  </div>
+
+  <p class="hint">
+    Partage le lien de l'evenement (le code en haut de la sidebar) pour que chacun vienne remplir sa
+    fiche ici.
+  </p>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Les reponses</h2>
+    <span class="muted num">{{ fmtEntier(store.reponsesFormulaire().length) }}</span>
+  </div>
+
+  @if (store.reponsesFormulaire().length === 0) {
+    <p class="vide">Aucune reponse pour l'instant.</p>
+  }
+
+  @for (reponse of store.reponsesFormulaire(); track reponse.id) {
+    <article class="reponse">
+      <div class="reponse-head">
+        <div>
+          <strong>{{ reponse.prenom }} {{ reponse.nom }}</strong>
+          @if (reponse.invitePar) {
+            <span class="muted"> · invite par {{ reponse.invitePar }}</span>
+          }
+          @if (reponse.accompagnants > 0) {
+            <span class="tag">+{{ reponse.accompagnants }}</span>
+          }
+        </div>
+        <span class="muted num">{{ dateDe(reponse) }}</span>
+      </div>
+      <dl class="details">
+        <div>
+          <dt>Regime</dt>
+          <dd>{{ libelleRegime[reponse.regime] }}</dd>
+        </div>
+        @if (reponse.allergies) {
+          <div>
+            <dt>Allergies</dt>
+            <dd>{{ reponse.allergies }}</dd>
+          </div>
+        }
+        @if (reponse.preferencesBoissons) {
+          <div>
+            <dt>Boissons</dt>
+            <dd>{{ reponse.preferencesBoissons }}</dd>
+          </div>
+        }
+        @if (reponse.envies) {
+          <div>
+            <dt>Envies</dt>
+            <dd>{{ reponse.envies }}</dd>
+          </div>
+        }
+        @if (reponse.recommandations) {
+          <div>
+            <dt>Musique</dt>
+            <dd>{{ reponse.recommandations }}</dd>
+          </div>
+        }
+        @if (reponse.commentaire) {
+          <div>
+            <dt>Commentaire</dt>
+            <dd>{{ reponse.commentaire }}</dd>
+          </div>
+        }
+      </dl>
+      <div class="reponse-actions">
+        <select (change)="importer(reponse, $event)">
+          <option value="">Ajouter aux invites de…</option>
+          @for (participant of store.participants(); track participant.id) {
+            <option [value]="participant.id">{{ participant.nom }}</option>
+          }
+        </select>
+        <button type="button" class="discret" (click)="supprimer(reponse)">Supprimer</button>
+      </div>
+    </article>
+  }
+</section>

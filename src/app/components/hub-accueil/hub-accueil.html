@@ -1,0 +1,32 @@
+<header class="bienvenue">
+  <h2>{{ store.partage().nom }}</h2>
+  <p class="muted">
+    <span class="num">{{ fmtEntier(store.cadre().invites) }}</span> invites ·
+    <span class="num">{{ fmtEntier(store.partage().jours) }}</span> jour(s) · budget
+    <span class="num">{{ fmtEuro(store.budgetGlobal().total) }}</span>
+  </p>
+</header>
+
+<div class="cartes">
+  @for (carte of cartes(); track carte.espace) {
+    <button
+      type="button"
+      class="carte"
+      [class]="'teinte-' + carte.teinte"
+      (click)="store.espace.set(carte.espace)"
+    >
+      <span class="haut">
+        <span class="emoji" aria-hidden="true">{{ carte.emoji }}</span>
+        @if (carte.etat) {
+          <span class="badge" [class.attention]="carte.etat === 'attention'">
+            {{ carte.etatTexte }}
+          </span>
+        }
+      </span>
+      <span class="libelle">{{ carte.libelle }}</span>
+      <span class="valeur num">{{ carte.valeur }}</span>
+      <span class="sous">{{ carte.sous }}</span>
+      <span class="aller" aria-hidden="true">Ouvrir →</span>
+    </button>
+  }
+</div>

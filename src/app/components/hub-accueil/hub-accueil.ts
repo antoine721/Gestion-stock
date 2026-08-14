@@ -1,0 +1,103 @@
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ESPACES, Espace, PlannerStore } from '../../state/planner-store';
+import { fmtEntier, fmtEuro } from '../../domain/format';
+
+interface CarteHub {
+  espace: Espace;
+  libelle: string;
+  emoji: string;
+  teinte: string;
+  /** Le chiffre qui resume la piece, en gros sur la card. */
+  valeur: string;
+  sous: string;
+  /** '' = rien a signaler ; sinon le badge d'etat de la card. */
+  etat: 'pret' | 'attention' | '';
+  etatTexte: string;
+}
+
+/**
+ * La page d'accueil du hub : une card par piece de l'evenement, avec le
+ * chiffre qui la resume et ce qui y reste a faire. C'est le tableau de bord
+ * qu'on montre aux co-organisateurs pour dire « voila ou on en est ».
+ */
+@Component({
+  selector: 'app-hub-accueil',
+  templateUrl: './hub-accueil.html',
+  styleUrl: './hub-accueil.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class HubAccueil {
+  protected readonly store = inject(PlannerStore);
+  protected readonly fmtEuro = fmtEuro;
+  protected readonly fmtEntier = fmtEntier;
+
+  protected readonly cartes = computed<CarteHub[]>(() => {
+    const infos = new Map(ESPACES.map((x) => [x.id, x]));
+    const carte = (
+      espace: Espace,
+      reste: Omit<CarteHub, 'espace' | 'libelle' | 'emoji' | 'teinte'>,
+    ): CarteHub => {
+      const info = infos.get(espace);
+      return {
+        espace,
+        libelle: info?.libelle ?? espace,
+        emoji: info?.emoji ?? '',
+        teinte: info?.teinte ?? 'ardoise',
+        ...reste,
+      };
+    };
+
+    const panier = this.store.panier();
+    const alertes = this.store.alertes().length;
+    const nourriture = this.store.budgetNourriture();
+    const materiel = this.store.budgetMateriel();
+    const invites = this.store.invitesNommes();
+    const sansProfil = invites.filter((x) => !x.personneTypeId).length;
+    const reponses = this.store.reponsesFormulaire().length;
+
+    return [
+      carte('alcool', {
+        valeur: fmtEuro(panier.coutTotal),
+        sous: `${fmtEntier(this.store.lignesCourses().length)} references · ${fmtEntier(panier.verresTotal)} verres`,
+        etat: alertes > 0 ? 'attention' : 'pret',
+        etatTexte: alertes > 0 ? `${alertes} alerte(s)` : 'Pret',
+      }),
+      carte('nourriture', {
+        valeur: fmtEuro(nourriture.total),
+        sous: `${fmtEntier(nourriture.repasPrevus)} repas prevus`,
+        etat:
+          nourriture.repasManquants > 0 ? 'attention' : nourriture.repasPrevus > 0 ? 'pret' : '',
+        etatTexte:
+          nourriture.repasManquants > 0
+            ? `${nourriture.repasManquants} repas a decider`
+            : nourriture.repasPrevus > 0
+              ? 'Planifie'
+              : '',
+      }),
+      carte('utilisateurs', {
+        valeur: fmtEntier(invites.length),
+        sous: `${fmtEntier(this.store.cadre().invites)} tetes au total, effectifs compris`,
+        etat: sansProfil > 0 ? 'attention' : '',
+        etatTexte: sansProfil > 0 ? `${sansProfil} sans profil` : '',
+      }),
+      carte('materiel', {
+        valeur: fmtEuro(materiel.total),
+        sous: `${fmtEntier(this.store.articles().length)} article(s) · achat & location`,
+        etat: materiel.aPrevoir > 0 ? 'attention' : '',
+        etatTexte: materiel.aPrevoir > 0 ? `${materiel.aPrevoir} a prevoir` : '',
+      }),
+      carte('stats', {
+        valeur: fmtEuro(this.store.budgetGlobal().total),
+        sous: `${fmtEuro(this.store.budgetGlobal().parPersonne)} / personne`,
+        etat: '',
+        etatTexte: '',
+      }),
+      carte('formulaire', {
+        valeur: fmtEntier(reponses),
+        sous: reponses > 0 ? 'reponse(s) a rattacher' : 'A faire remplir par les invites',
+        etat: reponses > 0 ? 'attention' : '',
+        etatTexte: reponses > 0 ? 'A traiter' : '',
+      }),
+    ];
+  });
+}
