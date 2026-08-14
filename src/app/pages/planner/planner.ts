@@ -10,6 +10,7 @@ import { SectionCourses } from '../../components/section-courses/section-courses
 import { SectionFormulaire } from '../../components/section-formulaire/section-formulaire';
 import { SectionMateriel } from '../../components/section-materiel/section-materiel';
 import { SectionNourriture } from '../../components/section-nourriture/section-nourriture';
+import { SectionProgramme } from '../../components/section-programme/section-programme';
 import { SectionStats } from '../../components/section-stats/section-stats';
 import { SectionUtilisateurs } from '../../components/section-utilisateurs/section-utilisateurs';
 import { ValidationPanel } from '../../components/validation-panel/validation-panel';
@@ -36,6 +37,7 @@ import { fmtEntier, fmtEuro } from '../../domain/format';
     SectionFormulaire,
     SectionMateriel,
     SectionNourriture,
+    SectionProgramme,
     SectionStats,
     SectionUtilisateurs,
     ValidationPanel,
@@ -77,6 +79,10 @@ export class Planner {
       case 'courses': {
         const resume = this.store.resumeCourses();
         return resume.lignes > 0 ? `${resume.cochees}/${resume.lignes}` : '';
+      }
+      case 'programme': {
+        const resume = this.store.resumeProgramme();
+        return resume.creneaux > 0 ? fmtEntier(resume.creneaux) : '';
       }
       case 'formulaire':
         return fmtEntier(this.store.reponsesFormulaire().length);

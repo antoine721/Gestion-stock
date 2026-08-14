@@ -290,6 +290,44 @@ export interface Article {
 }
 
 // ---------------------------------------------------------------------------
+// Programme : le planning du festival et la musique
+// ---------------------------------------------------------------------------
+
+export type TypeCreneau = 'activite' | 'repas' | 'musique' | 'logistique' | 'autre';
+
+/**
+ * Un creneau du planning : ce qui a ete mis en place, quand, et qui s'en
+ * occupe. Les heures sont du texte « 18:30 » — assez pour trier et lire,
+ * pas de fuseau ni de date a gerer.
+ */
+export interface Creneau {
+  id: string;
+  /** Jour de l'evenement, 1 = premier jour. */
+  jour: number;
+  debut: string;
+  fin: string;
+  titre: string;
+  type: TypeCreneau;
+  /** Qui s'en occupe : le DJ, l'animateur, l'equipe cuisine... */
+  responsable: string;
+  lieu: string;
+  notes: string;
+}
+
+/** Un morceau de la tracklist, avec la personne qui l'a demande. */
+export interface Morceau {
+  id: string;
+  titre: string;
+  artiste: string;
+  demandePar: string;
+}
+
+export interface Programme {
+  creneaux: Creneau[];
+  tracklist: Morceau[];
+}
+
+// ---------------------------------------------------------------------------
 // Formulaire invite : ce que les invites remplissent eux-memes
 // ---------------------------------------------------------------------------
 
@@ -352,6 +390,8 @@ export interface Partage {
   categoriesPaiement: CategoriePaiement[];
   /** Lignes cochees de la liste de courses unifiee (le materiel a son statut). */
   coursesCochees: string[];
+  /** Le planning du festival et la tracklist. */
+  programme: Programme;
 }
 
 export interface Evenement {
