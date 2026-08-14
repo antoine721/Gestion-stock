@@ -1,0 +1,29 @@
+.intro {
+  margin-bottom: 1rem;
+}
+
+.nom {
+  font-weight: 500;
+}
+
+.compteur {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.compteur button {
+  width: 1.875rem;
+  padding: 0.25rem 0;
+  text-align: center;
+}
+
+.compteur input {
+  width: 3.25rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.ajout {
+  margin-top: 1.25rem;
+}

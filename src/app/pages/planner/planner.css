@@ -1,0 +1,230 @@
+/* -- En-tete : le nom, l'addition, l'etat de sauvegarde ------------------- */
+
+.entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--bord);
+}
+
+.titre {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.titre p {
+  margin-top: 0.25rem;
+}
+
+/* Le code d'evenement se copie d'un clic : c'est ce qu'on partage. */
+.code {
+  padding: 0.0625rem 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  background: var(--accent-doux);
+  border-color: transparent;
+}
+
+.code:hover {
+  border-color: var(--accent);
+}
+
+/**
+ * L'addition. C'est la reponse a la question que pose le nom du produit, donc
+ * elle reste visible quel que soit l'onglet ouvert.
+ */
+.addition {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--rayon-petit);
+  background: var(--accent-doux);
+}
+
+.montant {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--accent);
+}
+
+.addition .detail {
+  font-size: 0.6875rem;
+}
+
+.etat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sync {
+  font-size: 0.75rem;
+  min-width: 6rem;
+  text-align: right;
+}
+
+/* -- Onglets -------------------------------------------------------------- */
+
+.onglets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.onglets button[aria-pressed='true'] {
+  background: var(--texte);
+  border-color: var(--texte);
+  color: var(--fond);
+  font-weight: 600;
+}
+
+.onglets .compte {
+  display: inline-block;
+  margin-left: 0.375rem;
+  padding: 0 0.3125rem;
+  border-radius: 5px;
+  background: var(--surface-2);
+  font-size: 0.6875rem;
+}
+
+.onglets button[aria-pressed='true'] .compte {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.onglets .ajout {
+  padding: 0.4375rem 0.625rem;
+  border: 1px dashed var(--bord-fort);
+}
+
+.onglets .onglet-evenement {
+  margin-left: auto;
+}
+
+/* -- Sous-sections de l'evenement ----------------------------------------- */
+
+.sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--bord);
+}
+
+.sections button {
+  border: none;
+  background: transparent;
+  padding: 0 0 0.625rem;
+  border-radius: 0;
+  color: var(--texte-doux);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.sections button:hover {
+  color: var(--texte);
+  background: transparent;
+}
+
+.sections button[aria-pressed='true'] {
+  color: var(--accent);
+  font-weight: 600;
+  border-bottom-color: var(--accent);
+}
+
+/* -- Colonnes ------------------------------------------------------------- */
+
+.colonnes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+  gap: 1rem;
+  align-items: start;
+}
+
+.resultat {
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.retrait {
+  margin-top: 1rem;
+  text-align: right;
+}
+
+/* -- Porte d'entree ------------------------------------------------------- */
+
+.porte {
+  max-width: 24rem;
+  margin: 4rem auto 0;
+}
+
+.porte h2 {
+  font-family: var(--titre);
+  font-size: 1.5rem;
+}
+
+.porte .muted {
+  margin: 0.5rem 0 1.5rem;
+}
+
+.porte .champs {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.porte .erreur {
+  margin-top: 1rem;
+}
+
+.porte .actions {
+  margin-top: 1.5rem;
+}
+
+.porte .actions button {
+  width: 100%;
+  padding: 0.625rem;
+}
+
+@media (max-width: 68rem) {
+  .colonnes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .resultat {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 40rem) {
+  .entete {
+    gap: 0.875rem;
+  }
+
+  .addition {
+    order: 3;
+    width: 100%;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .sections {
+    gap: 1rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+}

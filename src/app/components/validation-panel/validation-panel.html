@@ -1,0 +1,77 @@
+<section class="card">
+  <div class="card-head">
+    <h2>Validation</h2>
+    <span class="synthese" [class]="'etat-' + synthese().etat">
+      <span class="pastille" [class]="'etat-' + synthese().etat"></span>
+      {{ synthese().message }}
+    </span>
+  </div>
+
+  @for (alerte of store.alertes(); track alerte.id) {
+    <p class="alerte" [class]="'etat-' + alerte.niveau">
+      <span class="pastille" [class]="'etat-' + alerte.niveau"></span>
+      {{ alerte.message }}
+    </p>
+  }
+
+  @for (bloc of blocs(); track bloc.groupe) {
+    <div class="bloc">
+      <h3>{{ bloc.libelle }}</h3>
+
+      @for (ratio of bloc.ratios; track ratio.id) {
+        <div class="ratio">
+          <div class="ligne">
+            <span class="pastille" [class]="'etat-' + ratio.etat"></span>
+            <span class="label">{{ ratio.label }}</span>
+            <span class="valeur num" [class]="'etat-' + ratio.etat">
+              @if (ratio.etat === 'vide') {
+                —
+              } @else {
+                {{ fmtNombre(ratio.valeur) }} {{ ratio.unite }}
+              }
+            </span>
+          </div>
+
+          <div class="sous">
+            <span class="muted num">
+              @switch (ratio.sens) {
+                @case ('min') {
+                  mini {{ fmtNombre(ratio.cible) }} {{ ratio.unite }}
+                }
+                @case ('max') {
+                  maxi {{ fmtNombre(ratio.cible) }} {{ ratio.unite }}
+                }
+                @default {
+                  cible {{ fmtNombre(ratio.cible) }} {{ ratio.unite }}
+                }
+              }
+            </span>
+            @if (ratio.etat === 'warn' || ratio.etat === 'ko') {
+              <span class="num" [class]="'etat-' + ratio.etat">{{ fmtEcart(ratio.ecartPct) }}</span>
+              @if (ratio.contributeurs.length > 0) {
+                <span class="muted">
+                  —
+                  @for (c of ratio.contributeurs; track c.nom) {
+                    <span class="num">{{ c.nom }} {{ fmtNombre(c.part) }} %</span>
+                    @if (!$last) {
+                      <span>, </span>
+                    }
+                  }
+                </span>
+              }
+            }
+          </div>
+
+          @if (ratio.etat === 'ko') {
+            <p class="aide">{{ ratio.aide }}</p>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <p class="hint">
+    Ces ratios sont un controle de vraisemblance, pas un blocage : si tu sais que ta soiree sortira
+    des clous, valide quand meme.
+  </p>
+</section>

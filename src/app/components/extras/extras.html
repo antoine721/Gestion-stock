@@ -1,0 +1,91 @@
+<section class="card">
+  <div class="card-head">
+    <h2>Extras &amp; bouteilles plaisir</h2>
+    <span class="muted num">{{ fmtEuro(store.panier().coutPlaisir) }}</span>
+  </div>
+
+  <p class="intro muted">
+    Ce qu'on prendra de toute facon, en une ou deux bouteilles, quel que soit le nombre d'invites.
+    Ces achats sont exclus du calcul par personne et du budget de base.
+  </p>
+
+  @if (store.extras().length === 0) {
+    <p class="vide">Aucun extra pour l'instant.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Produit</th>
+          <th class="droite">Bouteilles</th>
+          <th class="droite">Prix</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (ligne of store.extras(); track ligne.produit.id) {
+          <tr>
+            <td>
+              <div class="nom">{{ ligne.produit.nom }}</div>
+              <div class="muted num">
+                {{ fmtVolume(ligne.produit.contenanceMl) }} · {{ fmtEuro(ligne.produit.prixEur) }}
+                @if (ligne.mlNecessaire > 0) {
+                  · aussi consomme par tes invites
+                }
+              </div>
+            </td>
+            <td class="droite">
+              <div class="compteur">
+                <button
+                  type="button"
+                  (click)="incrementer(ligne.produit.id, ligne.bouteilles, -1)"
+                  aria-label="Une de moins"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  [value]="ligne.bouteilles"
+                  (input)="majQuantite(ligne.produit.id, $any($event.target).value)"
+                />
+                <button
+                  type="button"
+                  (click)="incrementer(ligne.produit.id, ligne.bouteilles, 1)"
+                  aria-label="Une de plus"
+                >
+                  +
+                </button>
+              </div>
+            </td>
+            <td class="droite num">{{ fmtEuro(ligne.prixTotal) }}</td>
+            <td class="droite">
+              <button
+                type="button"
+                class="discret"
+                title="Retirer cet extra"
+                (click)="store.retirerExtra(ligne.produit.id)"
+              >
+                ×
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  <label class="champ ajout">
+    <span>Ajouter une bouteille</span>
+    <select (change)="ajouter($event)">
+      <option value="">Choisir dans le catalogue…</option>
+      @for (rayon of catalogue(); track rayon.libelle) {
+        <optgroup [label]="rayon.libelle">
+          @for (produit of rayon.produits; track produit.id) {
+            <option [value]="produit.id">{{ produit.nom }} — {{ fmtEuro(produit.prixEur) }}</option>
+          }
+        </optgroup>
+      }
+    </select>
+  </label>
+</section>

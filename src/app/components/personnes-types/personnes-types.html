@@ -1,0 +1,160 @@
+<section class="card">
+  <div class="card-head">
+    <h2>Les profils d'invites</h2>
+    <span class="muted num">{{ store.personnesTypes().length }} profils</span>
+  </div>
+
+  <div class="grille">
+    @for (resume of store.resumePersonnesTypes(); track resume.personneType.id) {
+      <button
+        type="button"
+        class="vignette"
+        [class.utilise]="resume.effectif > 0"
+        (click)="ouvrir(resume.personneType.id)"
+      >
+        <span class="emoji" aria-hidden="true">{{ resume.personneType.emoji }}</span>
+        <span class="nom">{{ resume.personneType.nom }}</span>
+        <span class="muted apercu">{{ apercu(resume.personneType) }}</span>
+        <span class="pied">
+          <span class="num verres">{{ fmtNombre(resume.verresParJour) }} v/j</span>
+          @if (resume.effectif > 0) {
+            <span class="tag accent num">{{ resume.effectif }} pers.</span>
+          }
+        </span>
+      </button>
+    }
+
+    <button type="button" class="vignette nouvelle" (click)="creer()">
+      <span class="emoji" aria-hidden="true">＋</span>
+      <span class="nom">Nouveau profil</span>
+      <span class="muted apercu">Decris une personne type de ta bande</span>
+    </button>
+  </div>
+
+  <p class="hint">
+    Un profil decrit une personne type : ce qu'elle boit, par jour. Les profils sont communs — celui
+    que tu crees, les autres peuvent l'utiliser pour leurs propres invites.
+  </p>
+</section>
+
+@if (enEdition(); as edition) {
+  <div class="voile" (click)="fermer()"></div>
+  <div class="panneau card" role="dialog" aria-label="Modifier le profil">
+    <div class="card-head">
+      <h2>
+        <span class="emoji-titre" aria-hidden="true">{{ edition.personneType.emoji }}</span>
+        {{ edition.personneType.nom }}
+      </h2>
+      <button type="button" class="discret" (click)="fermer()" aria-label="Fermer">×</button>
+    </div>
+
+    <div class="emojis">
+      @for (emoji of emojis; track emoji) {
+        <button
+          type="button"
+          class="choix-emoji"
+          [attr.aria-pressed]="edition.personneType.emoji === emoji"
+          (click)="majEmoji(edition.personneType.id, emoji)"
+        >
+          {{ emoji }}
+        </button>
+      }
+    </div>
+
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Nom du profil</span>
+        <input
+          type="text"
+          [value]="edition.personneType.nom"
+          (change)="majNom(edition.personneType.id, $any($event.target).value)"
+        />
+      </label>
+      <label class="champ">
+        <span>Description</span>
+        <input
+          type="text"
+          placeholder="Qui est cette personne, comment elle boit…"
+          [value]="edition.personneType.description"
+          (change)="majDescription(edition.personneType.id, $any($event.target).value)"
+        />
+      </label>
+    </div>
+
+    <p class="muted signature">
+      Cree par {{ edition.personneType.creeParNom }}
+      @if (edition.effectif > 0) {
+        · {{ edition.effectif }} invite(s) de ce profil
+      }
+    </p>
+
+    <h3>Ce qu'elle boit par jour</h3>
+
+    @if (consommation(edition.personneType).length === 0) {
+      <p class="muted">Rien pour l'instant. Ajoute une boisson ci-dessous.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Boisson</th>
+            <th class="droite">Verres / jour</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ligne of consommation(edition.personneType); track ligne.boisson.id) {
+            <tr>
+              <td>{{ ligne.boisson.nom }}</td>
+              <td class="droite">
+                <input
+                  type="number"
+                  class="mini"
+                  min="0"
+                  step="0.5"
+                  [value]="ligne.verresParJour"
+                  (input)="
+                    majVerres(edition.personneType.id, ligne.boisson.id, $any($event.target).value)
+                  "
+                />
+              </td>
+              <td class="droite">
+                <button
+                  type="button"
+                  class="discret"
+                  title="Retirer cette boisson"
+                  (click)="majVerres(edition.personneType.id, ligne.boisson.id, '0')"
+                >
+                  ×
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    <label class="champ ajout">
+      <span>Ajouter une boisson</span>
+      <select (change)="ajouterBoisson(edition.personneType.id, $event)">
+        <option value="">Choisir une boisson…</option>
+        @for (groupe of groupes(); track groupe.famille) {
+          <optgroup [label]="groupe.famille">
+            @for (boisson of groupe.boissons; track boisson.id) {
+              @if (!dejaChoisie(edition.personneType, boisson.id)) {
+                <option [value]="boisson.id">{{ boisson.nom }}</option>
+              }
+            }
+          </optgroup>
+        }
+      </select>
+    </label>
+
+    <div class="actions">
+      <button type="button" class="discret" (click)="supprimer(edition)">Supprimer</button>
+      <button type="button" class="discret" (click)="dupliquer(edition.personneType.id)">
+        Dupliquer
+      </button>
+      <button type="button" class="primaire" (click)="fermer()">Termine</button>
+    </div>
+  </div>
+}

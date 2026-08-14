@@ -1,0 +1,80 @@
+<div class="connexion">
+  <section class="promesse">
+    <p class="eyebrow">Achats de soiree</p>
+    <h1>
+      Combien
+      <em>acheter</em>
+    </h1>
+    <p class="chapo">
+      Vous decrivez les gens que vous invitez. L'app en deduit les bouteilles, le budget, et vous
+      dit si la prevision tient debout.
+    </p>
+
+    <!-- Le raisonnement de l'app, en trois temps : c'est un enchainement reel. -->
+    <ol class="chaine">
+      <li>
+        <span class="num rang">01</span>
+        <span class="etape">
+          <strong>Des profils</strong>
+          « le buveur de biere », « la team spritz », et ce qu'ils boivent par jour.
+        </span>
+      </li>
+      <li>
+        <span class="num rang">02</span>
+        <span class="etape">
+          <strong>Des effectifs</strong>
+          chaque organisateur compte les siens. Les totaux s'additionnent.
+        </span>
+      </li>
+      <li>
+        <span class="num rang">03</span>
+        <span class="etape">
+          <strong>Une addition</strong>
+          la liste de courses, le prix, et qui paye quoi.
+        </span>
+      </li>
+    </ol>
+  </section>
+
+  <section class="card formulaire">
+    <h2>Entrer</h2>
+
+    <div class="champs">
+      <label class="champ">
+        <span>Ton prenom</span>
+        <input
+          type="text"
+          [value]="prenom()"
+          (input)="majTexte(prenom, $event)"
+          (keyup.enter)="entrer()"
+          placeholder="Antoine"
+          autocomplete="given-name"
+        />
+      </label>
+
+      <label class="champ">
+        <span>Mot de passe</span>
+        <input
+          type="password"
+          [value]="motDePasse()"
+          (input)="majTexte(motDePasse, $event)"
+          (keyup.enter)="entrer()"
+          autocomplete="current-password"
+        />
+      </label>
+    </div>
+
+    @if (erreur()) {
+      <p class="erreur">{{ erreur() }}</p>
+    }
+
+    <button type="button" class="primaire valider" [disabled]="occupe()" (click)="entrer()">
+      {{ occupe() ? 'Un instant…' : 'Entrer' }}
+    </button>
+
+    <p class="hint">
+      Un seul mot de passe pour tout le monde. Ton prenom sert a savoir quels invites sont les
+      tiens.
+    </p>
+  </section>
+</div>

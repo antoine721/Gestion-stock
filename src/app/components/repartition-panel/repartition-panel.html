@@ -1,0 +1,45 @@
+<section class="card">
+  <div class="card-head">
+    <h2>Qui paye quoi</h2>
+    <span class="muted num">{{ fmtEuro(store.panier().coutTotal) }} a repartir</span>
+  </div>
+
+  @if (store.repartition().length === 0) {
+    <p class="vide">Aucun co-organisateur pour l'instant.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Organisateur</th>
+          <th class="droite">Invites</th>
+          <th class="droite">Verres</th>
+          <th class="droite">Part</th>
+          <th class="droite">Montant</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (part of store.repartition(); track part.participantId) {
+          <tr [class.moi]="part.participantId === store.moi()?.id">
+            <td>
+              {{ part.nom }}
+              @if (part.participantId === store.moi()?.id) {
+                <span class="tag accent">toi</span>
+              }
+            </td>
+            <td class="droite num">{{ part.invites }}</td>
+            <td class="droite num">{{ fmtEntier(part.verres) }}</td>
+            <td class="droite num">{{ fmtNombre(part.part) }} %</td>
+            <td class="droite num">
+              <strong>{{ fmtEuro(part.montant) }}</strong>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <p class="hint">
+      La cle de repartition est le volume que les invites de chacun consomment, pas le nombre de
+      tetes : celui qui amene dix personnes qui boivent de l'eau ne paye pas la note des autres.
+    </p>
+  }
+</section>
