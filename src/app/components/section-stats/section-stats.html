@@ -21,6 +21,15 @@
     <span class="valeur num">{{ fmtEntier(store.panier().verresTotal) }} verres</span>
     <span class="sous muted num">{{ fmtVolume(store.panier().volumeAcheteMl) }} achetes</span>
   </div>
+  @if (store.encaissements().attendu > 0) {
+    <div class="tuile">
+      <span class="etiquette">Encaisse</span>
+      <span class="valeur num">{{ fmtEuro(store.encaissements().encaisse) }}</span>
+      <span class="sous muted num">
+        sur {{ fmtEuro(store.encaissements().attendu) }} attendus
+      </span>
+    </div>
+  }
 </div>
 
 <section class="card">

@@ -1,9 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
-import { IDEES_PLATS, MOMENTS, coutDuRepas, repasPour } from '../../domain/nourriture';
+import {
+  IDEES_PLATS,
+  MOMENTS,
+  UNITES_INGREDIENT,
+  coutDuRepas,
+  repasPour,
+} from '../../domain/nourriture';
 import { compterParRegime, invitesAvecAllergies } from '../../domain/invites';
 import { fmtEntier, fmtEuro } from '../../domain/format';
-import { MomentRepas, Repas } from '../../domain/models';
+import { IngredientRepas, MomentRepas, Repas } from '../../domain/models';
 
 interface CaseRepas {
   moment: (typeof MOMENTS)[number];
@@ -26,6 +32,7 @@ export class SectionNourriture {
   protected readonly fmtEuro = fmtEuro;
   protected readonly fmtEntier = fmtEntier;
   protected readonly coutDuRepas = coutDuRepas;
+  protected readonly unites = UNITES_INGREDIENT;
 
   protected readonly grille = computed(() => {
     const nourriture = this.store.nourriture();
@@ -47,16 +54,10 @@ export class SectionNourriture {
     return IDEES_PLATS.filter((x) => x.moments.includes(moment));
   }
 
-  /** Une idee du catalogue pre-remplit le plat ET son cout par personne. */
+  /** Une idee du catalogue pre-remplit le plat ET ses ingredients doses. */
   protected choisirIdee(jour: number, moment: MomentRepas, evenement: Event): void {
     const select = evenement.target as HTMLSelectElement;
-    const idee = IDEES_PLATS.find((x) => x.nom === select.value);
-    if (idee) {
-      this.store.definirRepas(jour, moment, {
-        plat: idee.nom,
-        coutParPersonne: idee.coutParPersonne,
-      });
-    }
+    if (select.value) this.store.appliquerIdee(jour, moment, select.value);
     select.value = '';
   }
 
@@ -92,6 +93,26 @@ export class SectionNourriture {
 
   protected majNotes(repas: Repas, notes: string): void {
     this.store.definirRepas(repas.jour, repas.moment, { notes });
+  }
+
+  protected majIngredientTexte(
+    repas: Repas,
+    ingredient: IngredientRepas,
+    patch: Partial<Pick<IngredientRepas, 'nom' | 'unite'>>,
+  ): void {
+    this.store.majIngredient(repas.id, ingredient.id, patch);
+  }
+
+  protected majIngredientNombre(
+    repas: Repas,
+    ingredient: IngredientRepas,
+    champ: 'qteParPersonne' | 'conditionnement' | 'prixConditionnement',
+    valeur: string,
+  ): void {
+    const nombre = Number(valeur);
+    if (Number.isFinite(nombre)) {
+      this.store.majIngredient(repas.id, ingredient.id, { [champ]: Math.max(0, nombre) });
+    }
   }
 
   protected majExtra(extraId: string, patch: { nom?: string }): void {

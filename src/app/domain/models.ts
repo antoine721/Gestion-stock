@@ -155,6 +155,18 @@ export type Regime =
   'omnivore' | 'vegetarien' | 'vegan' | 'sans-gluten' | 'sans-lactose' | 'halal' | 'casher';
 
 /**
+ * Une categorie de paiement : « week-end complet 40 € », « une journee 15 € »,
+ * « gratuit »... Le paiement lui-meme se fait hors de l'app ; ici on suit qui
+ * doit quoi et qui a deja paye.
+ */
+export interface CategoriePaiement {
+  id: string;
+  nom: string;
+  /** Le tarif attendu pour cette categorie. */
+  montant: number;
+}
+
+/**
  * Un invite nomme. Le profil de consommation s'attache directement a la
  * personne : « Paul est un buveur de biere », plutot que « j'amene trois
  * buveurs de biere ». Chaque invite nomme compte pour une tete dans le calcul,
@@ -173,6 +185,14 @@ export interface Invite {
   /** Ce que la personne veut apporter a la fete : DJ, jeux, karaoke... */
   envies: string;
   remarques: string;
+  /** Categorie de paiement. '' = pas encore choisie. */
+  categoriePaiementId: string;
+  /** A regle sa part (le paiement se fait hors de l'app). */
+  paye: boolean;
+  /** Ce qu'il a reellement verse, qui peut differer du tarif de la categorie. */
+  montantPaye: number;
+  /** Combien de jours il reste sur place. 0 = toute la duree de l'evenement. */
+  joursPresence: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -181,9 +201,30 @@ export interface Invite {
 
 export type MomentRepas = 'petit-dejeuner' | 'dejeuner' | 'diner';
 
+export type UniteIngredient = 'g' | 'ml' | 'piece';
+
 /**
- * Un repas planifie. Le cout se raisonne par personne, comme l'alcool se
- * raisonne par verre : le total suit tout seul le nombre d'invites.
+ * Un ingredient d'un repas, dose PAR PERSONNE — le meme invariant que le bar :
+ * on raisonne en grammes et millilitres, jamais en paquets. La conversion en
+ * paquets n'arrive qu'une fois, a la toute fin, sur le besoin agrege de tous
+ * les repas (la viande du barbecue du samedi et celle du dimanche ne font
+ * qu'une ligne de courses).
+ */
+export interface IngredientRepas {
+  id: string;
+  nom: string;
+  /** Dose par personne, dans l'unite choisie. */
+  qteParPersonne: number;
+  unite: UniteIngredient;
+  /** Taille du conditionnement achete (paquet de 500 g, bouteille d'1 L...). */
+  conditionnement: number;
+  prixConditionnement: number;
+}
+
+/**
+ * Un repas planifie. Deux facons de le chiffrer : des ingredients doses par
+ * personne (le moteur convertit en paquets a la fin), ou a defaut un simple
+ * cout par personne. Si des ingredients existent, ils font foi.
  */
 export interface Repas {
   id: string;
@@ -198,6 +239,7 @@ export interface Repas {
   /** Une alternative vegetarienne est prevue. */
   vegetarienPrevu: boolean;
   notes: string;
+  ingredients: IngredientRepas[];
 }
 
 /** Grignotage et divers : chips, gateaux apero, glace... en quantite fixe. */
@@ -306,6 +348,10 @@ export interface Partage {
   /** Materiel a acheter ou louer : decoration, generateur, sono... */
   articles: Article[];
   reponsesFormulaire: ReponseFormulaire[];
+  /** Les tarifs demandes aux invites (le paiement se fait hors de l'app). */
+  categoriesPaiement: CategoriePaiement[];
+  /** Lignes cochees de la liste de courses unifiee (le materiel a son statut). */
+  coursesCochees: string[];
 }
 
 export interface Evenement {

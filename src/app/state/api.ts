@@ -1,6 +1,25 @@
 import { Injectable, inject } from '@angular/core';
-import { Partage, Participant } from '../domain/models';
+import { Partage, Participant, Regime } from '../domain/models';
 import { SessionStore } from './session';
+
+/** Ce que la page publique du formulaire a besoin de savoir : rien de plus. */
+export interface InfosPubliques {
+  nom: string;
+  jours: number;
+}
+
+export interface ReponsePublique {
+  prenom: string;
+  nom: string;
+  invitePar: string;
+  accompagnants: number;
+  regime: Regime;
+  allergies: string;
+  preferencesBoissons: string;
+  envies: string;
+  recommandations: string;
+  commentaire: string;
+}
 
 export interface EvenementDistant {
   code: string;
@@ -75,6 +94,21 @@ export class Api {
       `/api/events/${encodeURIComponent(code)}/participants/${encodeURIComponent(participant.id)}`,
       { methode: 'PUT', corps: participant },
     );
+  }
+
+  /** Les deux appels publics du formulaire : aucun mot de passe requis. */
+  async chargerInfosPubliques(code: string) {
+    return this.appeler<InfosPubliques>(`/api/events/${encodeURIComponent(code)}/formulaire`, {
+      motDePasse: '',
+    });
+  }
+
+  async envoyerReponsePublique(code: string, reponse: ReponsePublique) {
+    return this.appeler<{ ok: true }>(`/api/events/${encodeURIComponent(code)}/formulaire`, {
+      methode: 'POST',
+      motDePasse: '',
+      corps: reponse,
+    });
   }
 
   async retirerParticipant(code: string, participantId: string) {

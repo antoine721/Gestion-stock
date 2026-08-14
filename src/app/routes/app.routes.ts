@@ -27,5 +27,12 @@ export const routes: Routes = [
     loadComponent: () => import('../pages/planner/planner').then((m) => m.Planner),
     title: 'Combien acheter ?',
   },
+  {
+    // La seule page publique : la fiche que remplissent les invites eux-memes.
+    path: 'f/:code',
+    loadComponent: () =>
+      import('../pages/formulaire-public/formulaire-public').then((m) => m.FormulairePublic),
+    title: 'Ta fiche invite',
+  },
   { path: '**', redirectTo: '' },
 ];

@@ -13,21 +13,33 @@ import {
 } from '../domain/calcul';
 import { personneTypeVierge, personnesTypesInitiales } from '../domain/personnes-types';
 import { PROFILS, calculerAlertes, calculerRatios } from '../domain/validation';
-import { effectifsAvecInvites, inviteVierge, invitesNommesDe } from '../domain/invites';
 import {
+  calculerEncaissements,
+  effectifsAvecInvites,
+  inviteVierge,
+  invitesNommesDe,
+  normaliserInvite,
+} from '../domain/invites';
+import {
+  IDEES_PLATS,
   budgetNourriture,
+  coursesCuisine,
   extraNourritureVierge,
+  ingredientVierge,
+  normaliserRepas,
   repasPour,
   repasVierge,
 } from '../domain/nourriture';
 import { articleVierge, budgetMateriel } from '../domain/materiel-liste';
 import { budgetGlobal, repartitionGlobale } from '../domain/stats';
+import { listeCoursesUnifiee, resumerCourses } from '../domain/courses';
 import {
   Ajustement,
   Article,
+  CategoriePaiement,
   Cibles,
-  Effectif,
   ExtraNourriture,
+  IngredientRepas,
   Invite,
   Materiel,
   MomentRepas,
@@ -41,11 +53,7 @@ import {
 } from '../domain/models';
 import { Api, EvenementDistant } from './api';
 
-/** Onglet ouvert : un co-organisateur, ou la vue consolidee de l'evenement. */
-export type Onglet = string;
-export const ONGLET_EVENEMENT = 'evenement';
-
-/** Sections de l'onglet Evenement. */
+/** Sections de l'espace Bar & boissons. */
 export type Section = 'courses' | 'profils' | 'extras' | 'reglages' | 'bilan';
 
 export const SECTIONS: readonly { id: Section; libelle: string }[] = [
@@ -58,7 +66,14 @@ export const SECTIONS: readonly { id: Section; libelle: string }[] = [
 
 /** Les grandes pieces du hub, servies par la sidebar. */
 export type Espace =
-  'accueil' | 'alcool' | 'nourriture' | 'utilisateurs' | 'materiel' | 'stats' | 'formulaire';
+  | 'accueil'
+  | 'alcool'
+  | 'nourriture'
+  | 'utilisateurs'
+  | 'materiel'
+  | 'courses'
+  | 'stats'
+  | 'formulaire';
 
 export const ESPACES: readonly {
   id: Espace;
@@ -72,6 +87,7 @@ export const ESPACES: readonly {
   { id: 'nourriture', libelle: 'Nourriture', emoji: '🍽️', teinte: 'orange' },
   { id: 'utilisateurs', libelle: 'Invites', emoji: '🧑‍🤝‍🧑', teinte: 'bleu' },
   { id: 'materiel', libelle: 'Materiel', emoji: '🛠️', teinte: 'violet' },
+  { id: 'courses', libelle: 'Courses', emoji: '🛒', teinte: 'olive' },
   { id: 'stats', libelle: 'Stats & budget', emoji: '📊', teinte: 'vert' },
   { id: 'formulaire', libelle: 'Formulaire', emoji: '📝', teinte: 'rose' },
 ];
@@ -90,6 +106,8 @@ export const PARTAGE_INITIAL: Partage = {
   nourriture: { repas: [], extras: [] },
   articles: [],
   reponsesFormulaire: [],
+  categoriesPaiement: [],
+  coursesCochees: [],
 };
 
 /** Bibliotheque de depart, posee a la creation de l'evenement. */
@@ -118,7 +136,6 @@ export class PlannerStore {
   readonly code = signal('');
   readonly partage = signal<Partage>(PARTAGE_INITIAL);
   readonly participants = signal<readonly Participant[]>([]);
-  readonly onglet = signal<Onglet>(ONGLET_EVENEMENT);
   readonly section = signal<Section>('courses');
   readonly espace = signal<Espace>('accueil');
 
@@ -136,14 +153,6 @@ export class PlannerStore {
   readonly moiId = signal('');
 
   readonly moi = computed(() => this.participants().find((x) => x.id === this.moiId()));
-
-  /** Le participant dont l'onglet est ouvert (undefined sur la vue totale). */
-  readonly participantEdite = computed(() => {
-    const onglet = this.onglet();
-    return onglet === ONGLET_EVENEMENT
-      ? undefined
-      : this.participants().find((x) => x.id === onglet);
-  });
 
   readonly cibles = computed(() => this.partage().cibles);
 
@@ -220,29 +229,13 @@ export class PlannerStore {
     resumerPersonnesTypes(this.participantsComplets(), this.personnesTypes()),
   );
 
-  /** Les effectifs saisis dans l'onglet ouvert. */
-  readonly effectifs = computed(() => this.participantEdite()?.effectifs ?? []);
-
-  /** La version fusionnee (effectifs + invites nommes) de l'onglet ouvert. */
-  private readonly participantEditeComplet = computed(() => {
-    const participant = this.participantEdite();
-    return participant
-      ? this.participantsComplets().find((x) => x.id === participant.id)
-      : undefined;
-  });
-
-  readonly invitesDuParticipant = computed(() => {
-    const participant = this.participantEditeComplet();
-    return participant ? invitesDe(participant) : 0;
-  });
-
-  readonly buveursDuParticipant = computed(() => {
-    const participant = this.participantEditeComplet();
-    return participant ? buveursDe(participant, this.personnesTypes()) : 0;
-  });
-
   readonly lienPartage = computed(() =>
     typeof location === 'undefined' ? '' : `${location.origin}/e/${this.code()}`,
+  );
+
+  /** Le lien public de la fiche invite : le seul qui se donne sans mot de passe. */
+  readonly lienFormulaire = computed(() =>
+    typeof location === 'undefined' ? '' : `${location.origin}/f/${this.code()}`,
   );
 
   // -- Lectures des nouvelles pieces du hub --------------------------------
@@ -279,6 +272,39 @@ export class PlannerStore {
     ),
   );
 
+  readonly categoriesPaiement = computed(() => this.partage().categoriesPaiement);
+
+  readonly encaissements = computed(() =>
+    calculerEncaissements(this.invitesNommes(), this.categoriesPaiement()),
+  );
+
+  /** Le besoin cuisine agrege, converti en paquets une seule fois. */
+  readonly lignesCuisine = computed(() =>
+    coursesCuisine(this.nourriture(), this.cadre().invites, this.partage().jours),
+  );
+
+  /** La liste de courses unifiee : bar + cuisine + grignotage + materiel. */
+  readonly listeCourses = computed(() =>
+    listeCoursesUnifiee(
+      this.panier().lignes,
+      this.lignesCuisine(),
+      this.nourriture().extras,
+      this.articles(),
+      new Set(this.partage().coursesCochees),
+    ),
+  );
+
+  readonly resumeCourses = computed(() => resumerCourses(this.listeCourses()));
+
+  /** Les effectifs anonymes herites de l'ancienne saisie par profil. */
+  readonly effectifsAnonymes = computed(() =>
+    this.participants().reduce(
+      (somme, participant) =>
+        somme + participant.effectifs.reduce((x, y) => x + Math.max(0, y.nombre), 0),
+      0,
+    ),
+  );
+
   // -- Cycle de vie --------------------------------------------------------
 
   async ouvrir(code: string): Promise<void> {
@@ -302,17 +328,23 @@ export class PlannerStore {
 
   private appliquer(distant: EvenementDistant): void {
     this.code.set(distant.code);
-    this.partage.set({ ...PARTAGE_INITIAL, ...distant.partage });
+    // Les evenements anterieurs aux nouveaux champs restent lisibles : chaque
+    // objet imbrique est complete avec ses valeurs par defaut.
+    const partage = { ...PARTAGE_INITIAL, ...distant.partage };
+    this.partage.set({
+      ...partage,
+      invites: partage.invites.map((x) => normaliserInvite(x)),
+      nourriture: {
+        repas: (partage.nourriture.repas ?? []).map((x) => normaliserRepas(x)),
+        extras: partage.nourriture.extras ?? [],
+      },
+    });
     this.participants.set(
       distant.participants.map((x) => ({
         ...x,
         effectifs: x.effectifs ?? [],
       })),
     );
-
-    const onglet = this.onglet();
-    const existe = distant.participants.some((x) => x.id === onglet);
-    if (onglet !== ONGLET_EVENEMENT && !existe) this.onglet.set(ONGLET_EVENEMENT);
   }
 
   /**
@@ -393,23 +425,17 @@ export class PlannerStore {
     }
   }
 
-  // -- Effectifs de l'onglet ouvert ----------------------------------------
-
-  /** Combien de personnes de ce profil j'amene. */
-  majEffectif(personneTypeId: string, nombre: number): void {
-    const participant = this.participantEdite();
-    if (!participant) return;
-
-    const propre = Math.max(0, Math.round(nombre));
-    const autres = participant.effectifs.filter((x) => x.personneTypeId !== personneTypeId);
-    const effectifs: Effectif[] =
-      propre > 0 ? [...autres, { personneTypeId, nombre: propre }] : autres;
-
-    this.majParticipant(participant.id, { effectifs });
-  }
-
-  effectifDe(personneTypeId: string): number {
-    return this.effectifs().find((x) => x.personneTypeId === personneTypeId)?.nombre ?? 0;
+  /**
+   * L'ancienne saisie « j'amene trois buveurs de biere » n'a plus d'ecran :
+   * ce bouton vide les effectifs anonymes herites, une fois les personnes
+   * recreees en fiches nominatives.
+   */
+  viderEffectifsAnonymes(): void {
+    for (const participant of this.participants()) {
+      if (participant.effectifs.length > 0) {
+        this.majParticipant(participant.id, { effectifs: [] });
+      }
+    }
   }
 
   // -- Bibliotheque de profils (commune) -----------------------------------
@@ -585,6 +611,34 @@ export class PlannerStore {
     this.majPartage({ invites: this.invitesNommes().filter((x) => x.id !== inviteId) });
   }
 
+  // -- Paiement des invites ------------------------------------------------
+
+  ajouterCategoriePaiement(): string {
+    const id = identifiant();
+    this.majPartage({
+      categoriesPaiement: [...this.categoriesPaiement(), { id, nom: '', montant: 0 }],
+    });
+    return id;
+  }
+
+  majCategoriePaiement(categorieId: string, patch: Partial<Omit<CategoriePaiement, 'id'>>): void {
+    this.majPartage({
+      categoriesPaiement: this.categoriesPaiement().map((x) =>
+        x.id === categorieId ? { ...x, ...patch } : x,
+      ),
+    });
+  }
+
+  supprimerCategoriePaiement(categorieId: string): void {
+    this.majPartage({
+      categoriesPaiement: this.categoriesPaiement().filter((x) => x.id !== categorieId),
+      // Les invites qui portaient cette categorie repartent sans tarif.
+      invites: this.invitesNommes().map((x) =>
+        x.categoriePaiementId === categorieId ? { ...x, categoriePaiementId: '' } : x,
+      ),
+    });
+  }
+
   // -- Nourriture ----------------------------------------------------------
 
   /** Cree ou complete le repas d'une case jour x moment. */
@@ -595,6 +649,53 @@ export class PlannerStore {
       ? nourriture.repas.map((x) => (x.id === existant.id ? { ...x, ...patch } : x))
       : [...nourriture.repas, { ...repasVierge(identifiant(), jour, moment), ...patch }];
     this.majPartage({ nourriture: { ...nourriture, repas } });
+  }
+
+  /** Pose une idee de plat sur une case : plat, cout et ingredients doses. */
+  appliquerIdee(jour: number, moment: MomentRepas, nomIdee: string): void {
+    const idee = IDEES_PLATS.find((x) => x.nom === nomIdee);
+    if (!idee) return;
+    this.definirRepas(jour, moment, {
+      plat: idee.nom,
+      coutParPersonne: idee.coutParPersonne,
+      ingredients: idee.ingredients.map((x) => ({ ...x, id: identifiant() })),
+    });
+  }
+
+  ajouterIngredient(repasId: string): string {
+    const id = identifiant();
+    this.majRepasParId(repasId, (repas) => ({
+      ingredients: [...repas.ingredients, ingredientVierge(id)],
+    }));
+    return id;
+  }
+
+  majIngredient(
+    repasId: string,
+    ingredientId: string,
+    patch: Partial<Omit<IngredientRepas, 'id'>>,
+  ): void {
+    this.majRepasParId(repasId, (repas) => ({
+      ingredients: repas.ingredients.map((x) => (x.id === ingredientId ? { ...x, ...patch } : x)),
+    }));
+  }
+
+  supprimerIngredient(repasId: string, ingredientId: string): void {
+    this.majRepasParId(repasId, (repas) => ({
+      ingredients: repas.ingredients.filter((x) => x.id !== ingredientId),
+    }));
+  }
+
+  private majRepasParId(repasId: string, patch: (repas: Repas) => Partial<Repas>): void {
+    const nourriture = this.nourriture();
+    const repas = nourriture.repas.find((x) => x.id === repasId);
+    if (!repas) return;
+    this.majPartage({
+      nourriture: {
+        ...nourriture,
+        repas: nourriture.repas.map((x) => (x.id === repasId ? { ...x, ...patch(x) } : x)),
+      },
+    });
   }
 
   supprimerRepas(repasId: string): void {
@@ -646,6 +747,28 @@ export class PlannerStore {
 
   supprimerArticle(articleId: string): void {
     this.majPartage({ articles: this.articles().filter((x) => x.id !== articleId) });
+  }
+
+  // -- Liste de courses unifiee --------------------------------------------
+
+  /**
+   * Coche ou decoche une ligne de courses. Le materiel a deja son statut :
+   * cocher une ligne materiel bascule le statut de l'article, pas la liste.
+   */
+  basculerCourse(ligneId: string): void {
+    if (ligneId.startsWith('materiel:')) {
+      const articleId = ligneId.slice('materiel:'.length);
+      const article = this.articles().find((x) => x.id === articleId);
+      if (!article) return;
+      const achete = article.statut === 'achete' || article.statut === 'recupere';
+      this.majArticle(articleId, { statut: achete ? 'a-prevoir' : 'achete' });
+      return;
+    }
+
+    const cochees = new Set(this.partage().coursesCochees);
+    if (cochees.has(ligneId)) cochees.delete(ligneId);
+    else cochees.add(ligneId);
+    this.majPartage({ coursesCochees: [...cochees] });
   }
 
   // -- Formulaire invite ---------------------------------------------------
