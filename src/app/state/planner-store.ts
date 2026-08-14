@@ -13,16 +13,31 @@ import {
 } from '../domain/calcul';
 import { personneTypeVierge, personnesTypesInitiales } from '../domain/personnes-types';
 import { PROFILS, calculerAlertes, calculerRatios } from '../domain/validation';
+import { effectifsAvecInvites, inviteVierge, invitesNommesDe } from '../domain/invites';
+import {
+  budgetNourriture,
+  extraNourritureVierge,
+  repasPour,
+  repasVierge,
+} from '../domain/nourriture';
+import { articleVierge, budgetMateriel } from '../domain/materiel-liste';
+import { budgetGlobal, repartitionGlobale } from '../domain/stats';
 import {
   Ajustement,
+  Article,
   Cibles,
   Effectif,
+  ExtraNourriture,
+  Invite,
   Materiel,
+  MomentRepas,
   Override,
   Partage,
   Participant,
   PersonneType,
   Profil,
+  Repas,
+  ReponseFormulaire,
 } from '../domain/models';
 import { Api, EvenementDistant } from './api';
 
@@ -41,6 +56,26 @@ export const SECTIONS: readonly { id: Section; libelle: string }[] = [
   { id: 'reglages', libelle: 'Reglages' },
 ];
 
+/** Les grandes pieces du hub, servies par la sidebar. */
+export type Espace =
+  'accueil' | 'alcool' | 'nourriture' | 'utilisateurs' | 'materiel' | 'stats' | 'formulaire';
+
+export const ESPACES: readonly {
+  id: Espace;
+  libelle: string;
+  emoji: string;
+  /** Teinte de la card et de la nav : chaque piece a sa couleur. */
+  teinte: string;
+}[] = [
+  { id: 'accueil', libelle: 'Accueil', emoji: '🏠', teinte: 'ardoise' },
+  { id: 'alcool', libelle: 'Bar & boissons', emoji: '🍹', teinte: 'petrole' },
+  { id: 'nourriture', libelle: 'Nourriture', emoji: '🍽️', teinte: 'orange' },
+  { id: 'utilisateurs', libelle: 'Invites', emoji: '🧑‍🤝‍🧑', teinte: 'bleu' },
+  { id: 'materiel', libelle: 'Materiel', emoji: '🛠️', teinte: 'violet' },
+  { id: 'stats', libelle: 'Stats & budget', emoji: '📊', teinte: 'vert' },
+  { id: 'formulaire', libelle: 'Formulaire', emoji: '📝', teinte: 'rose' },
+];
+
 export const PARTAGE_INITIAL: Partage = {
   nom: 'Ma soiree',
   jours: 1,
@@ -51,6 +86,10 @@ export const PARTAGE_INITIAL: Partage = {
   overrides: [],
   ajustements: [],
   materiel: MATERIEL_PAR_DEFAUT,
+  invites: [],
+  nourriture: { repas: [], extras: [] },
+  articles: [],
+  reponsesFormulaire: [],
 };
 
 /** Bibliotheque de depart, posee a la creation de l'evenement. */
@@ -81,6 +120,7 @@ export class PlannerStore {
   readonly participants = signal<readonly Participant[]>([]);
   readonly onglet = signal<Onglet>(ONGLET_EVENEMENT);
   readonly section = signal<Section>('courses');
+  readonly espace = signal<Espace>('accueil');
 
   readonly chargement = signal(false);
   readonly erreur = signal('');
@@ -107,14 +147,34 @@ export class PlannerStore {
 
   readonly cibles = computed(() => this.partage().cibles);
 
-  readonly cadre = computed(() => consoliderCadre(this.participants(), this.partage()));
+  /**
+   * Les participants vus par le moteur de calcul : leurs effectifs anonymes
+   * plus leurs invites nommes, convertis en effectifs. Toute la consolidation
+   * passe par cette vue pour qu'une personne nommee compte comme une tete.
+   */
+  readonly participantsComplets = computed(() => {
+    const invites = this.partage().invites;
+    return this.participants().map((participant) => ({
+      ...participant,
+      effectifs: effectifsAvecInvites(
+        participant.effectifs,
+        invitesNommesDe(invites, participant.id),
+      ),
+    }));
+  });
+
+  readonly cadre = computed(() => consoliderCadre(this.participantsComplets(), this.partage()));
 
   readonly materiel = computed(() => this.partage().materiel);
 
   private readonly entree = computed<EntreeCalcul>(() => {
     const partage = this.partage();
     return {
-      consommation: consommationDe(this.participants(), partage.personnesTypes, partage.jours),
+      consommation: consommationDe(
+        this.participantsComplets(),
+        partage.personnesTypes,
+        partage.jours,
+      ),
       formats: new Map(partage.formats),
       overrides: new Map(partage.overrides),
       ajustements: new Map(partage.ajustements),
@@ -138,7 +198,12 @@ export class PlannerStore {
   );
 
   readonly repartition = computed(() =>
-    repartirCout(this.participants(), this.personnesTypes(), this.entree(), this.partage().jours),
+    repartirCout(
+      this.participantsComplets(),
+      this.personnesTypes(),
+      this.entree(),
+      this.partage().jours,
+    ),
   );
 
   readonly buveurs = computed(() => {
@@ -150,26 +215,68 @@ export class PlannerStore {
 
   readonly personnesTypes = computed(() => this.partage().personnesTypes);
 
-  /** Ce que chaque profil pese, effectifs de tous les co-organisateurs compris. */
+  /** Ce que chaque profil pese, effectifs et invites nommes compris. */
   readonly resumePersonnesTypes = computed(() =>
-    resumerPersonnesTypes(this.participants(), this.personnesTypes()),
+    resumerPersonnesTypes(this.participantsComplets(), this.personnesTypes()),
   );
 
   /** Les effectifs saisis dans l'onglet ouvert. */
   readonly effectifs = computed(() => this.participantEdite()?.effectifs ?? []);
 
-  readonly invitesDuParticipant = computed(() => {
+  /** La version fusionnee (effectifs + invites nommes) de l'onglet ouvert. */
+  private readonly participantEditeComplet = computed(() => {
     const participant = this.participantEdite();
+    return participant
+      ? this.participantsComplets().find((x) => x.id === participant.id)
+      : undefined;
+  });
+
+  readonly invitesDuParticipant = computed(() => {
+    const participant = this.participantEditeComplet();
     return participant ? invitesDe(participant) : 0;
   });
 
   readonly buveursDuParticipant = computed(() => {
-    const participant = this.participantEdite();
+    const participant = this.participantEditeComplet();
     return participant ? buveursDe(participant, this.personnesTypes()) : 0;
   });
 
   readonly lienPartage = computed(() =>
     typeof location === 'undefined' ? '' : `${location.origin}/e/${this.code()}`,
+  );
+
+  // -- Lectures des nouvelles pieces du hub --------------------------------
+
+  readonly invitesNommes = computed(() => this.partage().invites);
+
+  readonly nourriture = computed(() => this.partage().nourriture);
+
+  readonly articles = computed(() => this.partage().articles);
+
+  readonly reponsesFormulaire = computed(() => this.partage().reponsesFormulaire);
+
+  readonly budgetNourriture = computed(() =>
+    budgetNourriture(this.nourriture(), this.cadre().invites, this.partage().jours),
+  );
+
+  readonly budgetMateriel = computed(() => budgetMateriel(this.articles()));
+
+  readonly budgetGlobal = computed(() =>
+    budgetGlobal(
+      this.panier().coutTotal,
+      this.budgetNourriture().total,
+      this.budgetMateriel().total,
+      this.cadre().invites,
+    ),
+  );
+
+  readonly repartitionGlobale = computed(() =>
+    repartitionGlobale(
+      this.repartition(),
+      this.budgetNourriture().total,
+      this.budgetMateriel().total,
+      this.articles(),
+    ),
   );
 
   // -- Cycle de vie --------------------------------------------------------
@@ -277,6 +384,13 @@ export class PlannerStore {
   async retirerParticipant(participantId: string): Promise<void> {
     await this.api.retirerParticipant(this.code(), participantId);
     this.appliquer(await this.api.charger(this.code()));
+    // Ses invites nommes partent avec lui, sinon ils ne designent plus personne.
+    const orphelins = this.invitesNommes().some((x) => x.participantId === participantId);
+    if (orphelins) {
+      this.majPartage({
+        invites: this.invitesNommes().filter((x) => x.participantId !== participantId),
+      });
+    }
   }
 
   // -- Effectifs de l'onglet ouvert ----------------------------------------
@@ -356,6 +470,10 @@ export class PlannerStore {
   supprimerPersonneType(personneTypeId: string): void {
     this.majPartage({
       personnesTypes: this.personnesTypes().filter((x) => x.id !== personneTypeId),
+      // Les invites nommes qui portaient ce profil redeviennent « sans profil ».
+      invites: this.invitesNommes().map((x) =>
+        x.personneTypeId === personneTypeId ? { ...x, personneTypeId: '' } : x,
+      ),
     });
     for (const participant of this.participants()) {
       if (participant.effectifs.some((x) => x.personneTypeId === personneTypeId)) {
@@ -447,6 +565,135 @@ export class PlannerStore {
     if (!suivant.plaisir && suivant.strategie.type === 'auto') ajustements.delete(produitId);
     else ajustements.set(produitId, suivant);
     this.majPartage({ ajustements: [...ajustements] });
+  }
+
+  // -- Invites nommes ------------------------------------------------------
+
+  ajouterInvite(participantId: string): string {
+    const id = identifiant();
+    this.majPartage({ invites: [...this.invitesNommes(), inviteVierge(id, participantId)] });
+    return id;
+  }
+
+  majInvite(inviteId: string, patch: Partial<Omit<Invite, 'id'>>): void {
+    this.majPartage({
+      invites: this.invitesNommes().map((x) => (x.id === inviteId ? { ...x, ...patch } : x)),
+    });
+  }
+
+  supprimerInvite(inviteId: string): void {
+    this.majPartage({ invites: this.invitesNommes().filter((x) => x.id !== inviteId) });
+  }
+
+  // -- Nourriture ----------------------------------------------------------
+
+  /** Cree ou complete le repas d'une case jour x moment. */
+  definirRepas(jour: number, moment: MomentRepas, patch: Partial<Omit<Repas, 'id'>>): void {
+    const nourriture = this.nourriture();
+    const existant = repasPour(nourriture, jour, moment);
+    const repas = existant
+      ? nourriture.repas.map((x) => (x.id === existant.id ? { ...x, ...patch } : x))
+      : [...nourriture.repas, { ...repasVierge(identifiant(), jour, moment), ...patch }];
+    this.majPartage({ nourriture: { ...nourriture, repas } });
+  }
+
+  supprimerRepas(repasId: string): void {
+    const nourriture = this.nourriture();
+    this.majPartage({
+      nourriture: { ...nourriture, repas: nourriture.repas.filter((x) => x.id !== repasId) },
+    });
+  }
+
+  ajouterExtraNourriture(): string {
+    const id = identifiant();
+    const nourriture = this.nourriture();
+    this.majPartage({
+      nourriture: { ...nourriture, extras: [...nourriture.extras, extraNourritureVierge(id)] },
+    });
+    return id;
+  }
+
+  majExtraNourriture(extraId: string, patch: Partial<Omit<ExtraNourriture, 'id'>>): void {
+    const nourriture = this.nourriture();
+    this.majPartage({
+      nourriture: {
+        ...nourriture,
+        extras: nourriture.extras.map((x) => (x.id === extraId ? { ...x, ...patch } : x)),
+      },
+    });
+  }
+
+  supprimerExtraNourriture(extraId: string): void {
+    const nourriture = this.nourriture();
+    this.majPartage({
+      nourriture: { ...nourriture, extras: nourriture.extras.filter((x) => x.id !== extraId) },
+    });
+  }
+
+  // -- Materiel : location et achat ----------------------------------------
+
+  ajouterArticle(modele: Partial<Omit<Article, 'id'>> = {}): string {
+    const id = identifiant();
+    this.majPartage({ articles: [...this.articles(), { ...articleVierge(id), ...modele }] });
+    return id;
+  }
+
+  majArticle(articleId: string, patch: Partial<Omit<Article, 'id'>>): void {
+    this.majPartage({
+      articles: this.articles().map((x) => (x.id === articleId ? { ...x, ...patch } : x)),
+    });
+  }
+
+  supprimerArticle(articleId: string): void {
+    this.majPartage({ articles: this.articles().filter((x) => x.id !== articleId) });
+  }
+
+  // -- Formulaire invite ---------------------------------------------------
+
+  ajouterReponse(reponse: Omit<ReponseFormulaire, 'id' | 'creeLe'>): string {
+    const id = identifiant();
+    this.majPartage({
+      reponsesFormulaire: [
+        ...this.reponsesFormulaire(),
+        { ...reponse, id, creeLe: new Date().toISOString() },
+      ],
+    });
+    return id;
+  }
+
+  supprimerReponse(reponseId: string): void {
+    this.majPartage({
+      reponsesFormulaire: this.reponsesFormulaire().filter((x) => x.id !== reponseId),
+    });
+  }
+
+  /**
+   * Transforme une reponse de formulaire en invite nomme rattache a un
+   * co-organisateur : le formulaire alimente la liste, il ne la remplace pas.
+   */
+  importerReponse(reponseId: string, participantId: string): void {
+    const reponse = this.reponsesFormulaire().find((x) => x.id === reponseId);
+    if (!reponse) return;
+
+    const remarques = [reponse.preferencesBoissons, reponse.recommandations, reponse.commentaire]
+      .filter((x) => x.trim().length > 0)
+      .join(' · ');
+
+    this.majPartage({
+      invites: [
+        ...this.invitesNommes(),
+        {
+          ...inviteVierge(identifiant(), participantId),
+          prenom: reponse.prenom,
+          nom: reponse.nom,
+          regime: reponse.regime,
+          allergies: reponse.allergies,
+          envies: reponse.envies,
+          remarques,
+        },
+      ],
+      reponsesFormulaire: this.reponsesFormulaire().filter((x) => x.id !== reponseId),
+    });
   }
 
   // -- Sauvegarde differee -------------------------------------------------

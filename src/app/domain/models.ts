@@ -148,6 +148,130 @@ export interface Effectif {
 }
 
 // ---------------------------------------------------------------------------
+// Invites nommes : des personnes, pas des effectifs
+// ---------------------------------------------------------------------------
+
+export type Regime =
+  'omnivore' | 'vegetarien' | 'vegan' | 'sans-gluten' | 'sans-lactose' | 'halal' | 'casher';
+
+/**
+ * Un invite nomme. Le profil de consommation s'attache directement a la
+ * personne : « Paul est un buveur de biere », plutot que « j'amene trois
+ * buveurs de biere ». Chaque invite nomme compte pour une tete dans le calcul,
+ * en plus des effectifs anonymes saisis par profil.
+ */
+export interface Invite {
+  id: string;
+  prenom: string;
+  nom: string;
+  /** Le co-organisateur qui amene cette personne. */
+  participantId: string;
+  /** Profil de consommation attache a la personne. '' = pas encore choisi. */
+  personneTypeId: string;
+  regime: Regime;
+  allergies: string;
+  /** Ce que la personne veut apporter a la fete : DJ, jeux, karaoke... */
+  envies: string;
+  remarques: string;
+}
+
+// ---------------------------------------------------------------------------
+// Nourriture : des repas par jour, pas des courses au hasard
+// ---------------------------------------------------------------------------
+
+export type MomentRepas = 'petit-dejeuner' | 'dejeuner' | 'diner';
+
+/**
+ * Un repas planifie. Le cout se raisonne par personne, comme l'alcool se
+ * raisonne par verre : le total suit tout seul le nombre d'invites.
+ */
+export interface Repas {
+  id: string;
+  /** Jour de l'evenement, 1 = premier jour. */
+  jour: number;
+  moment: MomentRepas;
+  /** Le plat prevu. Vide = repas pas encore decide. */
+  plat: string;
+  coutParPersonne: number;
+  /** Nombre de convives pour CE repas. 0 = tous les invites. */
+  convives: number;
+  /** Une alternative vegetarienne est prevue. */
+  vegetarienPrevu: boolean;
+  notes: string;
+}
+
+/** Grignotage et divers : chips, gateaux apero, glace... en quantite fixe. */
+export interface ExtraNourriture {
+  id: string;
+  nom: string;
+  quantite: number;
+  prixUnitaire: number;
+}
+
+export interface Nourriture {
+  repas: Repas[];
+  extras: ExtraNourriture[];
+}
+
+// ---------------------------------------------------------------------------
+// Materiel : tout ce qui s'achete ou se loue en dehors du frigo
+// ---------------------------------------------------------------------------
+
+export type CategorieArticle =
+  | 'decoration'
+  | 'electricite'
+  | 'sono'
+  | 'mobilier'
+  | 'cuisine'
+  | 'vaisselle'
+  | 'transport'
+  | 'hebergement'
+  | 'autre';
+
+export type ModeArticle = 'achat' | 'location';
+
+export type StatutArticle = 'a-prevoir' | 'reserve' | 'achete' | 'recupere';
+
+export interface Article {
+  id: string;
+  nom: string;
+  categorie: CategorieArticle;
+  mode: ModeArticle;
+  statut: StatutArticle;
+  quantite: number;
+  prixUnitaire: number;
+  /** Caution de location : avancee puis rendue, donc suivie hors budget. */
+  caution: number;
+  /** Le participant qui avance l'argent. '' = pas encore decide. */
+  payeParId: string;
+  notes: string;
+}
+
+// ---------------------------------------------------------------------------
+// Formulaire invite : ce que les invites remplissent eux-memes
+// ---------------------------------------------------------------------------
+
+export interface ReponseFormulaire {
+  id: string;
+  prenom: string;
+  nom: string;
+  /** Qui l'invite, en toutes lettres : le lien se fait a la main ensuite. */
+  invitePar: string;
+  /** Combien de personnes il amene avec lui (+1, conjoint, enfants...). */
+  accompagnants: number;
+  regime: Regime;
+  allergies: string;
+  preferencesBoissons: string;
+  /** DJ, jeux, karaoke, tournoi de petanque... */
+  envies: string;
+  /** Morceaux ou artistes a passer pendant la soiree. */
+  recommandations: string;
+  commentaire: string;
+  /** Date ISO de la reponse. */
+  creeLe: string;
+}
+
+// ---------------------------------------------------------------------------
 // Participants : chaque co-organisateur declare ses propres invites
 // ---------------------------------------------------------------------------
 
@@ -176,6 +300,12 @@ export interface Partage {
   overrides: [string, Override][];
   ajustements: [string, Ajustement][];
   materiel: Materiel;
+  /** Les invites nommes, tous co-organisateurs confondus. */
+  invites: Invite[];
+  nourriture: Nourriture;
+  /** Materiel a acheter ou louer : decoration, generateur, sono... */
+  articles: Article[];
+  reponsesFormulaire: ReponseFormulaire[];
 }
 
 export interface Evenement {

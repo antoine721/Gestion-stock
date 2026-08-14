@@ -1,23 +1,40 @@
-/* -- En-tete : le nom, l'addition, l'etat de sauvegarde ------------------- */
+/* -- Le hub : sidebar a gauche, une piece a la fois a droite --------------- */
 
-.entete {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.hub {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
   gap: 1.5rem;
-  flex-wrap: wrap;
-  padding-bottom: 1.25rem;
-  margin-bottom: 1.25rem;
-  border-bottom: 1px solid var(--bord);
+  align-items: start;
 }
 
-.titre {
-  flex: 1;
-  min-width: 12rem;
+.sidebar {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.125rem;
+  background: var(--surface);
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
 }
 
-.titre p {
+.app-nom {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.marque h1 {
   margin-top: 0.25rem;
+  font-size: 1.125rem;
+  line-height: 1.25;
+}
+
+.code-ligne {
+  margin-top: 0.375rem;
 }
 
 /* Le code d'evenement se copie d'un clic : c'est ce qu'on partage. */
@@ -35,43 +52,112 @@
   border-color: var(--accent);
 }
 
-/**
- * L'addition. C'est la reponse a la question que pose le nom du produit, donc
- * elle reste visible quel que soit l'onglet ouvert.
- */
-.addition {
+/* L'addition globale : la reponse a la question que pose le nom du produit. */
+.budget {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  padding: 0.5rem 0.875rem;
+  padding: 0.625rem 0.875rem;
   border-radius: var(--rayon-petit);
   background: var(--accent-doux);
 }
 
 .montant {
-  font-size: 1.5rem;
+  font-size: 1.375rem;
   font-weight: 600;
-  line-height: 1.1;
+  line-height: 1.15;
   color: var(--accent);
 }
 
-.addition .detail {
+.budget .detail {
   font-size: 0.6875rem;
 }
 
-.etat {
+/* -- La nav des espaces ---------------------------------------------------- */
+
+.espaces {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.espaces button {
   display: flex;
   align-items: center;
+  gap: 0.5625rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border: none;
+  background: transparent;
+  border-radius: var(--rayon-petit);
+  text-align: left;
+  color: var(--texte-doux);
+}
+
+.espaces button:hover {
+  background: var(--surface-2);
+  color: var(--texte);
+}
+
+/* L'espace ouvert prend sa teinte : on sait toujours dans quelle piece on est. */
+.espaces button[aria-pressed='true'] {
+  background: var(--douce);
+  color: var(--vive);
+  font-weight: 600;
+}
+
+.espaces .emoji {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.espaces .lib {
+  flex: 1;
+  font-size: 0.8125rem;
+}
+
+.espaces .valeur {
+  font-size: 0.6875rem;
+}
+
+.pied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--bord);
 }
 
 .sync {
   font-size: 0.75rem;
-  min-width: 6rem;
-  text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-/* -- Onglets -------------------------------------------------------------- */
+/* -- L'en-tete d'un espace ------------------------------------------------- */
+
+.entete-espace {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.entete-espace h2 {
+  font-size: 1.25rem;
+}
+
+.entete-espace .addition {
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--rayon-petit);
+  background: var(--accent-doux);
+  color: var(--accent);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+/* -- Onglets de l'espace bar ----------------------------------------------- */
 
 .onglets {
   display: flex;
@@ -110,7 +196,7 @@
   margin-left: auto;
 }
 
-/* -- Sous-sections de l'evenement ----------------------------------------- */
+/* -- Sous-sections du bar -------------------------------------------------- */
 
 .sections {
   display: flex;
@@ -162,41 +248,6 @@
   text-align: right;
 }
 
-/* -- Porte d'entree ------------------------------------------------------- */
-
-.porte {
-  max-width: 24rem;
-  margin: 4rem auto 0;
-}
-
-.porte h2 {
-  font-family: var(--titre);
-  font-size: 1.5rem;
-}
-
-.porte .muted {
-  margin: 0.5rem 0 1.5rem;
-}
-
-.porte .champs {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.porte .erreur {
-  margin-top: 1rem;
-}
-
-.porte .actions {
-  margin-top: 1.5rem;
-}
-
-.porte .actions button {
-  width: 100%;
-  padding: 0.625rem;
-}
-
 @media (max-width: 68rem) {
   .colonnes {
     grid-template-columns: minmax(0, 1fr);
@@ -208,23 +259,31 @@
   }
 }
 
-@media (max-width: 40rem) {
-  .entete {
-    gap: 0.875rem;
-  }
+/* -- Le hub sur petit ecran : la sidebar passe en haut --------------------- */
 
-  .addition {
-    order: 3;
-    width: 100%;
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: space-between;
-  }
-
-  .sections {
+@media (max-width: 52rem) {
+  .hub {
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
-    overflow-x: auto;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .espaces {
+    flex-direction: row;
     flex-wrap: nowrap;
-    white-space: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .espaces button {
+    width: auto;
+    flex: none;
+  }
+
+  .espaces .valeur {
+    display: none;
   }
 }

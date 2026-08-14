@@ -1,0 +1,174 @@
+<div class="tuiles">
+  <div class="tuile">
+    <span class="etiquette">Budget total</span>
+    <span class="valeur num">{{ fmtEuro(store.budgetGlobal().total) }}</span>
+    <span class="sous muted num">{{ fmtEuro(store.budgetGlobal().parPersonne) }} / personne</span>
+  </div>
+  <div class="tuile">
+    <span class="etiquette">Invites</span>
+    <span class="valeur num">{{ fmtEntier(store.cadre().invites) }}</span>
+    <span class="sous muted num">
+      {{ fmtEntier(store.buveurs()) }} buveurs · {{ fmtEntier(store.nonBuveurs()) }} sans alcool
+    </span>
+  </div>
+  <div class="tuile">
+    <span class="etiquette">Duree</span>
+    <span class="valeur num">{{ fmtEntier(store.partage().jours) }} j</span>
+    <span class="sous muted num">{{ fmtEntier(store.participants().length) }} organisateurs</span>
+  </div>
+  <div class="tuile">
+    <span class="etiquette">Le bar</span>
+    <span class="valeur num">{{ fmtEntier(store.panier().verresTotal) }} verres</span>
+    <span class="sous muted num">{{ fmtVolume(store.panier().volumeAcheteMl) }} achetes</span>
+  </div>
+</div>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Le budget, poste par poste</h2>
+    <span class="muted num">{{ fmtEuro(store.budgetGlobal().total) }}</span>
+  </div>
+
+  @if (store.budgetGlobal().total === 0) {
+    <p class="vide">Rien de chiffre pour l'instant : le budget se remplira tout seul.</p>
+  } @else {
+    <div class="composition" role="img" aria-label="Repartition du budget par poste">
+      @for (poste of postes(); track poste.id) {
+        <div
+          class="segment"
+          [class]="'poste-' + poste.id"
+          [style.flex-grow]="poste.montant"
+          [title]="poste.libelle + ' : ' + fmtEuro(poste.montant)"
+        ></div>
+      }
+    </div>
+    <ul class="legende">
+      @for (poste of postes(); track poste.id) {
+        <li>
+          <span class="pastille" [class]="'poste-' + poste.id"></span>
+          <span>{{ poste.libelle }}</span>
+          <span class="num">{{ fmtEuro(poste.montant) }}</span>
+          <span class="muted num">{{ fmtNombre(poste.part) }} %</span>
+        </li>
+      }
+    </ul>
+  }
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Qui paye quoi</h2>
+    <span class="muted">alcool au volume bu, le reste a la tete</span>
+  </div>
+
+  @if (store.repartitionGlobale().length === 0) {
+    <p class="vide">Pas encore de co-organisateur.</p>
+  } @else {
+    <div class="defilement">
+      <table>
+        <thead>
+          <tr>
+            <th>Qui</th>
+            <th class="droite">Invites</th>
+            <th class="droite">Bar</th>
+            <th class="droite">Nourriture</th>
+            <th class="droite">Materiel</th>
+            <th class="droite">Du</th>
+            @if (avancesPresentes()) {
+              <th class="droite">Avance</th>
+              <th class="droite">Solde</th>
+            }
+            <th class="part">Part</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (part of store.repartitionGlobale(); track part.participantId) {
+            <tr>
+              <td class="nom">{{ part.nom }}</td>
+              <td class="droite num">{{ fmtEntier(part.invites) }}</td>
+              <td class="droite num">{{ fmtEuro(part.alcool) }}</td>
+              <td class="droite num">{{ fmtEuro(part.nourriture) }}</td>
+              <td class="droite num">{{ fmtEuro(part.materiel) }}</td>
+              <td class="droite num total">{{ fmtEuro(part.du) }}</td>
+              @if (avancesPresentes()) {
+                <td class="droite num">{{ part.avance > 0 ? fmtEuro(part.avance) : '—' }}</td>
+                <td class="droite num" [class.credit]="part.solde < 0">
+                  {{ fmtEuro(part.solde) }}
+                </td>
+              }
+              <td class="part">
+                <div class="jauge" [title]="fmtNombre(part.part) + ' % du budget'">
+                  <div
+                    class="remplissage"
+                    [style.width.%]="partMax() > 0 ? (part.part / partMax()) * 100 : 0"
+                  ></div>
+                </div>
+                <span class="muted num">{{ fmtNombre(part.part) }} %</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="hint">
+      Le bar se repartit au volume que les invites de chacun boivent reellement ; la nourriture et
+      le materiel, au nombre de tetes. « Avance » = articles de materiel deja payes par la personne
+      ; le solde est ce qu'il reste a mettre au pot commun.
+    </p>
+  }
+</section>
+
+<div class="colonnes-stats">
+  <section class="card">
+    <div class="card-head">
+      <h2>Le bar en chiffres</h2>
+    </div>
+    <ul class="chiffres">
+      <li>
+        <span>Verres a servir</span>
+        <span class="num">{{ fmtEntier(store.panier().verresTotal) }}</span>
+      </li>
+      <li>
+        <span>dont alcoolises</span>
+        <span class="num">{{ fmtEntier(store.panier().verresAlcoolises) }}</span>
+      </li>
+      <li>
+        <span>Volume achete</span>
+        <span class="num">{{ fmtVolume(store.panier().volumeAcheteMl) }}</span>
+      </li>
+      <li>
+        <span>Restera apres la fete</span>
+        <span class="num">{{ fmtVolume(store.panier().volumeResteMl) }}</span>
+      </li>
+      <li>
+        <span>Cout du bar par buveur</span>
+        <span class="num">{{ fmtEuro(coutParBuveur()) }}</span>
+      </li>
+      <li>
+        <span>References a acheter</span>
+        <span class="num">{{ fmtEntier(store.lignesCourses().length) }}</span>
+      </li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Reste a faire</h2>
+      <span class="muted num">{{ resteAFaire().length }}</span>
+    </div>
+    @if (resteAFaire().length === 0) {
+      <p class="vide">Rien en attente : la fete est prete. 🎉</p>
+    } @else {
+      <ul class="taches">
+        @for (tache of resteAFaire(); track tache.texte) {
+          <li>
+            <span>{{ tache.texte }}</span>
+            <button type="button" class="discret" (click)="store.espace.set(tache.espace)">
+              Voir →
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</div>

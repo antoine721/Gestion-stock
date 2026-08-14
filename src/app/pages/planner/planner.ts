@@ -1,35 +1,52 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EffectifsForm } from '../../components/effectifs-form/effectifs-form';
 import { Extras } from '../../components/extras/extras';
+import { HubAccueil } from '../../components/hub-accueil/hub-accueil';
 import { ListeCourses } from '../../components/liste-courses/liste-courses';
 import { PersonnesTypes } from '../../components/personnes-types/personnes-types';
 import { ReglagesForm } from '../../components/reglages-form/reglages-form';
 import { ResumePanel } from '../../components/resume-panel/resume-panel';
 import { RepartitionPanel } from '../../components/repartition-panel/repartition-panel';
+import { SectionFormulaire } from '../../components/section-formulaire/section-formulaire';
+import { SectionMateriel } from '../../components/section-materiel/section-materiel';
+import { SectionNourriture } from '../../components/section-nourriture/section-nourriture';
+import { SectionStats } from '../../components/section-stats/section-stats';
+import { SectionUtilisateurs } from '../../components/section-utilisateurs/section-utilisateurs';
 import { ValidationPanel } from '../../components/validation-panel/validation-panel';
-import { ONGLET_EVENEMENT, PlannerStore, SECTIONS } from '../../state/planner-store';
+import {
+  ESPACES,
+  Espace,
+  ONGLET_EVENEMENT,
+  PlannerStore,
+  SECTIONS,
+} from '../../state/planner-store';
 import { SessionStore } from '../../state/session';
 import { fmtEntier, fmtEuro } from '../../domain/format';
 import { invitesDe } from '../../domain/calcul';
 
+/**
+ * Le hub de l'evenement : une sidebar par piece (bar, nourriture, invites,
+ * materiel, stats, formulaire) et un accueil en cards qui resume tout.
+ * L'ancienne page — onglets par co-organisateur et sections du bar — vit
+ * desormais dans l'espace « Bar & boissons ».
+ */
 @Component({
   selector: 'app-planner',
   imports: [
     EffectifsForm,
     Extras,
+    HubAccueil,
     ListeCourses,
     PersonnesTypes,
     ReglagesForm,
     RepartitionPanel,
     ResumePanel,
+    SectionFormulaire,
+    SectionMateriel,
+    SectionNourriture,
+    SectionStats,
+    SectionUtilisateurs,
     ValidationPanel,
   ],
   templateUrl: './planner.html',
@@ -44,32 +61,36 @@ export class Planner {
 
   protected readonly evenement = ONGLET_EVENEMENT;
   protected readonly sections = SECTIONS;
+  protected readonly espaces = ESPACES;
   protected readonly fmtEntier = fmtEntier;
   protected readonly fmtEuro = fmtEuro;
 
-  protected readonly coutParPersonne = computed(() => {
-    const invites = Math.max(1, this.store.cadre().invites);
-    return this.store.panier().coutTotal / invites;
-  });
   protected readonly invitesDe = invitesDe;
   protected readonly lienCopie = signal(false);
 
   protected readonly code = computed(() => this.route.snapshot.paramMap.get('code') ?? '');
 
   constructor() {
-    // L'onglet ouvert par defaut est le mien : c'est ma saisie que je viens faire.
-    effect(() => {
-      const moi = this.store.moi();
-      if (moi && this.store.onglet() === ONGLET_EVENEMENT && this.premierRendu) {
-        this.premierRendu = false;
-        this.store.onglet.set(moi.id);
-      }
-    });
-
     void this.demarrer();
   }
 
-  private premierRendu = true;
+  /** Le petit chiffre a droite de chaque entree de la sidebar. */
+  protected indicateurDe(espace: Espace): string {
+    switch (espace) {
+      case 'alcool':
+        return fmtEuro(this.store.panier().coutTotal);
+      case 'nourriture':
+        return fmtEuro(this.store.budgetNourriture().total);
+      case 'utilisateurs':
+        return fmtEntier(this.store.invitesNommes().length);
+      case 'materiel':
+        return fmtEuro(this.store.budgetMateriel().total);
+      case 'formulaire':
+        return fmtEntier(this.store.reponsesFormulaire().length);
+      default:
+        return '';
+    }
+  }
 
   /**
    * A l'ouverture : je me declare comme co-organisateur (idempotent sur le
