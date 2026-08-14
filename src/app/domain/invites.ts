@@ -1,4 +1,4 @@
-import { Effectif, Invite, Regime } from './models';
+import { CategoriePaiement, Effectif, Invite, Regime } from './models';
 
 /**
  * Invites nommes.
@@ -34,7 +34,19 @@ export function inviteVierge(id: string, participantId: string): Invite {
     allergies: '',
     envies: '',
     remarques: '',
+    categoriePaiementId: '',
+    paye: false,
+    montantPaye: 0,
+    joursPresence: 0,
   };
+}
+
+/**
+ * Complete un invite venu de la base avec les champs apparus depuis sa
+ * creation : les evenements anterieurs au suivi de paiement restent lisibles.
+ */
+export function normaliserInvite(brut: Partial<Invite> & { id: string }): Invite {
+  return { ...inviteVierge(brut.id, brut.participantId ?? ''), ...brut };
 }
 
 /** Les invites nommes qu'un co-organisateur amene. */
@@ -105,4 +117,43 @@ export function compterParRegime(invites: readonly Invite[]): CompteRegime[] {
 /** Les invites qui declarent une allergie : la liste a avoir en cuisine. */
 export function invitesAvecAllergies(invites: readonly Invite[]): Invite[] {
   return invites.filter((x) => x.allergies.trim().length > 0);
+}
+
+// ---------------------------------------------------------------------------
+// Encaissements : le paiement se fait hors de l'app, ici on le suit
+// ---------------------------------------------------------------------------
+
+export interface Encaissements {
+  /** Somme des tarifs des categories attribuees. */
+  attendu: number;
+  /** Somme reellement versee par ceux qui ont paye. */
+  encaisse: number;
+  reste: number;
+  payes: number;
+  /** Invites avec une categorie payante qui n'ont pas encore paye. */
+  enAttente: number;
+}
+
+export function calculerEncaissements(
+  invites: readonly Invite[],
+  categories: readonly CategoriePaiement[],
+): Encaissements {
+  const parId = new Map(categories.map((x) => [x.id, x]));
+  let attendu = 0;
+  let encaisse = 0;
+  let payes = 0;
+  let enAttente = 0;
+
+  for (const invite of invites) {
+    const categorie = parId.get(invite.categoriePaiementId);
+    if (categorie) attendu += Math.max(0, categorie.montant);
+    if (invite.paye) {
+      encaisse += Math.max(0, invite.montantPaye);
+      payes += 1;
+    } else if (categorie && categorie.montant > 0) {
+      enAttente += 1;
+    }
+  }
+
+  return { attendu, encaisse, reste: Math.max(0, attendu - encaisse), payes, enAttente };
 }

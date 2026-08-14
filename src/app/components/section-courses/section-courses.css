@@ -1,0 +1,92 @@
+.intro {
+  margin-bottom: 1rem;
+}
+
+.reste {
+  margin-bottom: 1rem;
+  padding: 0.5625rem 0.75rem;
+  border-radius: var(--rayon-petit);
+  background: var(--accent-doux);
+  color: var(--accent);
+  font-size: 0.8125rem;
+}
+
+.reste.fini {
+  background: var(--ok-doux);
+  color: var(--ok);
+}
+
+.groupe + .groupe {
+  margin-top: 1.25rem;
+}
+
+.groupe-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.375rem;
+}
+
+.lignes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lignes li {
+  border-top: 1px solid var(--bord);
+}
+
+.lignes label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5625rem 0.25rem;
+  cursor: pointer;
+}
+
+.lignes input {
+  accent-color: var(--accent);
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+}
+
+.contenu {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.nom {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.quantite {
+  font-size: 0.75rem;
+  color: var(--texte-doux);
+}
+
+.detail {
+  font-size: 0.6875rem;
+}
+
+.prix {
+  font-size: 0.8125rem;
+  flex: none;
+}
+
+/* Une ligne cochee reste lisible : c'est la satisfaction du caddie plein. */
+.cochee .nom {
+  text-decoration: line-through;
+  color: var(--texte-doux);
+}
+
+.cochee .prix {
+  color: var(--texte-doux);
+}

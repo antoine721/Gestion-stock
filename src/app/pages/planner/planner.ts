@@ -1,50 +1,43 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EffectifsForm } from '../../components/effectifs-form/effectifs-form';
 import { Extras } from '../../components/extras/extras';
 import { HubAccueil } from '../../components/hub-accueil/hub-accueil';
 import { ListeCourses } from '../../components/liste-courses/liste-courses';
 import { PersonnesTypes } from '../../components/personnes-types/personnes-types';
 import { ReglagesForm } from '../../components/reglages-form/reglages-form';
-import { ResumePanel } from '../../components/resume-panel/resume-panel';
 import { RepartitionPanel } from '../../components/repartition-panel/repartition-panel';
+import { SectionCourses } from '../../components/section-courses/section-courses';
 import { SectionFormulaire } from '../../components/section-formulaire/section-formulaire';
 import { SectionMateriel } from '../../components/section-materiel/section-materiel';
 import { SectionNourriture } from '../../components/section-nourriture/section-nourriture';
+import { SectionProgramme } from '../../components/section-programme/section-programme';
 import { SectionStats } from '../../components/section-stats/section-stats';
 import { SectionUtilisateurs } from '../../components/section-utilisateurs/section-utilisateurs';
 import { ValidationPanel } from '../../components/validation-panel/validation-panel';
-import {
-  ESPACES,
-  Espace,
-  ONGLET_EVENEMENT,
-  PlannerStore,
-  SECTIONS,
-} from '../../state/planner-store';
+import { ESPACES, Espace, PlannerStore, SECTIONS } from '../../state/planner-store';
 import { SessionStore } from '../../state/session';
 import { fmtEntier, fmtEuro } from '../../domain/format';
-import { invitesDe } from '../../domain/calcul';
 
 /**
  * Le hub de l'evenement : une sidebar par piece (bar, nourriture, invites,
- * materiel, stats, formulaire) et un accueil en cards qui resume tout.
- * L'ancienne page — onglets par co-organisateur et sections du bar — vit
- * desormais dans l'espace « Bar & boissons ».
+ * materiel, courses, stats, formulaire) et un accueil en cards qui resume
+ * tout. Les invites se declarent dans la base d'invites — il n'y a plus de
+ * saisie par co-organisateur dans l'espace bar.
  */
 @Component({
   selector: 'app-planner',
   imports: [
-    EffectifsForm,
     Extras,
     HubAccueil,
     ListeCourses,
     PersonnesTypes,
     ReglagesForm,
     RepartitionPanel,
-    ResumePanel,
+    SectionCourses,
     SectionFormulaire,
     SectionMateriel,
     SectionNourriture,
+    SectionProgramme,
     SectionStats,
     SectionUtilisateurs,
     ValidationPanel,
@@ -59,13 +52,11 @@ export class Planner {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  protected readonly evenement = ONGLET_EVENEMENT;
   protected readonly sections = SECTIONS;
   protected readonly espaces = ESPACES;
   protected readonly fmtEntier = fmtEntier;
   protected readonly fmtEuro = fmtEuro;
 
-  protected readonly invitesDe = invitesDe;
   protected readonly lienCopie = signal(false);
 
   protected readonly code = computed(() => this.route.snapshot.paramMap.get('code') ?? '');
@@ -85,6 +76,14 @@ export class Planner {
         return fmtEntier(this.store.invitesNommes().length);
       case 'materiel':
         return fmtEuro(this.store.budgetMateriel().total);
+      case 'courses': {
+        const resume = this.store.resumeCourses();
+        return resume.lignes > 0 ? `${resume.cochees}/${resume.lignes}` : '';
+      }
+      case 'programme': {
+        const resume = this.store.resumeProgramme();
+        return resume.creneaux > 0 ? fmtEntier(resume.creneaux) : '';
+      }
       case 'formulaire':
         return fmtEntier(this.store.reponsesFormulaire().length);
       default:
@@ -115,17 +114,6 @@ export class Planner {
       setTimeout(() => this.lienCopie.set(false), 2000);
     } catch {
       // Presse-papier refuse : le lien reste affiche, a selectionner a la main.
-    }
-  }
-
-  protected async ajouterParticipant(): Promise<void> {
-    const nom = prompt('Prenom du co-organisateur a ajouter ?');
-    if (nom?.trim()) await this.store.ajouterParticipant(nom.trim());
-  }
-
-  protected async retirer(participantId: string, nom: string): Promise<void> {
-    if (confirm(`Retirer ${nom} et ses invites de l'evenement ?`)) {
-      await this.store.retirerParticipant(participantId);
     }
   }
 

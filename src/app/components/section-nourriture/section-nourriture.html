@@ -36,16 +36,18 @@
                 />
               </label>
               <div class="chiffres">
-                <label class="champ">
-                  <span>€ / pers.</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.5"
-                    [value]="repas.coutParPersonne"
-                    (input)="majCout(repas, $any($event.target).value)"
-                  />
-                </label>
+                @if (repas.ingredients.length === 0) {
+                  <label class="champ">
+                    <span>€ / pers.</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      [value]="repas.coutParPersonne"
+                      (input)="majCout(repas, $any($event.target).value)"
+                    />
+                  </label>
+                }
                 <label class="champ">
                   <span>Convives</span>
                   <input
@@ -58,6 +60,105 @@
                   />
                 </label>
               </div>
+
+              @if (repas.ingredients.length > 0) {
+                <div class="ingredients">
+                  <div class="ingredient entetes">
+                    <span>Ingredient</span>
+                    <span class="droite">/pers</span>
+                    <span>Unite</span>
+                    <span class="droite">Paquet</span>
+                    <span class="droite">€/paq</span>
+                    <span></span>
+                  </div>
+                  @for (ingredient of repas.ingredients; track ingredient.id) {
+                    <div class="ingredient">
+                      <input
+                        type="text"
+                        placeholder="Riz, viande..."
+                        [value]="ingredient.nom"
+                        (input)="
+                          majIngredientTexte(repas, ingredient, {
+                            nom: $any($event.target).value,
+                          })
+                        "
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        title="Quantite par personne"
+                        [value]="ingredient.qteParPersonne"
+                        (input)="
+                          majIngredientNombre(
+                            repas,
+                            ingredient,
+                            'qteParPersonne',
+                            $any($event.target).value
+                          )
+                        "
+                      />
+                      <select
+                        title="Unite"
+                        (change)="
+                          majIngredientTexte(repas, ingredient, {
+                            unite: $any($event.target).value,
+                          })
+                        "
+                      >
+                        @for (unite of unites; track unite.id) {
+                          <option [value]="unite.id" [selected]="unite.id === ingredient.unite">
+                            {{ unite.libelle }}
+                          </option>
+                        }
+                      </select>
+                      <input
+                        type="number"
+                        min="0"
+                        title="Taille du paquet achete"
+                        [value]="ingredient.conditionnement"
+                        (input)="
+                          majIngredientNombre(
+                            repas,
+                            ingredient,
+                            'conditionnement',
+                            $any($event.target).value
+                          )
+                        "
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        title="Prix du paquet"
+                        [value]="ingredient.prixConditionnement"
+                        (input)="
+                          majIngredientNombre(
+                            repas,
+                            ingredient,
+                            'prixConditionnement',
+                            $any($event.target).value
+                          )
+                        "
+                      />
+                      <button
+                        type="button"
+                        class="discret"
+                        title="Retirer cet ingredient"
+                        (click)="store.supprimerIngredient(repas.id, ingredient.id)"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  }
+                  <button type="button" class="discret" (click)="store.ajouterIngredient(repas.id)">
+                    + Ingredient
+                  </button>
+                </div>
+              } @else {
+                <button type="button" class="discret" (click)="store.ajouterIngredient(repas.id)">
+                  + Doser en ingredients (g / ml par personne)
+                </button>
+              }
               <label class="vegetarien">
                 <input
                   type="checkbox"

@@ -41,7 +41,14 @@ export class SectionStats {
   /** Ce qui reste a faire, toutes pieces confondues : la todo de la fete. */
   protected readonly resteAFaire = computed(() => {
     const taches: {
-      espace: 'alcool' | 'nourriture' | 'utilisateurs' | 'materiel' | 'formulaire';
+      espace:
+        | 'alcool'
+        | 'nourriture'
+        | 'utilisateurs'
+        | 'materiel'
+        | 'courses'
+        | 'programme'
+        | 'formulaire';
       texte: string;
     }[] = [];
     const nourriture = this.store.budgetNourriture();
@@ -72,6 +79,27 @@ export class SectionStats {
     const alertes = this.store.alertes().length;
     if (alertes > 0) {
       taches.push({ espace: 'alcool', texte: `${alertes} alerte(s) sur la liste de courses` });
+    }
+    const encaissements = this.store.encaissements();
+    if (encaissements.enAttente > 0) {
+      taches.push({
+        espace: 'utilisateurs',
+        texte: `${encaissements.enAttente} paiement(s) en attente`,
+      });
+    }
+    const courses = this.store.resumeCourses();
+    if (courses.lignes > 0 && courses.cochees < courses.lignes) {
+      taches.push({
+        espace: 'courses',
+        texte: `${courses.lignes - courses.cochees} ligne(s) de courses a acheter`,
+      });
+    }
+    const programme = this.store.resumeProgramme();
+    if (programme.creneaux > 0 && programme.joursVides > 0) {
+      taches.push({
+        espace: 'programme',
+        texte: `${programme.joursVides} jour(s) sans creneau au programme`,
+      });
     }
     return taches;
   });

@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  calculerEncaissements,
   compterParRegime,
   effectifsAvecInvites,
   fusionnerEffectifs,
   inviteVierge,
   invitesAvecAllergies,
   invitesNommesDe,
+  normaliserInvite,
 } from './invites';
 import { Invite } from './models';
 
@@ -59,5 +61,41 @@ describe('invites nommes', () => {
   it('liste les allergies a avoir en cuisine', () => {
     const liste = [invite('a', { allergies: 'arachide' }), invite('b', { allergies: '  ' })];
     expect(invitesAvecAllergies(liste)).toHaveLength(1);
+  });
+
+  it('normalise un invite d’avant le suivi de paiement', () => {
+    const ancien = { id: 'x', prenom: 'Paul', participantId: 'antoine' };
+    const normalise = normaliserInvite(ancien);
+
+    expect(normalise.paye).toBe(false);
+    expect(normalise.montantPaye).toBe(0);
+    expect(normalise.categoriePaiementId).toBe('');
+    expect(normalise.prenom).toBe('Paul');
+  });
+});
+
+describe('encaissements', () => {
+  const categories = [
+    { id: 'we', nom: 'Week-end complet', montant: 40 },
+    { id: 'jour', nom: 'Une journee', montant: 15 },
+  ];
+
+  it('suit l’attendu, l’encaisse et ce qui manque', () => {
+    const encaissements = calculerEncaissements(
+      [
+        invite('a', { categoriePaiementId: 'we', paye: true, montantPaye: 40 }),
+        invite('b', { categoriePaiementId: 'we' }),
+        invite('c', { categoriePaiementId: 'jour', paye: true, montantPaye: 10 }),
+        // Sans categorie : rien d'attendu, rien a relancer.
+        invite('d'),
+      ],
+      categories,
+    );
+
+    expect(encaissements.attendu).toBe(95);
+    expect(encaissements.encaisse).toBe(50);
+    expect(encaissements.reste).toBe(45);
+    expect(encaissements.payes).toBe(2);
+    expect(encaissements.enAttente).toBe(1);
   });
 });

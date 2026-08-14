@@ -54,6 +54,9 @@ export class HubAccueil {
     const invites = this.store.invitesNommes();
     const sansProfil = invites.filter((x) => !x.personneTypeId).length;
     const reponses = this.store.reponsesFormulaire().length;
+    const encaissements = this.store.encaissements();
+    const courses = this.store.resumeCourses();
+    const programme = this.store.resumeProgramme();
 
     return [
       carte('alcool', {
@@ -76,15 +79,48 @@ export class HubAccueil {
       }),
       carte('utilisateurs', {
         valeur: fmtEntier(invites.length),
-        sous: `${fmtEntier(this.store.cadre().invites)} tetes au total, effectifs compris`,
-        etat: sansProfil > 0 ? 'attention' : '',
-        etatTexte: sansProfil > 0 ? `${sansProfil} sans profil` : '',
+        sous:
+          encaissements.attendu > 0
+            ? `${fmtEuro(encaissements.encaisse)} / ${fmtEuro(encaissements.attendu)} encaisses`
+            : `${fmtEntier(this.store.cadre().invites)} tetes au total`,
+        etat: encaissements.enAttente > 0 || sansProfil > 0 ? 'attention' : '',
+        etatTexte:
+          encaissements.enAttente > 0
+            ? `${encaissements.enAttente} paiement(s) en attente`
+            : sansProfil > 0
+              ? `${sansProfil} sans profil`
+              : '',
       }),
       carte('materiel', {
         valeur: fmtEuro(materiel.total),
         sous: `${fmtEntier(this.store.articles().length)} article(s) · achat & location`,
         etat: materiel.aPrevoir > 0 ? 'attention' : '',
         etatTexte: materiel.aPrevoir > 0 ? `${materiel.aPrevoir} a prevoir` : '',
+      }),
+      carte('courses', {
+        valeur: fmtEuro(courses.restant),
+        sous:
+          courses.lignes > 0
+            ? `reste a acheter · ${fmtEntier(courses.cochees)}/${fmtEntier(courses.lignes)} lignes cochees`
+            : 'La liste se remplit toute seule',
+        etat: courses.lignes > 0 && courses.restant === 0 ? 'pret' : '',
+        etatTexte: courses.lignes > 0 && courses.restant === 0 ? 'Caddie plein' : '',
+      }),
+      carte('programme', {
+        valeur: `${fmtEntier(programme.creneaux)} creneau(x)`,
+        sous: `${fmtEntier(programme.morceaux)} morceau(x) dans la tracklist`,
+        etat:
+          programme.creneaux > 0 && programme.joursVides > 0
+            ? 'attention'
+            : programme.creneaux > 0
+              ? 'pret'
+              : '',
+        etatTexte:
+          programme.creneaux > 0 && programme.joursVides > 0
+            ? `${programme.joursVides} jour(s) vide(s)`
+            : programme.creneaux > 0
+              ? 'Programme'
+              : '',
       }),
       carte('stats', {
         valeur: fmtEuro(this.store.budgetGlobal().total),

@@ -34,8 +34,20 @@ export class SectionFormulaire {
   protected readonly commentaire = signal('');
 
   protected readonly envoye = signal(false);
+  protected readonly lienCopie = signal(false);
 
   protected readonly valide = computed(() => this.prenom().trim().length > 0);
+
+  /** Le lien public : c'est lui qu'on balance dans le groupe WhatsApp. */
+  protected async copierLien(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.store.lienFormulaire());
+      this.lienCopie.set(true);
+      setTimeout(() => this.lienCopie.set(false), 2000);
+    } catch {
+      // Presse-papier refuse : le lien reste affiche, a selectionner a la main.
+    }
+  }
 
   protected majAccompagnants(valeur: string): void {
     const nombre = Number(valeur);

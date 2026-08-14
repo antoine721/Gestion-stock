@@ -1,0 +1,56 @@
+.page {
+  max-width: 34rem;
+  margin: 2.5rem auto 4rem;
+  padding: 0 1rem;
+}
+
+.entete {
+  margin-bottom: 1.25rem;
+}
+
+.app-nom {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.entete h1 {
+  margin: 0.25rem 0;
+  font-size: 1.5rem;
+}
+
+h2 {
+  font-size: 1.0625rem;
+  margin-bottom: 1rem;
+}
+
+.champs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.actions .primaire {
+  margin-left: auto;
+  padding: 0.625rem 1.25rem;
+}
+
+.erreur {
+  margin-top: 1rem;
+}
+
+.merci {
+  text-align: center;
+}
+
+.merci .actions {
+  justify-content: center;
+}

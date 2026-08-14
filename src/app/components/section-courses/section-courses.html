@@ -1,0 +1,65 @@
+<section class="card">
+  <div class="card-head">
+    <h2>La liste de courses</h2>
+    <span class="muted num">
+      {{ fmtEntier(store.resumeCourses().cochees) }}/{{ fmtEntier(store.resumeCourses().lignes) }} ·
+      {{ fmtEuro(store.resumeCourses().total) }}
+    </span>
+  </div>
+
+  <p class="intro muted">
+    Tout ce qu'il faut acheter, d'ou que ca vienne : le bar arrondit en bouteilles, la cuisine en
+    paquets, le materiel suit son statut. Coche au fur et a mesure — tout le monde voit la meme
+    liste.
+  </p>
+
+  @if (store.resumeCourses().restant > 0) {
+    <p class="reste">
+      Reste a acheter : <strong class="num">{{ fmtEuro(store.resumeCourses().restant) }}</strong>
+    </p>
+  } @else if (store.resumeCourses().lignes > 0) {
+    <p class="reste fini">Tout est achete. 🎉</p>
+  }
+
+  @if (groupes().length === 0) {
+    <p class="vide">
+      Rien a acheter pour l'instant : la liste se remplit avec les profils, les repas et le
+      materiel.
+    </p>
+  }
+
+  @for (groupe of groupes(); track groupe.id) {
+    <div class="groupe">
+      <div class="groupe-head">
+        <h3>{{ groupe.emoji }} {{ groupe.libelle }}</h3>
+        <span class="muted num">{{ fmtEuro(groupe.total) }}</span>
+      </div>
+      <ul class="lignes">
+        @for (ligne of groupe.lignes; track ligne.id) {
+          <li [class.cochee]="ligne.cochee">
+            <label>
+              <input
+                type="checkbox"
+                [checked]="ligne.cochee"
+                (change)="store.basculerCourse(ligne.id)"
+              />
+              <span class="contenu">
+                <span class="nom">{{ ligne.nom }}</span>
+                <span class="quantite num">{{ ligne.quantite }}</span>
+                @if (ligne.detail) {
+                  <span class="detail muted">{{ ligne.detail }}</span>
+                }
+              </span>
+              <span class="prix num">{{ fmtEuro(ligne.prix) }}</span>
+            </label>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  <p class="hint">
+    Les quantites viennent des autres espaces : ajuste les profils, les repas ou le materiel et la
+    liste suit. Cocher une ligne de materiel passe l'article en « achete ».
+  </p>
+</section>

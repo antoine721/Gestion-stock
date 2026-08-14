@@ -1,0 +1,160 @@
+<div class="page">
+  @if (introuvable()) {
+    <section class="card">
+      <h1>Lien invalide</h1>
+      <p class="muted">
+        Cet evenement n'existe pas ou n'existe plus. Redemande le lien a la personne qui t'invite.
+      </p>
+    </section>
+  } @else {
+    <header class="entete">
+      <p class="app-nom muted">Combien acheter ?</p>
+      <h1>{{ infos()?.nom ?? 'Chargement…' }}</h1>
+      <p class="muted">
+        Ta fiche d'invite : deux minutes, et les organisateurs sauront quoi prevoir pour toi.
+      </p>
+    </header>
+
+    @switch (etape()) {
+      @case ('identite') {
+        <section class="card">
+          <h2>Qui es-tu ?</h2>
+          <div class="champs">
+            <label class="champ">
+              <span>Prenom *</span>
+              <input
+                type="text"
+                autocomplete="given-name"
+                [value]="prenom()"
+                (input)="prenom.set($any($event.target).value)"
+              />
+            </label>
+            <label class="champ">
+              <span>Nom</span>
+              <input
+                type="text"
+                autocomplete="family-name"
+                [value]="nom()"
+                (input)="nom.set($any($event.target).value)"
+              />
+            </label>
+            <label class="champ">
+              <span>Qui t'invite ?</span>
+              <input
+                type="text"
+                placeholder="Le prenom de la personne qui t'a envoye ce lien"
+                [value]="invitePar()"
+                (input)="invitePar.set($any($event.target).value)"
+              />
+            </label>
+          </div>
+          <div class="actions">
+            <button
+              type="button"
+              class="primaire"
+              [disabled]="!identiteValide()"
+              (click)="continuer()"
+            >
+              Continuer
+            </button>
+          </div>
+        </section>
+      }
+      @case ('fiche') {
+        <section class="card">
+          <h2>Ta fiche, {{ prenom() }}</h2>
+          <div class="champs">
+            <label class="champ">
+              <span>Tu viens avec combien de personnes ?</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                [value]="accompagnants()"
+                (input)="majAccompagnants($any($event.target).value)"
+              />
+            </label>
+            <label class="champ">
+              <span>Ton regime</span>
+              <select (change)="regime.set($any($event.target).value)">
+                @for (option of regimes; track option.id) {
+                  <option [value]="option.id" [selected]="option.id === regime()">
+                    {{ option.libelle }}
+                  </option>
+                }
+              </select>
+            </label>
+            <label class="champ">
+              <span>Allergies</span>
+              <input
+                type="text"
+                placeholder="Arachide, lactose..."
+                [value]="allergies()"
+                (input)="allergies.set($any($event.target).value)"
+              />
+            </label>
+            <label class="champ">
+              <span>Ce que tu bois</span>
+              <input
+                type="text"
+                placeholder="Biere, spritz, sans alcool..."
+                [value]="preferencesBoissons()"
+                (input)="preferencesBoissons.set($any($event.target).value)"
+              />
+            </label>
+            <label class="champ">
+              <span>Envie de faire quoi sur place ?</span>
+              <input
+                type="text"
+                placeholder="DJ, jeux, karaoke, petanque..."
+                [value]="envies()"
+                (input)="envies.set($any($event.target).value)"
+              />
+            </label>
+            <label class="champ">
+              <span>Musique a passer</span>
+              <input
+                type="text"
+                placeholder="Artistes, morceaux, playlists..."
+                [value]="recommandations()"
+                (input)="recommandations.set($any($event.target).value)"
+              />
+            </label>
+            <label class="champ">
+              <span>Un mot pour les organisateurs</span>
+              <input
+                type="text"
+                placeholder="Tout ce qui peut aider..."
+                [value]="commentaire()"
+                (input)="commentaire.set($any($event.target).value)"
+              />
+            </label>
+          </div>
+
+          @if (erreur()) {
+            <p class="erreur">{{ erreur() }}</p>
+          }
+
+          <div class="actions">
+            <button type="button" class="discret" (click)="etape.set('identite')">← Retour</button>
+            <button type="button" class="primaire" [disabled]="envoiEnCours()" (click)="envoyer()">
+              {{ envoiEnCours() ? 'Envoi…' : 'Envoyer ma fiche' }}
+            </button>
+          </div>
+        </section>
+      }
+      @case ('merci') {
+        <section class="card merci">
+          <h2>Merci {{ prenom() }} ! 🎉</h2>
+          <p class="muted">
+            Ta fiche est bien enregistree. Les organisateurs s'occupent du reste — toi, tu n'as plus
+            qu'a venir.
+          </p>
+          <div class="actions">
+            <button type="button" (click)="recommencer()">Remplir une autre fiche</button>
+          </div>
+        </section>
+      }
+    }
+  }
+</div>
