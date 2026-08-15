@@ -150,4 +150,17 @@
   .paiement {
     grid-template-columns: 1fr 1fr;
   }
+
+  /* La croix de suppression s'ancre en haut a droite de la fiche, au lieu de
+     flotter au milieu de la grille. */
+  .fiche {
+    position: relative;
+    padding-top: 1.75rem;
+  }
+
+  .principale > button.discret {
+    position: absolute;
+    top: 0.375rem;
+    right: 0.375rem;
+  }
 }
