@@ -519,3 +519,40 @@ summary::-webkit-details-marker {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* -- Petits ecrans : confort tactile --------------------------------------- */
+
+@media (max-width: 48rem) {
+  /* Un tableau large defile dans sa boite ; la page, elle, ne bouge pas. */
+  .card table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 16px minimum : en dessous, iOS zoome sur chaque champ touche. */
+  input[type='number'],
+  input[type='text'],
+  input[type='password'],
+  select {
+    font-size: 1rem;
+    padding: 0.5625rem 0.625rem;
+  }
+
+  /* Des cibles tactiles dignes d'un pouce, sauf les petites croix discretes. */
+  button {
+    min-height: 2.375rem;
+  }
+
+  button.discret {
+    min-height: 0;
+  }
+
+  h1 {
+    font-size: 1.25rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+}
