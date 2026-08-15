@@ -136,17 +136,26 @@
   border-top: 1px solid var(--bord);
 }
 
+/* Sur petit ecran, un creneau s'empile : heures, titre, puis les details. */
 @media (max-width: 52rem) {
   .creneau {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr 1fr;
   }
 
+  .creneau .titre,
   .creneau .notes {
     grid-column: 1 / -1;
   }
 
-  .creneau input[placeholder="Qui s'en occupe ?"],
-  .creneau input[placeholder='Ou ?'] {
-    grid-column: span 1;
+  .creneau > button.discret {
+    justify-self: end;
+  }
+
+  .morceau {
+    grid-template-columns: 1fr 1fr auto;
+  }
+
+  .morceau .demande-par {
+    grid-column: 1 / 3;
   }
 }
