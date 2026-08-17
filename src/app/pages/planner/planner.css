@@ -304,7 +304,7 @@
     -webkit-backdrop-filter: var(--flou);
     backdrop-filter: var(--flou);
     border: 1px solid var(--bord-verre);
-    border-radius: 26px;
+    border-radius: 32px;
     box-shadow: var(--ombre-haute), var(--lueur);
     scrollbar-width: none;
   }
