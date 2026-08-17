@@ -1,16 +1,26 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Api, InfosPubliques } from '../../state/api';
-import { HEBERGEMENTS, REGIMES } from '../../domain/invites';
-import { BOISSONS, LIBELLE_FAMILLE, ORDRE_FAMILLE } from '../../domain/catalogue';
-import { Hebergement, Regime } from '../../domain/models';
+import { HEBERGEMENTS, REGIMES, logistiqueVierge } from '../../domain/invites';
+import {
+  BOISSONS_AIMEES,
+  INTENSITES,
+  PALIERS_CONSO,
+  SERVICES,
+  TEAMS,
+} from '../../domain/preferences';
+import { Hebergement, NiveauConso, Regime, TeamBuveur } from '../../domain/models';
 import { Logo } from '../../components/logo/logo';
 
 /**
  * La page publique du formulaire : le seul ecran de l'app accessible sans mot
  * de passe. L'invite s'identifie d'abord (c'est la seule chose obligatoire),
- * puis remplit le reste de sa fiche. La reponse part directement en base ;
- * les organisateurs la rattacheront a un co-organisateur depuis le hub.
+ * puis remplit sa fiche en trois etapes courtes. La reponse part directement
+ * en base ; les organisateurs la rattacheront a un co-organisateur depuis le
+ * hub.
+ *
+ * Ce qu'on demande sur la boisson est DECLARATIF : ca oriente le choix du
+ * profil de consommation, ca n'entre jamais tout seul dans le calcul.
  */
 @Component({
   selector: 'app-formulaire-public',
@@ -25,17 +35,60 @@ export class FormulairePublic {
 
   protected readonly regimes = REGIMES;
   protected readonly hebergements = HEBERGEMENTS;
+  protected readonly paliers = PALIERS_CONSO;
+  protected readonly intensites = INTENSITES;
+  protected readonly teams = TEAMS;
+  protected readonly services = SERVICES;
+  protected readonly basiques = BOISSONS_AIMEES.filter((x) => x.famille === 'basique');
+  protected readonly spiritueux = BOISSONS_AIMEES.filter((x) => x.famille === 'spiritueux');
+
   protected readonly code = computed(() => this.route.snapshot.paramMap.get('code') ?? '');
-
-  /** Le catalogue des boissons, groupe par famille, pour la conso declaree. */
-  protected readonly familles = ORDRE_FAMILLE.map((famille) => ({
-    libelle: LIBELLE_FAMILLE[famille],
-    boissons: BOISSONS.filter((x) => x.famille === famille),
-  })).filter((x) => x.boissons.length > 0);
-
   protected readonly infos = signal<InfosPubliques | undefined>(undefined);
+  protected readonly introuvable = signal(false);
+  protected readonly envoiEnCours = signal(false);
+  protected readonly erreur = signal('');
 
-  /** « Du ven. 21 aout au dim. 23 aout · Le champ derriere la grange ». */
+  /** Le formulaire se traverse en trois etapes, puis un remerciement. */
+  protected readonly etape = signal<'identite' | 'sejour' | 'gouts' | 'merci'>('identite');
+
+  // -- Qui es-tu ------------------------------------------------------------
+
+  protected readonly prenom = signal('');
+  protected readonly nom = signal('');
+  protected readonly surnom = signal('');
+  protected readonly invitePar = signal('');
+  protected readonly accompagne = signal<'' | 'non' | 'oui'>('');
+  protected readonly accompagnants = signal(1);
+
+  // -- Ton sejour -----------------------------------------------------------
+
+  protected readonly sejourComplet = signal<'' | 'oui' | 'non'>('');
+  protected readonly arrivee = signal('');
+  protected readonly depart = signal('');
+  protected readonly voiture = signal<'' | 'oui' | 'non'>('');
+  protected readonly permis = signal<'' | 'oui' | 'non'>('');
+  protected readonly tente = signal<'' | 'oui' | 'non'>('');
+  protected readonly placesVoiture = signal(0);
+  protected readonly chercheCovoiturage = signal(false);
+  protected readonly hebergement = signal<Hebergement>('a-definir');
+
+  // -- Tes gouts ------------------------------------------------------------
+
+  protected readonly regime = signal<Regime>('omnivore');
+  protected readonly aDesAllergies = signal<'' | 'non' | 'oui'>('');
+  protected readonly allergies = signal('');
+  /** boissonId -> intensite du gout, de 1 a 5. Absente = pas cochee. */
+  protected readonly boissonsAimees = signal<ReadonlyMap<string, number>>(new Map());
+  protected readonly niveauBasiques = signal<NiveauConso>('aucun');
+  protected readonly niveauSpiritueux = signal<NiveauConso>('aucun');
+  protected readonly team = signal<TeamBuveur | ''>('');
+  protected readonly servicesPreferes = signal<ReadonlySet<string>>(new Set());
+  protected readonly materielApporte = signal('');
+  protected readonly besoins = signal('');
+  protected readonly commentaire = signal('');
+  protected readonly stylesMusicaux = signal('');
+
+  /** « Du ven. 21 aout au dim. 23 aout · La prairie du moulin ». */
   protected readonly quandOu = computed(() => {
     const infos = this.infos();
     if (!infos) return '';
@@ -51,58 +104,29 @@ export class FormulairePublic {
     const quand = debut && fin && fin !== debut ? `Du ${debut} au ${fin}` : debut;
     return [quand, infos.lieu].filter(Boolean).join(' · ');
   });
-  protected readonly introuvable = signal(false);
-  protected readonly etape = signal<'identite' | 'fiche' | 'merci'>('identite');
-  protected readonly envoiEnCours = signal(false);
-  protected readonly erreur = signal('');
 
-  protected readonly prenom = signal('');
-  protected readonly nom = signal('');
-  protected readonly invitePar = signal('');
-  protected readonly accompagnants = signal(0);
-  protected readonly regime = signal<Regime>('omnivore');
-  protected readonly allergies = signal('');
-  protected readonly preferencesBoissons = signal('');
-  protected readonly envies = signal('');
-  protected readonly recommandations = signal('');
-  protected readonly commentaire = signal('');
-  protected readonly stylesMusicaux = signal('');
-  protected readonly besoins = signal('');
+  // -- Validation : une etape ne se quitte pas incomplete -------------------
 
-  // La logistique : voiture, horaires, couchage, coups de main.
-  protected readonly permis = signal(false);
-  protected readonly vehicule = signal(false);
-  protected readonly placesVoiture = signal(0);
-  protected readonly chercheCovoiturage = signal(false);
-  protected readonly hebergement = signal<Hebergement>('a-definir');
-  protected readonly arrivee = signal('');
-  protected readonly depart = signal('');
-  protected readonly materielApporte = signal('');
+  protected readonly identiteValide = computed(
+    () =>
+      this.prenom().trim().length > 0 && this.nom().trim().length > 0 && this.accompagne() !== '',
+  );
 
-  protected majPlacesVoiture(valeur: string): void {
-    const places = Number(valeur);
-    if (Number.isFinite(places)) {
-      this.placesVoiture.set(Math.min(9, Math.max(0, Math.round(places))));
+  protected readonly sejourValide = computed(() => {
+    if (this.sejourComplet() === '') return false;
+    // Sejour partiel : on veut savoir quand la personne arrive et repart.
+    if (this.sejourComplet() === 'non') {
+      if (!this.arrivee().trim() || !this.depart().trim()) return false;
     }
-  }
+    return this.voiture() !== '' && this.permis() !== '' && this.tente() !== '';
+  });
 
-  /** boissonId -> verres par jour declares. Indicatif, jamais un bareme. */
-  protected readonly consommations = signal<ReadonlyMap<string, number>>(new Map());
-
-  protected readonly identiteValide = computed(() => this.prenom().trim().length > 0);
-
-  protected verresDe(boissonId: string): number {
-    return this.consommations().get(boissonId) ?? 0;
-  }
-
-  protected majVerres(boissonId: string, valeur: string): void {
-    const verres = Number(valeur);
-    if (!Number.isFinite(verres)) return;
-    const suivantes = new Map(this.consommations());
-    if (verres > 0) suivantes.set(boissonId, Math.min(30, verres));
-    else suivantes.delete(boissonId);
-    this.consommations.set(suivantes);
-  }
+  protected readonly goutsValides = computed(() => {
+    if (this.aDesAllergies() === '') return false;
+    if (this.aDesAllergies() === 'oui' && !this.allergies().trim()) return false;
+    if (this.team() === '') return false;
+    return this.materielApporte().trim().length > 0;
+  });
 
   constructor() {
     void this.charger();
@@ -116,44 +140,131 @@ export class FormulairePublic {
     }
   }
 
-  protected continuer(): void {
-    if (this.identiteValide()) this.etape.set('fiche');
+  // -- Navigation entre etapes ----------------------------------------------
+
+  protected allerSejour(): void {
+    if (this.identiteValide()) this.etape.set('sejour');
   }
+
+  protected allerGouts(): void {
+    if (this.sejourValide()) this.etape.set('gouts');
+  }
+
+  protected revenir(vers: 'identite' | 'sejour'): void {
+    this.etape.set(vers);
+  }
+
+  // -- Petits utilitaires de saisie -----------------------------------------
 
   protected majAccompagnants(valeur: string): void {
     const nombre = Number(valeur);
-    if (Number.isFinite(nombre)) this.accompagnants.set(Math.max(0, Math.round(nombre)));
+    if (Number.isFinite(nombre))
+      this.accompagnants.set(Math.min(20, Math.max(1, Math.round(nombre))));
   }
 
+  protected majPlacesVoiture(valeur: string): void {
+    const places = Number(valeur);
+    if (Number.isFinite(places))
+      this.placesVoiture.set(Math.min(9, Math.max(0, Math.round(places))));
+  }
+
+  protected aimeBoisson(id: string): boolean {
+    return this.boissonsAimees().has(id);
+  }
+
+  protected intensiteDe(id: string): number {
+    return this.boissonsAimees().get(id) ?? 3;
+  }
+
+  /**
+   * Cocher une boisson la pose a « j'aime bien » ; le curseur affine ensuite.
+   *
+   * Le rythme de la famille suit la case : cocher un premier alcool alors qu'on
+   * est encore a « rien du tout » n'a pas de sens, et decocher le dernier laisse
+   * un rythme declare sans rien pour le porter. On evite ainsi de faire remonter
+   * des fiches contradictoires a l'interpretation.
+   */
+  protected basculerBoisson(id: string): void {
+    const suivantes = new Map(this.boissonsAimees());
+    if (suivantes.has(id)) suivantes.delete(id);
+    else suivantes.set(id, 3);
+    this.boissonsAimees.set(suivantes);
+
+    const famille = BOISSONS_AIMEES.find((x) => x.id === id)?.famille;
+    if (!famille) return;
+    const niveau = famille === 'basique' ? this.niveauBasiques : this.niveauSpiritueux;
+    const restantes = BOISSONS_AIMEES.filter(
+      (x) => x.famille === famille && suivantes.has(x.id),
+    ).length;
+    if (restantes > 0 && niveau() === 'aucun') niveau.set('moyen');
+    else if (restantes === 0) niveau.set('aucun');
+  }
+
+  protected majIntensite(id: string, valeur: string): void {
+    const intensite = Number(valeur);
+    if (!Number.isFinite(intensite)) return;
+    const suivantes = new Map(this.boissonsAimees());
+    suivantes.set(id, Math.min(5, Math.max(1, Math.round(intensite))));
+    this.boissonsAimees.set(suivantes);
+  }
+
+  /** Le chameau ne repond pas aux questions d'alcool : elles disparaissent. */
+  protected readonly sansAlcool = computed(() => this.team() === 'chameau');
+
+  protected veutService(id: string): boolean {
+    return this.servicesPreferes().has(id);
+  }
+
+  protected basculerService(id: string): void {
+    const suivants = new Set(this.servicesPreferes());
+    if (suivants.has(id)) suivants.delete(id);
+    else suivants.add(id);
+    this.servicesPreferes.set(suivants);
+  }
+
+  // -- Envoi -----------------------------------------------------------------
+
   protected async envoyer(): Promise<void> {
-    if (!this.identiteValide() || this.envoiEnCours()) return;
+    if (!this.identiteValide() || !this.sejourValide() || !this.goutsValides()) return;
+    if (this.envoiEnCours()) return;
     this.envoiEnCours.set(true);
     this.erreur.set('');
+
+    const complet = this.sejourComplet() === 'oui';
     try {
       await this.api.envoyerReponsePublique(this.code(), {
         prenom: this.prenom().trim(),
         nom: this.nom().trim(),
+        surnom: this.surnom().trim(),
         invitePar: this.invitePar().trim(),
-        accompagnants: this.accompagnants(),
+        accompagnants: this.accompagne() === 'oui' ? this.accompagnants() : 0,
         regime: this.regime(),
-        allergies: this.allergies().trim(),
-        preferencesBoissons: this.preferencesBoissons().trim(),
-        envies: this.envies().trim(),
-        recommandations: this.recommandations().trim(),
+        allergies: this.aDesAllergies() === 'oui' ? this.allergies().trim() : '',
+        preferencesBoissons: '',
+        envies: '',
+        recommandations: '',
         commentaire: this.commentaire().trim(),
-        consommations: [...this.consommations().entries()].map(([boissonId, verresParJour]) => ({
-          boissonId,
-          verresParJour,
-        })),
+        consommations: [],
         stylesMusicaux: this.stylesMusicaux().trim(),
+        boissonsAimees: [...this.boissonsAimees().entries()].map(([boissonId, intensite]) => ({
+          boissonId,
+          intensite,
+        })),
+        niveauBasiques: this.sansAlcool() ? 'aucun' : this.niveauBasiques(),
+        niveauSpiritueux: this.sansAlcool() ? 'aucun' : this.niveauSpiritueux(),
+        team: this.team(),
+        servicesPreferes: [...this.servicesPreferes()],
         logistique: {
-          permis: this.permis(),
-          vehicule: this.vehicule(),
-          placesVoiture: this.vehicule() ? this.placesVoiture() : 0,
+          ...logistiqueVierge(),
+          permis: this.permis() === 'oui',
+          vehicule: this.voiture() === 'oui',
+          tente: this.tente() === 'oui',
+          sejourComplet: complet,
+          placesVoiture: this.voiture() === 'oui' ? this.placesVoiture() : 0,
           chercheCovoiturage: this.chercheCovoiturage(),
-          hebergement: this.hebergement(),
-          arrivee: this.arrivee().trim(),
-          depart: this.depart().trim(),
+          hebergement: this.tente() === 'oui' ? 'tente' : this.hebergement(),
+          arrivee: complet ? '' : this.arrivee().trim(),
+          depart: complet ? '' : this.depart().trim(),
           materielApporte: this.materielApporte().trim(),
           besoins: this.besoins().trim(),
         },
@@ -170,24 +281,30 @@ export class FormulairePublic {
   protected recommencer(): void {
     this.prenom.set('');
     this.nom.set('');
-    this.accompagnants.set(0);
-    this.regime.set('omnivore');
-    this.allergies.set('');
-    this.preferencesBoissons.set('');
-    this.envies.set('');
-    this.recommandations.set('');
-    this.commentaire.set('');
-    this.consommations.set(new Map());
-    this.stylesMusicaux.set('');
-    this.besoins.set('');
-    this.permis.set(false);
-    this.vehicule.set(false);
+    this.surnom.set('');
+    this.accompagne.set('');
+    this.accompagnants.set(1);
+    this.sejourComplet.set('');
+    this.arrivee.set('');
+    this.depart.set('');
+    this.voiture.set('');
+    this.permis.set('');
+    this.tente.set('');
     this.placesVoiture.set(0);
     this.chercheCovoiturage.set(false);
     this.hebergement.set('a-definir');
-    this.arrivee.set('');
-    this.depart.set('');
+    this.regime.set('omnivore');
+    this.aDesAllergies.set('');
+    this.allergies.set('');
+    this.boissonsAimees.set(new Map());
+    this.niveauBasiques.set('aucun');
+    this.niveauSpiritueux.set('aucun');
+    this.team.set('');
+    this.servicesPreferes.set(new Set());
     this.materielApporte.set('');
+    this.besoins.set('');
+    this.commentaire.set('');
+    this.stylesMusicaux.set('');
     this.etape.set('identite');
   }
 }

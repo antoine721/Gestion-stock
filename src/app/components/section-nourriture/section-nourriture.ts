@@ -2,13 +2,17 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { PlannerStore } from '../../state/planner-store';
 import { Modale } from '../modale/modale';
 import {
+  EMOJI_TYPE_PLAT,
   IDEES_PLATS,
+  LIBELLE_TYPE_PLAT,
   MOMENTS,
+  TYPES_PLAT,
   UNITES_INGREDIENT,
   coutDuRepas,
   repasPour,
 } from '../../domain/nourriture';
 import { compterParRegime, invitesAvecAllergies } from '../../domain/invites';
+import { dateDuJour } from '../../domain/evenement';
 import { fmtEntier, fmtEuro } from '../../domain/format';
 import { IngredientRepas, MomentRepas, Repas } from '../../domain/models';
 
@@ -35,6 +39,36 @@ export class SectionNourriture {
   protected readonly fmtEntier = fmtEntier;
   protected readonly coutDuRepas = coutDuRepas;
   protected readonly unites = UNITES_INGREDIENT;
+  protected readonly typesPlat = TYPES_PLAT;
+  protected readonly libelleTypePlat = LIBELLE_TYPE_PLAT;
+  protected readonly emojiTypePlat = EMOJI_TYPE_PLAT;
+
+  /** Les repas planifies, dates et tries : la liste propre de la section. */
+  protected readonly repasPlanifies = computed(() => {
+    const jours = Math.max(1, this.store.partage().jours);
+    const format = new Intl.DateTimeFormat('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
+    const rang = new Map(MOMENTS.map((x, i) => [x.id, i]));
+    return this.store
+      .nourriture()
+      .repas.filter((x) => x.jour <= jours)
+      .map((repas) => {
+        const date = dateDuJour(this.store.infos().debut, repas.jour);
+        return {
+          repas,
+          date: date ? format.format(date) : `Jour ${repas.jour}`,
+          moment: MOMENTS.find((x) => x.id === repas.moment),
+        };
+      })
+      .sort(
+        (a, b) =>
+          a.repas.jour - b.repas.jour ||
+          (rang.get(a.repas.moment) ?? 0) - (rang.get(b.repas.moment) ?? 0),
+      );
+  });
 
   protected readonly grille = computed(() => {
     const nourriture = this.store.nourriture();
@@ -91,6 +125,10 @@ export class SectionNourriture {
     this.store.definirRepas(repas.jour, repas.moment, {
       vegetarienPrevu: !repas.vegetarienPrevu,
     });
+  }
+
+  protected majTypePlat(repas: Repas, typePlat: string): void {
+    this.store.definirRepas(repas.jour, repas.moment, { typePlat: typePlat as Repas['typePlat'] });
   }
 
   protected majNotes(repas: Repas, notes: string): void {

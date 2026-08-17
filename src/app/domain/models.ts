@@ -157,6 +157,22 @@ export type Regime =
 /** Ou dort la personne : la question qui fache a 2 h du matin. */
 export type Hebergement = 'a-definir' | 'sur-place' | 'tente' | 'rentre';
 
+/** Paliers declaratifs de consommation, du « rien » a « abuse ». */
+export type NiveauConso = 'aucun' | 'peu' | 'moyen' | 'beaucoup' | 'abuse';
+
+/** Les quatre equipes de buveurs, telles que l'invite se declare. */
+export type TeamBuveur = 'chameau' | 'degustation' | 'croisiere' | 'bateau-ivre';
+
+/**
+ * Un gout declare : une boisson, et a quel point la personne l'aime, de 1
+ * (« a l'occasion ») a 5 (« c'est ma boisson »). L'intensite sert a repartir
+ * une consommation estimee entre les boissons cochees — jamais a l'augmenter.
+ */
+export interface GoutBoisson {
+  boissonId: string;
+  intensite: number;
+}
+
 /**
  * Le bloc logistique d'une personne : vehicule, covoiturage, horaires,
  * hebergement, ce qu'elle peut apporter. Rempli via le formulaire, repris tel
@@ -167,6 +183,10 @@ export interface Logistique {
   permis: boolean;
   /** Vient avec une voiture. */
   vehicule: boolean;
+  /** Apporte sa tente. */
+  tente: boolean;
+  /** Present sur toute la duree ; sinon arrivee et depart font foi. */
+  sejourComplet: boolean;
   /** Places libres dans sa voiture pour covoiturer. */
   placesVoiture: number;
   /** Cherche une place en covoiturage. */
@@ -229,6 +249,17 @@ export interface Invite {
   /** Styles musicaux preferes, pour le DJ. */
   stylesMusicaux: string;
   logistique: Logistique;
+  /** Le petit nom, quand tout le monde l'appelle autrement. */
+  surnom: string;
+  /** Ce qu'elle aime boire, avec l'intensite du gout — declaratif. */
+  boissonsAimees: GoutBoisson[];
+  /** Ce qu'elle dit boire en basiques et en spiritueux, sur une soiree. */
+  niveauBasiques: NiveauConso;
+  niveauSpiritueux: NiveauConso;
+  /** L'equipe dans laquelle elle se range. '' = pas repondu. */
+  team: TeamBuveur | '';
+  /** Les coups de main qu'elle prefere donner (ids de preferences.ts). */
+  servicesPreferes: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -236,6 +267,22 @@ export interface Invite {
 // ---------------------------------------------------------------------------
 
 export type MomentRepas = 'petit-dejeuner' | 'dejeuner' | 'diner';
+
+/** La forme du repas : elle dit comment on cuisine et ce qu'il faut prevoir. */
+export type TypePlat =
+  | 'a-definir'
+  | 'barbecue'
+  | 'plancha'
+  | 'buffet-froid'
+  | 'plat-mijote'
+  | 'pates'
+  | 'salade'
+  | 'raclette'
+  | 'brunch'
+  | 'petit-dejeuner'
+  | 'pizza'
+  | 'traiteur'
+  | 'autre';
 
 export type UniteIngredient = 'g' | 'ml' | 'piece';
 
@@ -267,6 +314,8 @@ export interface Repas {
   /** Jour de l'evenement, 1 = premier jour. */
   jour: number;
   moment: MomentRepas;
+  /** La forme du repas : barbecue, buffet froid, raclette... */
+  typePlat: TypePlat;
   /** Le plat prevu. Vide = repas pas encore decide. */
   plat: string;
   coutParPersonne: number;
@@ -416,6 +465,15 @@ export interface ReponseFormulaire {
   /** Styles musicaux preferes, pour le DJ. */
   stylesMusicaux: string;
   logistique: Logistique;
+  /** Le petit nom, quand tout le monde l'appelle autrement. */
+  surnom: string;
+  /** Ce qu'il aime boire, avec l'intensite du gout — declaratif. */
+  boissonsAimees: GoutBoisson[];
+  niveauBasiques: NiveauConso;
+  niveauSpiritueux: NiveauConso;
+  team: TeamBuveur | '';
+  /** Les coups de main qu'il prefere donner (ids de preferences.ts). */
+  servicesPreferes: string[];
   /** Date ISO de la reponse. */
   creeLe: string;
 }
