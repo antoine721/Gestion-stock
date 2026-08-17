@@ -28,6 +28,7 @@
             <th>Plat</th>
             <th class="droite">Convives</th>
             <th class="droite">Cout</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -59,6 +60,18 @@
               </td>
               <td class="droite num principal">
                 {{ fmtEuro(coutDuRepas(ligne.repas, store.cadre().invites)) }}
+              </td>
+              <!-- Un repas qu'on decide de ne pas faire se retire d'ici : la
+                   case redevient libre dans la grille. -->
+              <td class="actions-ligne">
+                <button
+                  type="button"
+                  class="discret"
+                  title="Ne pas faire ce repas"
+                  (click)="supprimerRepas(ligne.repas)"
+                >
+                  ×
+                </button>
               </td>
             </tr>
           }
@@ -244,10 +257,10 @@
               <button
                 type="button"
                 class="discret retirer"
-                title="Retirer ce repas"
-                (click)="store.supprimerRepas(repas.id)"
+                title="Ne pas faire ce repas"
+                (click)="supprimerRepas(repas)"
               >
-                Retirer
+                Ne pas faire ce repas
               </button>
             } @else {
               <select (change)="choisirIdee(ligne.jour, case_.moment.id, $event)">

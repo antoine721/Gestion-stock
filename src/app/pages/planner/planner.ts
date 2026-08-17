@@ -99,6 +99,17 @@ export class Planner {
     this.visiteOuverte.set(false);
   }
 
+  /**
+   * La pastille d'alerte de la sidebar : les fiches arrivees par le formulaire
+   * qui attendent encore une validation. Elle vit sur les deux entrees
+   * concernees — celle qui les recoit, et celle ou on les valide — pour qu'on
+   * ne rate pas une reponse en restant sur une autre piece.
+   */
+  protected badgeDe(espace: Espace): number {
+    if (espace !== 'formulaire' && espace !== 'utilisateurs') return 0;
+    return this.store.reponsesFormulaire().length;
+  }
+
   /** Le petit chiffre a droite de chaque entree de la sidebar. */
   protected indicateurDe(espace: Espace): string {
     switch (espace) {
@@ -126,8 +137,7 @@ export class Planner {
         const resume = this.store.resumeDj();
         return resume.total > 0 ? `${resume.valides}/${resume.total}` : '';
       }
-      case 'formulaire':
-        return fmtEntier(this.store.reponsesFormulaire().length);
+      // Le formulaire n'a pas d'indicateur : sa pastille dit deja tout.
       default:
         return '';
     }

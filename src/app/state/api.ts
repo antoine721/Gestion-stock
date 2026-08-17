@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
 import {
-  ConsommationType,
   GoutBoisson,
   Logistique,
   NiveauxParFamille,
@@ -19,20 +18,18 @@ export interface InfosPubliques {
   debut?: string;
   fin?: string;
   description?: string;
+  /** Les co-organisateurs, pour que l'invite designe celui qui l'invite. */
+  organisateurs?: { id: string; nom: string }[];
 }
 
 export interface ReponsePublique {
   prenom: string;
   nom: string;
+  invitParId: string;
   invitePar: string;
-  accompagnants: number;
   regime: Regime;
   allergies: string;
-  preferencesBoissons: string;
-  envies: string;
-  recommandations: string;
   commentaire: string;
-  consommations: ConsommationType[];
   stylesMusicaux: string;
   logistique: Logistique;
   surnom: string;
@@ -41,6 +38,8 @@ export interface ReponsePublique {
   autreAlcool: string;
   team: TeamBuveur | '';
   servicesPreferes: string[];
+  goodies: string[];
+  goodiesAutre: string;
 }
 
 export interface EvenementDistant {

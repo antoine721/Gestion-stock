@@ -49,8 +49,9 @@ describe('jeu de test', () => {
     const avecProfil = invites.filter((x) => x.personneTypeId !== '');
     expect(avecProfil.length).toBeGreaterThan(invites.length * 0.75);
     expect(avecProfil.every((x) => PROFILS.some((p) => p.id === x.personneTypeId))).toBe(true);
-    // La presence tient dans la duree de l'evenement.
-    expect(invites.every((x) => x.joursPresence >= 1 && x.joursPresence <= 2)).toBe(true);
+    // La presence est toujours renseignee, et tient dans la duree.
+    expect(invites.every((x) => x.joursPresents.length >= 1)).toBe(true);
+    expect(invites.every((x) => x.joursPresents.every((j) => j >= 1 && j <= 2))).toBe(true);
     // Qui a verse de l'argent est marque paye, et sur une vraie categorie.
     const payeurs = invites.filter((x) => x.montantPaye > 0);
     expect(payeurs.length).toBeGreaterThan(0);
