@@ -11,7 +11,7 @@ import {
   repartirCout,
   resumerPersonnesTypes,
 } from '../domain/calcul';
-import { personneTypeVierge, personnesTypesInitiales } from '../domain/personnes-types';
+import { personneTypeVierge } from '../domain/personnes-types';
 import { PROFILS, calculerAlertes, calculerRatios } from '../domain/validation';
 import {
   calculerEncaissements,
@@ -24,7 +24,6 @@ import {
   resumerLogistique,
 } from '../domain/invites';
 import {
-  IDEES_PLATS,
   budgetNourriture,
   coursesCuisine,
   extraNourritureVierge,
@@ -34,7 +33,6 @@ import {
   repasVierge,
 } from '../domain/nourriture';
 import { JOURS_MENUS_FESTIVIAL, MENUS_FESTIVIAL } from '../domain/menus-festivial';
-import { estInviteTest, genererInvitesTest } from '../domain/donnees-test';
 import { infosVierges } from '../domain/evenement';
 import { articleVierge, budgetMateriel } from '../domain/materiel-liste';
 import { budgetGlobal, repartitionGlobale } from '../domain/stats';
@@ -138,9 +136,13 @@ export const PARTAGE_INITIAL: Partage = {
   infos: infosVierges(),
 };
 
-/** Bibliotheque de depart, posee a la creation de l'evenement. */
-export function partageInitial(creeParNom: string): Partage {
-  return { ...PARTAGE_INITIAL, personnesTypes: personnesTypesInitiales(creeParNom, identifiant) };
+/**
+ * L'etat d'un evenement qui vient de naitre : vide. Rien n'est pre-rempli —
+ * ni profils de consommation, ni repas, ni materiel. Ce qui est deja
+ * enregistre sur un evenement existant n'est evidemment pas touche.
+ */
+export function partageInitial(_creeParNom: string): Partage {
+  return { ...PARTAGE_INITIAL };
 }
 
 let compteur = 0;
@@ -710,34 +712,6 @@ export class PlannerStore {
     this.majPartage({ invites: this.invitesNommes().filter((x) => x.id !== inviteId) });
   }
 
-  // -- Jeu de test : des invites de demonstration pour essayer l'app --------
-
-  readonly invitesTest = computed(() => this.invitesNommes().filter(estInviteTest).length);
-
-  /**
-   * Peuple l'evenement d'invites credibles, `parParticipant` par
-   * co-organisateur. Rejouable : l'ancien jeu de test est remplace, les
-   * vraies fiches ne bougent pas.
-   */
-  peuplerJeuTest(parParticipant = 50): number {
-    const generes = genererInvitesTest(
-      this.participants(),
-      this.personnesTypes(),
-      this.categoriesPaiement(),
-      this.partage().jours,
-      parParticipant,
-    );
-    this.majPartage({
-      invites: [...this.invitesNommes().filter((x) => !estInviteTest(x)), ...generes],
-    });
-    return generes.length;
-  }
-
-  /** Retire toutes les fiches de test, sans toucher aux vraies. */
-  viderJeuTest(): void {
-    this.majPartage({ invites: this.invitesNommes().filter((x) => !estInviteTest(x)) });
-  }
-
   // -- Paiement des invites ------------------------------------------------
 
   ajouterCategoriePaiement(): string {
@@ -776,18 +750,6 @@ export class PlannerStore {
       ? nourriture.repas.map((x) => (x.id === existant.id ? { ...x, ...patch } : x))
       : [...nourriture.repas, { ...repasVierge(identifiant(), jour, moment), ...patch }];
     this.majPartage({ nourriture: { ...nourriture, repas } });
-  }
-
-  /** Pose une idee de plat sur une case : plat, cout et ingredients doses. */
-  appliquerIdee(jour: number, moment: MomentRepas, nomIdee: string): void {
-    const idee = IDEES_PLATS.find((x) => x.nom === nomIdee);
-    if (!idee) return;
-    this.definirRepas(jour, moment, {
-      plat: idee.nom,
-      typePlat: idee.typePlat,
-      coutParPersonne: idee.coutParPersonne,
-      ingredients: idee.ingredients.map((x) => ({ ...x, id: identifiant() })),
-    });
   }
 
   /**

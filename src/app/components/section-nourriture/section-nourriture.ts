@@ -3,7 +3,6 @@ import { PlannerStore } from '../../state/planner-store';
 import { Modale } from '../modale/modale';
 import {
   EMOJI_TYPE_PLAT,
-  IDEES_PLATS,
   LIBELLE_TYPE_PLAT,
   MOMENTS,
   TYPES_PLAT,
@@ -94,17 +93,6 @@ export class SectionNourriture {
   protected readonly regimes = computed(() => compterParRegime(this.store.invitesNommes()));
 
   protected readonly allergies = computed(() => invitesAvecAllergies(this.store.invitesNommes()));
-
-  protected ideesPour(moment: MomentRepas) {
-    return IDEES_PLATS.filter((x) => x.moments.includes(moment));
-  }
-
-  /** Une idee du catalogue pre-remplit le plat ET ses ingredients doses. */
-  protected choisirIdee(jour: number, moment: MomentRepas, evenement: Event): void {
-    const select = evenement.target as HTMLSelectElement;
-    if (select.value) this.store.appliquerIdee(jour, moment, select.value);
-    select.value = '';
-  }
 
   protected platLibre(jour: number, moment: MomentRepas): void {
     this.store.definirRepas(jour, moment, {});

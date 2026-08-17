@@ -408,21 +408,6 @@
     </div>
   }
 
-  <div class="ajout">
-    <button
-      type="button"
-      title="50 fiches par co-organisateur, avec profils, paiements et logistique"
-      (click)="store.peuplerJeuTest()"
-    >
-      🧪 Generer un jeu de test
-    </button>
-    @if (store.invitesTest() > 0) {
-      <button type="button" class="discret" (click)="store.viderJeuTest()">
-        Retirer les {{ fmtEntier(store.invitesTest()) }} invites de test
-      </button>
-    }
-  </div>
-
   <p class="hint">
     Les profils de consommation se creent et se reglent dans l'espace Bar &amp; boissons, section «
     Les profils ». Ici, tu les attaches a des personnes.
