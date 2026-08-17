@@ -2,10 +2,12 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { Router } from '@angular/router';
 import { Api } from '../../state/api';
 import { SessionStore } from '../../state/session';
+import { Logo } from '../../components/logo/logo';
 
 /** Le mot de passe commun et ton prenom. C'est tout. */
 @Component({
   selector: 'app-connexion',
+  imports: [Logo],
   templateUrl: './connexion.html',
   styleUrl: './connexion.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
