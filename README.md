@@ -88,7 +88,9 @@ npm run deploy
 
 ## En ligne
 
-**https://combien-acheter.vercel.app**
+**https://vialcrm.vercel.app** — une fois le projet renomme `vialcrm` dans le dashboard Vercel
+(Settings → General → Project Name). Tant que le renommage n'est pas fait, l'app reste sur
+https://combien-acheter.vercel.app.
 
 Le projet est deja deploye et la base Neon (`combien-acheter`) est initialisee. Pour redeployer
 apres une modification :
