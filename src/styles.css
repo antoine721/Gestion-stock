@@ -1,10 +1,12 @@
 /* ---------------------------------------------------------------------------
-   « Liquid glass » : le hub comme une app Apple.
+   DA « visionOS » : le hub comme des fenetres de verre qui flottent.
 
-   Tout est materiaux : un fond en degrades doux, des panneaux de verre
-   depoli (flou + saturation) poses dessus, des coins genereux, des boutons
-   pilule. La typo est la police systeme — SF sur les appareils Apple — et
-   chaque chiffre passe par .num, en mono tabulaire, comme une addition.
+   Tout est materiaux : un environnement en degrades doux, des panneaux de
+   verre depoli (flou profond + saturation) qui flottent dessus — coins tres
+   genereux, reflet speculaire sur l'arete haute, ombres larges et diffuses
+   qui donnent la profondeur. Le survol souleve ce qui est interactif. La
+   typo est la police systeme — SF sur les appareils Apple — et chaque
+   chiffre passe par .num, en mono tabulaire, comme une addition.
 
    Deux niveaux de matiere, pas plus : les panneaux (.card, sidebar, barre
    d'onglets) portent le flou ; les surfaces interieures (--surface-2) sont
@@ -63,13 +65,13 @@
   --teinte-fuchsia: #a21caf;
   --teinte-fuchsia-doux: rgba(162, 28, 175, 0.11);
 
-  /* La geometrie du verre : coins continus, genereux. */
-  --rayon: 22px;
-  --rayon-petit: 12px;
-  --flou: saturate(1.7) blur(22px);
-  --lueur: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  --ombre: 0 1px 1px rgba(14, 21, 26, 0.03), 0 10px 30px rgba(14, 21, 26, 0.07);
-  --ombre-haute: 0 24px 60px rgba(14, 21, 26, 0.18);
+  /* La geometrie du verre : coins tres continus, profondeur par l'ombre. */
+  --rayon: 28px;
+  --rayon-petit: 14px;
+  --flou: saturate(1.8) blur(34px);
+  --lueur: inset 0 1.5px 0 rgba(255, 255, 255, 0.85);
+  --ombre: 0 2px 5px rgba(14, 21, 26, 0.04), 0 18px 46px rgba(14, 21, 26, 0.1);
+  --ombre-haute: 0 34px 80px rgba(14, 21, 26, 0.22);
 
   --titre: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
   --corps: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
@@ -111,9 +113,9 @@
   --ko: #ef948a;
   --ko-doux: rgba(239, 148, 138, 0.13);
 
-  --lueur: inset 0 1px 0 rgba(255, 255, 255, 0.09);
-  --ombre: 0 1px 1px rgba(0, 0, 0, 0.2), 0 12px 34px rgba(0, 0, 0, 0.35);
-  --ombre-haute: 0 24px 70px rgba(0, 0, 0, 0.55);
+  --lueur: inset 0 1.5px 0 rgba(255, 255, 255, 0.12);
+  --ombre: 0 2px 5px rgba(0, 0, 0, 0.25), 0 20px 50px rgba(0, 0, 0, 0.4);
+  --ombre-haute: 0 34px 90px rgba(0, 0, 0, 0.6);
 
   --donnee-alcool: #0a97ad;
   --donnee-nourriture: #b57b2e;
@@ -155,19 +157,20 @@ body {
   color: var(--texte);
   background-color: var(--fond);
   background-image:
-    radial-gradient(38rem 30rem at 12% -6%, rgba(8, 145, 178, 0.16), transparent 60%),
-    radial-gradient(34rem 26rem at 96% 4%, rgba(109, 40, 217, 0.1), transparent 62%),
-    radial-gradient(40rem 32rem at 84% 92%, rgba(180, 83, 9, 0.1), transparent 60%),
-    radial-gradient(30rem 26rem at 4% 78%, rgba(29, 78, 216, 0.09), transparent 60%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, transparent 22rem),
+    radial-gradient(38rem 30rem at 12% -6%, rgba(8, 145, 178, 0.2), transparent 60%),
+    radial-gradient(34rem 26rem at 96% 4%, rgba(109, 40, 217, 0.13), transparent 62%),
+    radial-gradient(40rem 32rem at 84% 92%, rgba(180, 83, 9, 0.13), transparent 60%),
+    radial-gradient(30rem 26rem at 4% 78%, rgba(29, 78, 216, 0.12), transparent 60%);
   background-attachment: fixed;
 }
 
 [data-theme='sombre'] body {
   background-image:
-    radial-gradient(38rem 30rem at 12% -6%, rgba(10, 151, 173, 0.2), transparent 60%),
-    radial-gradient(34rem 26rem at 96% 4%, rgba(139, 104, 224, 0.14), transparent 62%),
-    radial-gradient(40rem 32rem at 84% 92%, rgba(181, 123, 46, 0.12), transparent 60%),
-    radial-gradient(30rem 26rem at 4% 78%, rgba(29, 78, 216, 0.12), transparent 60%);
+    radial-gradient(38rem 30rem at 12% -6%, rgba(10, 151, 173, 0.24), transparent 60%),
+    radial-gradient(34rem 26rem at 96% 4%, rgba(139, 104, 224, 0.17), transparent 62%),
+    radial-gradient(40rem 32rem at 84% 92%, rgba(181, 123, 46, 0.15), transparent 60%),
+    radial-gradient(30rem 26rem at 4% 78%, rgba(29, 78, 216, 0.15), transparent 60%);
 }
 
 /* -- Typographie ---------------------------------------------------------- */
@@ -231,7 +234,7 @@ p {
   border: 1px solid var(--bord-verre);
   border-radius: var(--rayon);
   box-shadow: var(--ombre), var(--lueur);
-  padding: 1.375rem;
+  padding: 1.5rem;
 }
 
 .card + .card {
@@ -358,8 +361,10 @@ button {
     transform 0.12s ease;
 }
 
+/* Le survol souleve le bouton : le verre repond a la main, facon visionOS. */
 button:hover {
   border-color: var(--bord-fort);
+  transform: translateY(-1px);
 }
 
 button:active {
