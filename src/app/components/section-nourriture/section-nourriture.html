@@ -1,4 +1,71 @@
 <section class="card">
+  <div class="barre-tableau">
+    <h2>Les repas planifies</h2>
+    <span class="muted num">{{ fmtEntier(repasPlanifies().length) }} repas</span>
+    <span class="muted num pousse">{{ fmtEuro(store.budgetNourriture().total) }}</span>
+  </div>
+
+  @if (repasPlanifies().length === 0) {
+    <p class="vide">
+      Aucun repas pose. Utilise la grille ci-dessous pour remplir les cases jour par jour.
+    </p>
+  } @else {
+    <div class="boite-tableau">
+      <table class="tableau">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Moment</th>
+            <th>Type de plat</th>
+            <th>Plat</th>
+            <th class="droite">Convives</th>
+            <th class="droite">Cout</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ligne of repasPlanifies(); track ligne.repas.id) {
+            <tr>
+              <td class="principal">{{ ligne.date }}</td>
+              <td>{{ ligne.moment?.emoji }} {{ ligne.moment?.libelle }}</td>
+              <td>
+                <select
+                  class="type-plat"
+                  (change)="majTypePlat(ligne.repas, $any($event.target).value)"
+                >
+                  @for (type of typesPlat; track type.id) {
+                    <option [value]="type.id" [selected]="type.id === ligne.repas.typePlat">
+                      {{ type.emoji }} {{ type.libelle }}
+                    </option>
+                  }
+                </select>
+              </td>
+              <td>
+                @if (ligne.repas.plat) {
+                  {{ ligne.repas.plat }}
+                } @else {
+                  <span class="pill warn">A decider</span>
+                }
+              </td>
+              <td class="droite num">
+                {{ ligne.repas.convives > 0 ? ligne.repas.convives : store.cadre().invites }}
+              </td>
+              <td class="droite num principal">
+                {{ fmtEuro(coutDuRepas(ligne.repas, store.cadre().invites)) }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <p class="hint">
+    Le type de plat dit comment on cuisine — barbecue, raclette, buffet froid — et la date vient des
+    dates de l'evenement, calees dans l'espace Profil.
+  </p>
+</section>
+
+<section class="card">
   <div class="card-head">
     <h2>Les repas</h2>
     <span class="muted num">{{ fmtEuro(store.budgetNourriture().coutRepas) }}</span>

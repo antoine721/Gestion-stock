@@ -105,6 +105,12 @@ describe('musique', () => {
     consommations: [],
     stylesMusicaux: '',
     logistique: logistiqueVierge(),
+    surnom: '',
+    boissonsAimees: [],
+    niveauBasiques: 'aucun' as const,
+    niveauSpiritueux: 'aucun' as const,
+    team: '' as const,
+    servicesPreferes: [],
     creeLe: '',
   };
 

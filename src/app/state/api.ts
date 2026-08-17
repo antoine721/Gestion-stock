@@ -1,5 +1,14 @@
 import { Injectable, inject } from '@angular/core';
-import { ConsommationType, Logistique, Partage, Participant, Regime } from '../domain/models';
+import {
+  ConsommationType,
+  GoutBoisson,
+  Logistique,
+  NiveauConso,
+  Partage,
+  Participant,
+  Regime,
+  TeamBuveur,
+} from '../domain/models';
 import { SessionStore } from './session';
 
 /** Ce que la page publique du formulaire a besoin de savoir : rien de plus. */
@@ -26,6 +35,12 @@ export interface ReponsePublique {
   consommations: ConsommationType[];
   stylesMusicaux: string;
   logistique: Logistique;
+  surnom: string;
+  boissonsAimees: GoutBoisson[];
+  niveauBasiques: NiveauConso;
+  niveauSpiritueux: NiveauConso;
+  team: TeamBuveur | '';
+  servicesPreferes: string[];
 }
 
 export interface EvenementDistant {

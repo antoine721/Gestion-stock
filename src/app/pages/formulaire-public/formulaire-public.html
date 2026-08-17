@@ -16,32 +16,54 @@
       @if (infos()?.description) {
         <p class="muted">{{ infos()?.description }}</p>
       }
-      <p class="muted">
-        Ta fiche d'invite : deux minutes, et les organisateurs sauront quoi prevoir pour toi.
-      </p>
     </header>
 
+    @if (etape() !== 'merci') {
+      <ol class="etapes" aria-label="Avancement">
+        <li [class.active]="etape() === 'identite'" [class.faite]="etape() !== 'identite'">
+          <span class="rang">1</span> Toi
+        </li>
+        <li [class.active]="etape() === 'sejour'" [class.faite]="etape() === 'gouts'">
+          <span class="rang">2</span> Ton sejour
+        </li>
+        <li [class.active]="etape() === 'gouts'"><span class="rang">3</span> Tes gouts</li>
+      </ol>
+      <p class="obligatoires muted">Les champs marques d'une <b>*</b> sont obligatoires.</p>
+    }
+
     @switch (etape()) {
+      <!-- ETAPE 1 : qui es-tu ------------------------------------------- -->
       @case ('identite') {
         <section class="card">
           <h2>Qui es-tu ?</h2>
           <div class="champs">
+            <div class="duo">
+              <label class="champ">
+                <span>Prenom *</span>
+                <input
+                  type="text"
+                  autocomplete="given-name"
+                  [value]="prenom()"
+                  (input)="prenom.set($any($event.target).value)"
+                />
+              </label>
+              <label class="champ">
+                <span>Nom *</span>
+                <input
+                  type="text"
+                  autocomplete="family-name"
+                  [value]="nom()"
+                  (input)="nom.set($any($event.target).value)"
+                />
+              </label>
+            </div>
             <label class="champ">
-              <span>Prenom *</span>
+              <span>Surnom</span>
               <input
                 type="text"
-                autocomplete="given-name"
-                [value]="prenom()"
-                (input)="prenom.set($any($event.target).value)"
-              />
-            </label>
-            <label class="champ">
-              <span>Nom</span>
-              <input
-                type="text"
-                autocomplete="family-name"
-                [value]="nom()"
-                (input)="nom.set($any($event.target).value)"
+                placeholder="Comment on t'appelle vraiment"
+                [value]="surnom()"
+                (input)="surnom.set($any($event.target).value)"
               />
             </label>
             <label class="champ">
@@ -53,36 +75,229 @@
                 (input)="invitePar.set($any($event.target).value)"
               />
             </label>
+
+            <div class="question">
+              <span class="intitule">Viens-tu accompagne(e) ? *</span>
+              <div class="choix">
+                <button
+                  type="button"
+                  class="option"
+                  [attr.aria-pressed]="accompagne() === 'non'"
+                  (click)="accompagne.set('non')"
+                >
+                  Non, je viens seul(e)
+                </button>
+                <button
+                  type="button"
+                  class="option"
+                  [attr.aria-pressed]="accompagne() === 'oui'"
+                  (click)="accompagne.set('oui')"
+                >
+                  Oui, accompagne(e)
+                </button>
+              </div>
+              @if (accompagne() === 'oui') {
+                <label class="champ sous-question">
+                  <span>De combien de personnes ? *</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    step="1"
+                    inputmode="numeric"
+                    [value]="accompagnants()"
+                    (input)="majAccompagnants($any($event.target).value)"
+                  />
+                </label>
+              }
+            </div>
           </div>
+
           <div class="actions">
             <button
               type="button"
               class="primaire"
               [disabled]="!identiteValide()"
-              (click)="continuer()"
+              (click)="allerSejour()"
             >
               Continuer
             </button>
           </div>
         </section>
       }
-      @case ('fiche') {
+
+      <!-- ETAPE 2 : ton sejour ------------------------------------------- -->
+      @case ('sejour') {
         <section class="card">
-          <h2>Ta fiche, {{ prenom() }}</h2>
+          <h2>Ton sejour</h2>
           <div class="champs">
-            <span class="groupe-titre">🍽️ Toi &amp; ce que tu manges</span>
+            <div class="question">
+              <span class="intitule">Tu restes tout le sejour ? *</span>
+              <div class="choix">
+                <button
+                  type="button"
+                  class="option"
+                  [attr.aria-pressed]="sejourComplet() === 'oui'"
+                  (click)="sejourComplet.set('oui')"
+                >
+                  Oui, du debut a la fin
+                </button>
+                <button
+                  type="button"
+                  class="option"
+                  [attr.aria-pressed]="sejourComplet() === 'non'"
+                  (click)="sejourComplet.set('non')"
+                >
+                  Non, une partie seulement
+                </button>
+              </div>
+              @if (sejourComplet() === 'non') {
+                <div class="duo sous-question">
+                  <label class="champ">
+                    <span>Quand arrives-tu ? *</span>
+                    <input
+                      type="text"
+                      placeholder="Samedi 14h..."
+                      [value]="arrivee()"
+                      (input)="arrivee.set($any($event.target).value)"
+                    />
+                  </label>
+                  <label class="champ">
+                    <span>Quand repars-tu ? *</span>
+                    <input
+                      type="text"
+                      placeholder="Dimanche apres le brunch..."
+                      [value]="depart()"
+                      (input)="depart.set($any($event.target).value)"
+                    />
+                  </label>
+                </div>
+              }
+            </div>
+
+            <div class="question">
+              <span class="intitule">Tu viens en voiture ? *</span>
+              <div class="choix">
+                <button
+                  type="button"
+                  class="option"
+                  [attr.aria-pressed]="voiture() === 'oui'"
+                  (click)="voiture.set('oui')"
+                >
+                  Oui
+                </button>
+                <button
+                  type="button"
+                  class="option"
+                  [attr.aria-pressed]="voiture() === 'non'"
+                  (click)="voiture.set('non')"
+                >
+                  Non
+                </button>
+              </div>
+              @if (voiture() === 'oui') {
+                <label class="champ sous-question">
+                  <span>Combien de places libres pour du covoiturage ?</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="9"
+                    step="1"
+                    inputmode="numeric"
+                    [value]="placesVoiture()"
+                    (input)="majPlacesVoiture($any($event.target).value)"
+                  />
+                </label>
+              } @else if (voiture() === 'non') {
+                <label class="case-cocher sous-question">
+                  <input
+                    type="checkbox"
+                    [checked]="chercheCovoiturage()"
+                    (change)="chercheCovoiturage.set(!chercheCovoiturage())"
+                  />
+                  <span>Je cherche une place en covoiturage</span>
+                </label>
+              }
+            </div>
+
+            <div class="question">
+              <span class="intitule">Tu as le permis ? *</span>
+              <div class="choix">
+                <button
+                  type="button"
+                  class="option"
+                  [attr.aria-pressed]="permis() === 'oui'"
+                  (click)="permis.set('oui')"
+                >
+                  Oui
+                </button>
+                <button
+                  type="button"
+                  class="option"
+                  [attr.aria-pressed]="permis() === 'non'"
+                  (click)="permis.set('non')"
+                >
+                  Non
+                </button>
+              </div>
+            </div>
+
+            <div class="question">
+              <span class="intitule">Tu as une tente ? *</span>
+              <div class="choix">
+                <button
+                  type="button"
+                  class="option"
+                  [attr.aria-pressed]="tente() === 'oui'"
+                  (click)="tente.set('oui')"
+                >
+                  Oui, j'amene ma tente
+                </button>
+                <button
+                  type="button"
+                  class="option"
+                  [attr.aria-pressed]="tente() === 'non'"
+                  (click)="tente.set('non')"
+                >
+                  Non
+                </button>
+              </div>
+              @if (tente() === 'non') {
+                <label class="champ sous-question">
+                  <span>Tu dors ou, alors ?</span>
+                  <select (change)="hebergement.set($any($event.target).value)">
+                    @for (option of hebergements; track option.id) {
+                      <option [value]="option.id" [selected]="option.id === hebergement()">
+                        {{ option.libelle }}
+                      </option>
+                    }
+                  </select>
+                </label>
+              }
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="discret" (click)="revenir('identite')">Retour</button>
+            <button
+              type="button"
+              class="primaire"
+              [disabled]="!sejourValide()"
+              (click)="allerGouts()"
+            >
+              Continuer
+            </button>
+          </div>
+        </section>
+      }
+
+      <!-- ETAPE 3 : tes gouts -------------------------------------------- -->
+      @case ('gouts') {
+        <section class="card">
+          <h2>A table</h2>
+          <div class="champs">
             <label class="champ">
-              <span>Tu viens avec combien de personnes ?</span>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                [value]="accompagnants()"
-                (input)="majAccompagnants($any($event.target).value)"
-              />
-            </label>
-            <label class="champ">
-              <span>Ton regime</span>
+              <span>Regime alimentaire particulier ? *</span>
               <select (change)="regime.set($any($event.target).value)">
                 @for (option of regimes; track option.id) {
                   <option [value]="option.id" [selected]="option.id === regime()">
@@ -91,15 +306,214 @@
                 }
               </select>
             </label>
+
+            <div class="question">
+              <span class="intitule">Des allergies ou intolerances ? *</span>
+              <div class="choix">
+                <button
+                  type="button"
+                  class="option"
+                  [attr.aria-pressed]="aDesAllergies() === 'non'"
+                  (click)="aDesAllergies.set('non')"
+                >
+                  Non, rien
+                </button>
+                <button
+                  type="button"
+                  class="option"
+                  [attr.aria-pressed]="aDesAllergies() === 'oui'"
+                  (click)="aDesAllergies.set('oui')"
+                >
+                  Oui
+                </button>
+              </div>
+              @if (aDesAllergies() === 'oui') {
+                <label class="champ sous-question">
+                  <span>Lesquelles ? *</span>
+                  <input
+                    type="text"
+                    placeholder="Arachide, lactose, gluten..."
+                    [value]="allergies()"
+                    (input)="allergies.set($any($event.target).value)"
+                  />
+                </label>
+              }
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Au bar</h2>
+
+          <div class="champs">
+            <!-- L'equipe d'abord : elle decide si les questions d'alcool ont lieu. -->
+            <div class="question">
+              <span class="intitule">Quel buveur es-tu ? *</span>
+              <div class="teams">
+                @for (option of teams; track option.id) {
+                  <button
+                    type="button"
+                    class="team"
+                    [attr.aria-pressed]="team() === option.id"
+                    (click)="team.set(option.id)"
+                  >
+                    <span class="team-emoji" aria-hidden="true">{{ option.emoji }}</span>
+                    <span class="team-texte">
+                      <b>{{ option.libelle }}</b>
+                      <span class="muted">{{ option.description }}</span>
+                    </span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (sansAlcool()) {
+              <p class="note-chameau">
+                Parfait, on te prevoit du sans-alcool. Rien d'autre a remplir ici !
+              </p>
+            } @else if (team() !== '') {
+              <p class="intro muted">
+                Coche ce qui te fait plaisir, puis dis a quel point avec le curseur. C'est indicatif
+                : ca aide juste les organisateurs a savoir quoi acheter.
+              </p>
+
+              <div class="question">
+                <span class="intitule">Les basiques</span>
+                <div class="gouts">
+                  @for (boisson of basiques; track boisson.id) {
+                    <div class="gout" [class.choisi]="aimeBoisson(boisson.id)">
+                      <button
+                        type="button"
+                        class="jeton"
+                        [attr.aria-pressed]="aimeBoisson(boisson.id)"
+                        (click)="basculerBoisson(boisson.id)"
+                      >
+                        {{ boisson.libelle }}
+                      </button>
+                      @if (aimeBoisson(boisson.id)) {
+                        <label class="curseur">
+                          <input
+                            type="range"
+                            min="1"
+                            max="5"
+                            step="1"
+                            [value]="intensiteDe(boisson.id)"
+                            [attr.aria-label]="'A quel point tu aimes ' + boisson.libelle"
+                            (input)="majIntensite(boisson.id, $any($event.target).value)"
+                          />
+                          <span class="curseur-valeur">{{ intensiteDe(boisson.id) }}/5</span>
+                        </label>
+                      }
+                    </div>
+                  }
+                </div>
+                <span class="intitule sous-question">Sur une soiree, tu en bois combien ?</span>
+                <div class="paliers">
+                  @for (palier of paliers; track palier.id) {
+                    <button
+                      type="button"
+                      class="palier"
+                      [attr.aria-pressed]="niveauBasiques() === palier.id"
+                      (click)="niveauBasiques.set(palier.id)"
+                    >
+                      <span class="palier-nom">{{ palier.libelle }}</span>
+                      <span class="palier-repere">{{ palier.reperesBasiques }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <div class="question">
+                <span class="intitule">Les spiritueux</span>
+                <div class="gouts">
+                  @for (boisson of spiritueux; track boisson.id) {
+                    <div class="gout" [class.choisi]="aimeBoisson(boisson.id)">
+                      <button
+                        type="button"
+                        class="jeton"
+                        [attr.aria-pressed]="aimeBoisson(boisson.id)"
+                        (click)="basculerBoisson(boisson.id)"
+                      >
+                        {{ boisson.libelle }}
+                      </button>
+                      @if (aimeBoisson(boisson.id)) {
+                        <label class="curseur">
+                          <input
+                            type="range"
+                            min="1"
+                            max="5"
+                            step="1"
+                            [value]="intensiteDe(boisson.id)"
+                            [attr.aria-label]="'A quel point tu aimes ' + boisson.libelle"
+                            (input)="majIntensite(boisson.id, $any($event.target).value)"
+                          />
+                          <span class="curseur-valeur">{{ intensiteDe(boisson.id) }}/5</span>
+                        </label>
+                      }
+                    </div>
+                  }
+                </div>
+                <span class="intitule sous-question">Sur une soiree, tu en bois combien ?</span>
+                <div class="paliers">
+                  @for (palier of paliers; track palier.id) {
+                    <button
+                      type="button"
+                      class="palier"
+                      [attr.aria-pressed]="niveauSpiritueux() === palier.id"
+                      (click)="niveauSpiritueux.set(palier.id)"
+                    >
+                      <span class="palier-nom">{{ palier.libelle }}</span>
+                      <span class="palier-repere">{{ palier.reperesSpiritueux }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Ton coup de main</h2>
+          <div class="champs">
             <label class="champ">
-              <span>Allergies</span>
+              <span>Qu'est-ce que tu peux amener ou preter ? *</span>
+              <textarea
+                rows="3"
+                placeholder="Jeux de societe, molkky, boules de petanque, grosse enceinte, chaises pliantes, appareil a raclette..."
+                [value]="materielApporte()"
+                (input)="materielApporte.set($any($event.target).value)"
+              ></textarea>
+            </label>
+
+            <div class="question">
+              <span class="intitule">Parmi ces coups de main, tu preferes quoi ?</span>
+              <p class="muted aide">
+                Tout le monde participe : choisis ce qui te va, on repartira les missions ensuite.
+              </p>
+              <div class="jetons">
+                @for (service of services; track service.id) {
+                  <button
+                    type="button"
+                    class="jeton"
+                    [attr.aria-pressed]="veutService(service.id)"
+                    (click)="basculerService(service.id)"
+                  >
+                    {{ service.emoji }} {{ service.libelle }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <label class="champ">
+              <span>Styles musicaux preferes</span>
               <input
                 type="text"
-                placeholder="Arachide, lactose..."
-                [value]="allergies()"
-                (input)="allergies.set($any($event.target).value)"
+                placeholder="Techno, rap FR, rock, annees 80..."
+                [value]="stylesMusicaux()"
+                (input)="stylesMusicaux.set($any($event.target).value)"
               />
             </label>
+
             <label class="champ">
               <span>Besoins particuliers</span>
               <input
@@ -110,158 +524,14 @@
               />
             </label>
 
-            <span class="groupe-titre">🍹 Ce que tu bois</span>
-            <div class="conso">
-              <span class="conso-titre">Qu'est-ce que tu bois sur une journee ?</span>
-              <p class="muted conso-aide">
-                A titre indicatif, pour aider les organisateurs a prevoir — c'est eux qui fixent les
-                quantites finales. Laisse a zero ce que tu ne bois pas.
-              </p>
-              @for (famille of familles; track famille.libelle) {
-                <div class="famille">
-                  <span class="famille-nom">{{ famille.libelle }}</span>
-                  <div class="boissons">
-                    @for (boisson of famille.boissons; track boisson.id) {
-                      <label class="boisson" [class.choisie]="verresDe(boisson.id) > 0">
-                        <span class="boisson-nom">{{ boisson.nom }}</span>
-                        <input
-                          type="number"
-                          min="0"
-                          max="30"
-                          step="1"
-                          inputmode="numeric"
-                          [value]="verresDe(boisson.id) || ''"
-                          placeholder="0"
-                          (input)="majVerres(boisson.id, $any($event.target).value)"
-                        />
-                      </label>
-                    }
-                  </div>
-                </div>
-              }
-            </div>
             <label class="champ">
-              <span>Autre chose a dire sur ce que tu bois ?</span>
-              <input
-                type="text"
-                placeholder="Sans alcool, cocktails maison, allergie au gluten..."
-                [value]="preferencesBoissons()"
-                (input)="preferencesBoissons.set($any($event.target).value)"
-              />
-            </label>
-
-            <span class="groupe-titre">🚗 Logistique</span>
-            <div class="duo">
-              <label class="champ">
-                <span>Tu arrives quand ?</span>
-                <input
-                  type="text"
-                  placeholder="Samedi 14h..."
-                  [value]="arrivee()"
-                  (input)="arrivee.set($any($event.target).value)"
-                />
-              </label>
-              <label class="champ">
-                <span>Tu repars quand ?</span>
-                <input
-                  type="text"
-                  placeholder="Dimanche apres le brunch..."
-                  [value]="depart()"
-                  (input)="depart.set($any($event.target).value)"
-                />
-              </label>
-            </div>
-            <label class="champ">
-              <span>Tu dors ou ?</span>
-              <select (change)="hebergement.set($any($event.target).value)">
-                @for (option of hebergements; track option.id) {
-                  <option [value]="option.id" [selected]="option.id === hebergement()">
-                    {{ option.libelle }}
-                  </option>
-                }
-              </select>
-            </label>
-            <div class="cases-a-cocher">
-              <label class="case-cocher">
-                <input type="checkbox" [checked]="permis()" (change)="permis.set(!permis())" />
-                <span>J'ai le permis</span>
-              </label>
-              <label class="case-cocher">
-                <input
-                  type="checkbox"
-                  [checked]="vehicule()"
-                  (change)="vehicule.set(!vehicule())"
-                />
-                <span>Je viens en voiture</span>
-              </label>
-              <label class="case-cocher">
-                <input
-                  type="checkbox"
-                  [checked]="chercheCovoiturage()"
-                  (change)="chercheCovoiturage.set(!chercheCovoiturage())"
-                />
-                <span>Je cherche un covoiturage</span>
-              </label>
-            </div>
-            @if (vehicule()) {
-              <label class="champ">
-                <span>Places libres dans ta voiture pour covoiturer</span>
-                <input
-                  type="number"
-                  min="0"
-                  max="9"
-                  step="1"
-                  [value]="placesVoiture()"
-                  (input)="majPlacesVoiture($any($event.target).value)"
-                />
-              </label>
-            }
-            <label class="champ">
-              <span>Tu peux apporter ou preter quoi ?</span>
-              <input
-                type="text"
-                placeholder="Enceinte, glaciere, barnum, jeux, tireuse..."
-                [value]="materielApporte()"
-                (input)="materielApporte.set($any($event.target).value)"
-              />
-            </label>
-
-            <span class="groupe-titre">🎶 Ambiance</span>
-            <label class="champ">
-              <span>Envie de faire quoi sur place ?</span>
-              <input
-                type="text"
-                placeholder="DJ, jeux, karaoke, petanque..."
-                [value]="envies()"
-                (input)="envies.set($any($event.target).value)"
-              />
-            </label>
-            <label class="champ">
-              <span>Tes styles musicaux preferes</span>
-              <input
-                type="text"
-                placeholder="Techno, rap FR, rock, annees 80..."
-                [value]="stylesMusicaux()"
-                (input)="stylesMusicaux.set($any($event.target).value)"
-              />
-            </label>
-            <label class="champ">
-              <span>Musique a passer</span>
-              <input
-                type="text"
-                placeholder="Artistes, morceaux, playlists..."
-                [value]="recommandations()"
-                (input)="recommandations.set($any($event.target).value)"
-              />
-            </label>
-            <label class="champ">
-              <span>Un mot pour les organisateurs</span>
-              <input
-                type="text"
-                placeholder="Tout ce qui peut aider..."
+              <span>Un mot ou une suggestion pour les organisateurs ?</span>
+              <textarea
+                rows="3"
+                placeholder="L'espace libre indispensable."
                 [value]="commentaire()"
                 (input)="commentaire.set($any($event.target).value)"
-              />
+              ></textarea>
             </label>
           </div>
 
@@ -270,19 +540,26 @@
           }
 
           <div class="actions">
-            <button type="button" class="discret" (click)="etape.set('identite')">← Retour</button>
-            <button type="button" class="primaire" [disabled]="envoiEnCours()" (click)="envoyer()">
+            <button type="button" class="discret" (click)="revenir('sejour')">Retour</button>
+            <button
+              type="button"
+              class="primaire"
+              [disabled]="!goutsValides() || envoiEnCours()"
+              (click)="envoyer()"
+            >
               {{ envoiEnCours() ? 'Envoi…' : 'Envoyer ma fiche' }}
             </button>
           </div>
         </section>
       }
+
+      <!-- MERCI ----------------------------------------------------------- -->
       @case ('merci') {
         <section class="card merci">
-          <h2>Merci {{ prenom() }} ! 🎉</h2>
+          <h2>Merci {{ prenom() }} !</h2>
           <p class="muted">
-            Ta fiche est bien enregistree. Les organisateurs s'occupent du reste — toi, tu n'as plus
-            qu'a venir.
+            Ta fiche est partie. Les organisateurs ont tout ce qu'il faut pour prevoir ton couchage,
+            ton assiette et ton verre.
           </p>
           <div class="actions">
             <button type="button" (click)="recommencer()">Remplir une autre fiche</button>

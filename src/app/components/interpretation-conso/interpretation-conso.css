@@ -1,0 +1,128 @@
+.intro {
+  margin-bottom: 1rem;
+}
+
+.filtre {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  font-size: 0.75rem;
+  color: var(--texte-doux);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.filtre input {
+  width: 0.9375rem;
+  height: 0.9375rem;
+  accent-color: var(--accent);
+}
+
+.declare {
+  font-size: 0.78125rem;
+}
+
+/* Les alertes tiennent leur propre ligne, sous celle de l'invite. */
+.ligne-alertes td {
+  padding-top: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--bord);
+}
+
+.alerte {
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--texte-doux);
+  font-size: 0.6875rem;
+}
+
+.alerte.grave {
+  background: var(--warn-doux);
+  color: var(--warn);
+  font-weight: 600;
+}
+
+/* -- Le panneau de reevaluation --------------------------------------------- */
+
+.sous-titre {
+  display: block;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--bord);
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texte-doux);
+}
+
+.declaration {
+  display: grid;
+  gap: 0.625rem;
+  margin: 0;
+}
+
+.declaration dt {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texte-doux);
+}
+
+.declaration dd {
+  margin: 0.125rem 0 0;
+  font-size: 0.8125rem;
+}
+
+.alertes-panneau {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.alertes-panneau .alerte {
+  display: block;
+  margin-right: 0;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+/* La liste des profils candidats, avec leur score de correspondance. */
+.correspondances {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.correspondance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5625rem 0.75rem;
+  text-align: left;
+}
+
+.correspondance.actif {
+  border-color: var(--ok);
+  background: var(--ok-doux);
+}
+
+.corr-nom {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.corr-score {
+  font-size: 0.75rem;
+  color: var(--texte-doux);
+  font-weight: 650;
+}
+
+.corr-score.bon {
+  color: var(--ok);
+}

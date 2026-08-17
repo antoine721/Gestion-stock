@@ -70,11 +70,12 @@ import {
 import { Api, EvenementDistant } from './api';
 
 /** Sections de l'espace Bar & boissons. */
-export type Section = 'courses' | 'profils' | 'extras' | 'reglages' | 'bilan';
+export type Section = 'courses' | 'profils' | 'interpretation' | 'extras' | 'reglages' | 'bilan';
 
 export const SECTIONS: readonly { id: Section; libelle: string }[] = [
   { id: 'courses', libelle: 'Liste de courses' },
   { id: 'profils', libelle: 'Les profils' },
+  { id: 'interpretation', libelle: 'Interpretation' },
   { id: 'extras', libelle: 'Extras' },
   { id: 'bilan', libelle: 'Bilan' },
   { id: 'reglages', libelle: 'Reglages' },
@@ -419,6 +420,12 @@ export class PlannerStore {
         consommations: x.consommations ?? [],
         stylesMusicaux: x.stylesMusicaux ?? '',
         logistique: { ...logistiqueVierge(), ...x.logistique },
+        surnom: x.surnom ?? '',
+        boissonsAimees: x.boissonsAimees ?? [],
+        niveauBasiques: x.niveauBasiques ?? 'aucun',
+        niveauSpiritueux: x.niveauSpiritueux ?? 'aucun',
+        team: x.team ?? '',
+        servicesPreferes: x.servicesPreferes ?? [],
       })),
     });
     this.participants.set(
@@ -775,6 +782,7 @@ export class PlannerStore {
     if (!idee) return;
     this.definirRepas(jour, moment, {
       plat: idee.nom,
+      typePlat: idee.typePlat,
       coutParPersonne: idee.coutParPersonne,
       ingredients: idee.ingredients.map((x) => ({ ...x, id: identifiant() })),
     });
@@ -997,6 +1005,14 @@ export class PlannerStore {
           consommationDeclaree: reponse.consommations.map((x) => ({ ...x })),
           stylesMusicaux: reponse.stylesMusicaux,
           logistique: { ...reponse.logistique },
+          surnom: reponse.surnom,
+          // Les gouts declares suivent aussi : ils orientent le profil, sans
+          // jamais le decider a la place de l'organisateur.
+          boissonsAimees: [...reponse.boissonsAimees],
+          niveauBasiques: reponse.niveauBasiques,
+          niveauSpiritueux: reponse.niveauSpiritueux,
+          team: reponse.team,
+          servicesPreferes: [...reponse.servicesPreferes],
         },
       ],
       reponsesFormulaire: this.reponsesFormulaire().filter((x) => x.id !== reponseId),

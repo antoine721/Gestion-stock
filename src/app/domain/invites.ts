@@ -47,6 +47,8 @@ export function logistiqueVierge(): Logistique {
   return {
     permis: false,
     vehicule: false,
+    tente: false,
+    sejourComplet: true,
     placesVoiture: 0,
     chercheCovoiturage: false,
     hebergement: 'a-definir',
@@ -75,6 +77,12 @@ export function inviteVierge(id: string, participantId: string): Invite {
     consommationDeclaree: [],
     stylesMusicaux: '',
     logistique: logistiqueVierge(),
+    surnom: '',
+    boissonsAimees: [],
+    niveauBasiques: 'aucun',
+    niveauSpiritueux: 'aucun',
+    team: '',
+    servicesPreferes: [],
   };
 }
 
@@ -102,6 +110,8 @@ export function normaliserInvite(brut: Partial<Invite> & { id: string }): Invite
     ...inviteVierge(brut.id, brut.participantId ?? ''),
     ...brut,
     logistique: { ...logistiqueVierge(), ...brut.logistique },
+    boissonsAimees: brut.boissonsAimees ?? [],
+    servicesPreferes: brut.servicesPreferes ?? [],
   };
 }
 
