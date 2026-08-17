@@ -2,54 +2,26 @@
   margin-bottom: 1rem;
 }
 
-/* Le tableau est large : il defile dans sa boite, jamais la page. */
-.defilement {
-  overflow-x: auto;
+/* Le suivi ne prend pas toute la ligne : il se lit en entier dans le panneau. */
+.notes-courtes {
+  display: block;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.defilement table {
-  min-width: 58rem;
-}
+/* -- Le panneau de detail --------------------------------------------------- */
 
-.etroit {
-  width: 4.25rem;
-}
-
-.heure {
-  width: 5rem;
-  text-align: center;
-}
-
-/* Le statut colore sa ligne : l'etat du tableau se lit de loin. */
-.statut-valide .statut {
-  border-color: var(--ok);
-  color: var(--ok);
-  font-weight: 600;
-}
-
-.statut-joue .statut {
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.statut-refuse .statut {
-  border-color: var(--ko);
-  color: var(--ko);
-}
-
-.statut-refuse td {
-  opacity: 0.75;
-}
-
-.statut-demande .statut {
-  border-color: var(--warn);
-  color: var(--warn);
-  font-weight: 600;
-}
-
-.ajout {
-  margin-top: 1rem;
+.sous-titre {
+  display: block;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--bord);
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texte-doux);
 }
 
 /* -- Volontaires et demandes ------------------------------------------------ */

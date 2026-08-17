@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
+import { Modale } from '../modale/modale';
+import { Panneau } from '../panneau/panneau';
 import {
   HEBERGEMENTS,
   LIBELLE_HEBERGEMENT,
@@ -18,14 +20,24 @@ import {
 
 type FiltrePaiement = 'tous' | 'paye' | 'non-paye';
 
+/** La saisie minimale d'une nouvelle fiche, avant de detailler. */
+interface BrouillonInvite {
+  prenom: string;
+  nom: string;
+  participantId: string;
+  personneTypeId: string;
+  categoriePaiementId: string;
+}
+
 /**
- * La base d'invites. Les reponses du formulaire arrivent en propositions a
- * valider ; une fois validees, chaque fiche s'affiche compacte — prenom, nom,
- * profil, paye — et se deplie a la demande pour le reste. Les filtres
- * remplacent les onglets par co-organisateur.
+ * La base d'invites, en tableau. Les reponses du formulaire arrivent en
+ * propositions a valider ; les fiches validees tiennent une ligne chacune,
+ * la creation passe par une modale et le detail complet par le panneau
+ * lateral. Les filtres remplacent les onglets par co-organisateur.
  */
 @Component({
   selector: 'app-section-utilisateurs',
+  imports: [Modale, Panneau],
   templateUrl: './section-utilisateurs.html',
   styleUrl: './section-utilisateurs.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -106,6 +118,11 @@ export class SectionUtilisateurs {
     return this.store.categoriesPaiement().find((x) => x.id === invite.categoriePaiementId);
   }
 
+  protected nomDuProfil(personneTypeId: string): string {
+    const type = this.store.personnesTypes().find((x) => x.id === personneTypeId);
+    return type ? `${type.emoji} ${type.nom}` : '';
+  }
+
   protected nomDuParticipant(participantId: string): string {
     return this.store.participants().find((x) => x.id === participantId)?.nom ?? '?';
   }
@@ -139,27 +156,59 @@ export class SectionUtilisateurs {
     return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('fr-FR');
   }
 
-  // -- Fiches : compactes, depliables a la demande --------------------------
+  // -- Creation : une modale centree, la saisie minimale --------------------
 
-  private readonly detailsOuverts = signal<ReadonlySet<string>>(new Set());
+  protected readonly creationOuverte = signal(false);
+  protected readonly brouillon = signal<BrouillonInvite>({
+    prenom: '',
+    nom: '',
+    participantId: '',
+    personneTypeId: '',
+    categoriePaiementId: '',
+  });
 
-  protected estOuverte(inviteId: string): boolean {
-    return this.detailsOuverts().has(inviteId);
+  protected readonly creationInvalide = computed(() => this.brouillon().prenom.trim() === '');
+
+  protected ouvrirCreation(): void {
+    this.brouillon.set({
+      prenom: '',
+      nom: '',
+      participantId: this.filtreParticipant() || this.porteurParDefaut(),
+      personneTypeId: this.filtreProfil() === 'sans' ? '' : this.filtreProfil(),
+      categoriePaiementId: '',
+    });
+    this.creationOuverte.set(true);
   }
 
-  protected basculerDetails(inviteId: string): void {
-    const suivants = new Set(this.detailsOuverts());
-    if (suivants.has(inviteId)) suivants.delete(inviteId);
-    else suivants.add(inviteId);
-    this.detailsOuverts.set(suivants);
+  protected majBrouillon(patch: Partial<BrouillonInvite>): void {
+    this.brouillon.set({ ...this.brouillon(), ...patch });
   }
 
-  protected ajouter(): void {
-    const porteur = this.filtreParticipant() || this.porteurParDefaut();
-    if (!porteur) return;
-    const id = this.store.ajouterInvite(porteur);
-    // Une fiche vierge s'ouvre depliee : il y a tout a remplir.
-    this.basculerDetails(id);
+  protected creer(): void {
+    const brouillon = this.brouillon();
+    if (!brouillon.prenom.trim() || !brouillon.participantId) return;
+    const id = this.store.ajouterInvite(brouillon.participantId);
+    this.store.majInvite(id, {
+      prenom: brouillon.prenom.trim(),
+      nom: brouillon.nom.trim(),
+      personneTypeId: brouillon.personneTypeId,
+      categoriePaiementId: brouillon.categoriePaiementId,
+    });
+    this.creationOuverte.set(false);
+    // La fiche neuve s'ouvre dans le panneau : le reste s'y remplit.
+    this.detailId.set(id);
+  }
+
+  // -- Detail : le panneau lateral -----------------------------------------
+
+  protected readonly detailId = signal('');
+
+  protected readonly detail = computed(() =>
+    this.store.invitesNommes().find((x) => x.id === this.detailId()),
+  );
+
+  protected ouvrirDetail(invite: Invite): void {
+    this.detailId.set(invite.id);
   }
 
   protected maj(invite: Invite, patch: Partial<Omit<Invite, 'id'>>): void {
@@ -198,7 +247,10 @@ export class SectionUtilisateurs {
 
   protected supprimer(invite: Invite): void {
     const nom = `${invite.prenom} ${invite.nom}`.trim() || 'cet invite';
-    if (confirm(`Retirer ${nom} de la liste ?`)) this.store.supprimerInvite(invite.id);
+    if (confirm(`Retirer ${nom} de la liste ?`)) {
+      this.store.supprimerInvite(invite.id);
+      if (this.detailId() === invite.id) this.detailId.set('');
+    }
   }
 
   // -- Co-organisateurs -----------------------------------------------------
@@ -214,7 +266,45 @@ export class SectionUtilisateurs {
     }
   }
 
-  // -- Categories de paiement -----------------------------------------------
+  // -- Categories de paiement : tableau, modale, panneau --------------------
+
+  protected readonly tarifCreationOuverte = signal(false);
+  protected readonly brouillonTarif = signal({ nom: '', montant: 0 });
+  protected readonly tarifDetailId = signal('');
+
+  protected readonly tarifDetail = computed(() =>
+    this.store.categoriesPaiement().find((x) => x.id === this.tarifDetailId()),
+  );
+
+  protected readonly tarifInvalide = computed(() => this.brouillonTarif().nom.trim() === '');
+
+  protected ouvrirCreationTarif(): void {
+    this.brouillonTarif.set({ nom: '', montant: 0 });
+    this.tarifCreationOuverte.set(true);
+  }
+
+  protected majBrouillonTarif(patch: Partial<{ nom: string; montant: number }>): void {
+    this.brouillonTarif.set({ ...this.brouillonTarif(), ...patch });
+  }
+
+  protected creerTarif(): void {
+    const brouillon = this.brouillonTarif();
+    if (!brouillon.nom.trim()) return;
+    const id = this.store.ajouterCategoriePaiement();
+    this.store.majCategoriePaiement(id, {
+      nom: brouillon.nom.trim(),
+      montant: Math.max(0, brouillon.montant),
+    });
+    this.tarifCreationOuverte.set(false);
+  }
+
+  /** Combien d'invites portent ce tarif, et combien l'ont deja regle. */
+  protected usageTarif(categorieId: string): { total: number; payes: number } {
+    const concernes = this.store
+      .invitesNommes()
+      .filter((x) => x.categoriePaiementId === categorieId);
+    return { total: concernes.length, payes: concernes.filter((x) => x.paye).length };
+  }
 
   protected majCategorieNom(categorie: CategoriePaiement, nom: string): void {
     this.store.majCategoriePaiement(categorie.id, { nom });
@@ -230,6 +320,7 @@ export class SectionUtilisateurs {
   protected supprimerCategorie(categorie: CategoriePaiement): void {
     if (confirm(`Supprimer la categorie « ${categorie.nom || 'sans nom'} » ?`)) {
       this.store.supprimerCategoriePaiement(categorie.id);
+      if (this.tarifDetailId() === categorie.id) this.tarifDetailId.set('');
     }
   }
 }

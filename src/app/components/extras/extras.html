@@ -1,7 +1,10 @@
 <section class="card">
-  <div class="card-head">
+  <div class="barre-tableau">
     <h2>Extras &amp; bouteilles plaisir</h2>
     <span class="muted num">{{ fmtEuro(store.panier().coutPlaisir) }}</span>
+    <button type="button" class="primaire pousse" (click)="ouvrirCreation()">
+      + Ajouter une bouteille
+    </button>
   </div>
 
   <p class="intro muted">
@@ -12,80 +15,107 @@
   @if (store.extras().length === 0) {
     <p class="vide">Aucun extra pour l'instant.</p>
   } @else {
-    <table>
-      <thead>
-        <tr>
-          <th>Produit</th>
-          <th class="droite">Bouteilles</th>
-          <th class="droite">Prix</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (ligne of store.extras(); track ligne.produit.id) {
+    <div class="boite-tableau">
+      <table class="tableau">
+        <thead>
           <tr>
-            <td>
-              <div class="nom">{{ ligne.produit.nom }}</div>
-              <div class="muted num">
-                {{ fmtVolume(ligne.produit.contenanceMl) }} · {{ fmtEuro(ligne.produit.prixEur) }}
-                @if (ligne.mlNecessaire > 0) {
-                  · aussi consomme par tes invites
-                }
-              </div>
-            </td>
-            <td class="droite">
-              <div class="compteur">
-                <button
-                  type="button"
-                  (click)="incrementer(ligne.produit.id, ligne.bouteilles, -1)"
-                  aria-label="Une de moins"
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  [value]="ligne.bouteilles"
-                  (input)="majQuantite(ligne.produit.id, $any($event.target).value)"
-                />
-                <button
-                  type="button"
-                  (click)="incrementer(ligne.produit.id, ligne.bouteilles, 1)"
-                  aria-label="Une de plus"
-                >
-                  +
-                </button>
-              </div>
-            </td>
-            <td class="droite num">{{ fmtEuro(ligne.prixTotal) }}</td>
-            <td class="droite">
-              <button
-                type="button"
-                class="discret"
-                title="Retirer cet extra"
-                (click)="store.retirerExtra(ligne.produit.id)"
-              >
-                ×
-              </button>
-            </td>
+            <th>Produit</th>
+            <th class="droite">Bouteilles</th>
+            <th class="droite">Prix</th>
+            <th></th>
           </tr>
-        }
-      </tbody>
-    </table>
-  }
-
-  <label class="champ ajout">
-    <span>Ajouter une bouteille</span>
-    <select (change)="ajouter($event)">
-      <option value="">Choisir dans le catalogue…</option>
-      @for (rayon of catalogue(); track rayon.libelle) {
-        <optgroup [label]="rayon.libelle">
-          @for (produit of rayon.produits; track produit.id) {
-            <option [value]="produit.id">{{ produit.nom }} — {{ fmtEuro(produit.prixEur) }}</option>
+        </thead>
+        <tbody>
+          @for (ligne of store.extras(); track ligne.produit.id) {
+            <tr>
+              <td>
+                <span class="principal">{{ ligne.produit.nom }}</span>
+                <span class="secondaire num">
+                  {{ fmtVolume(ligne.produit.contenanceMl) }} ·
+                  {{ fmtEuro(ligne.produit.prixEur) }}
+                  @if (ligne.mlNecessaire > 0) {
+                    · aussi consomme par tes invites
+                  }
+                </span>
+              </td>
+              <td class="droite">
+                <div class="compteur">
+                  <button
+                    type="button"
+                    (click)="incrementer(ligne.produit.id, ligne.bouteilles, -1)"
+                    aria-label="Une de moins"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    [value]="ligne.bouteilles"
+                    (input)="majQuantite(ligne.produit.id, $any($event.target).value)"
+                  />
+                  <button
+                    type="button"
+                    (click)="incrementer(ligne.produit.id, ligne.bouteilles, 1)"
+                    aria-label="Une de plus"
+                  >
+                    +
+                  </button>
+                </div>
+              </td>
+              <td class="droite num principal">{{ fmtEuro(ligne.prixTotal) }}</td>
+              <td class="actions-ligne">
+                <button
+                  type="button"
+                  class="discret"
+                  title="Retirer cet extra"
+                  (click)="store.retirerExtra(ligne.produit.id)"
+                >
+                  ×
+                </button>
+              </td>
+            </tr>
           }
-        </optgroup>
-      }
-    </select>
-  </label>
+        </tbody>
+      </table>
+    </div>
+  }
 </section>
+
+@if (creationOuverte()) {
+  <app-modale
+    titre="Ajouter une bouteille"
+    sousTitre="Un extra s'achete en quantite fixe, hors calcul par personne."
+    libelleValider="Ajouter"
+    [valideDesactive]="creationInvalide()"
+    (fermee)="creationOuverte.set(false)"
+    (validee)="creer()"
+  >
+    <label class="champ">
+      <span>Produit *</span>
+      <select (change)="majBrouillon({ produitId: $any($event.target).value })">
+        <option value="">Choisir dans le catalogue…</option>
+        @for (rayon of catalogue(); track rayon.libelle) {
+          <optgroup [label]="rayon.libelle">
+            @for (produit of rayon.produits; track produit.id) {
+              <option [value]="produit.id" [selected]="produit.id === brouillon().produitId">
+                {{ produit.nom }} — {{ fmtEuro(produit.prixEur) }}
+              </option>
+            }
+          </optgroup>
+        }
+      </select>
+    </label>
+    <label class="champ">
+      <span>Nombre de bouteilles</span>
+      <input
+        type="number"
+        min="1"
+        step="1"
+        [value]="brouillon().bouteilles"
+        (input)="majBrouillon({ bouteilles: +$any($event.target).value })"
+        (keyup.enter)="creer()"
+      />
+    </label>
+  </app-modale>
+}
