@@ -56,10 +56,48 @@
               <dd>{{ reponse.envies }}</dd>
             </div>
           }
+          @if (reponse.stylesMusicaux) {
+            <div>
+              <dt>Styles musicaux</dt>
+              <dd>{{ reponse.stylesMusicaux }}</dd>
+            </div>
+          }
           @if (reponse.recommandations) {
             <div>
               <dt>Musique</dt>
               <dd>{{ reponse.recommandations }}</dd>
+            </div>
+          }
+          @if (reponse.logistique.arrivee || reponse.logistique.depart) {
+            <div>
+              <dt>Arrivee → depart</dt>
+              <dd>
+                {{ reponse.logistique.arrivee || '?' }} → {{ reponse.logistique.depart || '?' }}
+              </dd>
+            </div>
+          }
+          <div>
+            <dt>Hebergement</dt>
+            <dd>{{ libelleHebergement[reponse.logistique.hebergement] }}</dd>
+          </div>
+          @if (resumeVoiture(reponse.logistique); as voiture) {
+            @if (voiture) {
+              <div>
+                <dt>Voiture</dt>
+                <dd>{{ voiture }}</dd>
+              </div>
+            }
+          }
+          @if (reponse.logistique.materielApporte) {
+            <div>
+              <dt>Apporte / prete</dt>
+              <dd>{{ reponse.logistique.materielApporte }}</dd>
+            </div>
+          }
+          @if (reponse.logistique.besoins) {
+            <div>
+              <dt>Besoins particuliers</dt>
+              <dd>{{ reponse.logistique.besoins }}</dd>
             </div>
           }
           @if (reponse.commentaire) {
@@ -206,6 +244,30 @@
       fiche(s)
     </span>
   </div>
+
+  @if (store.invitesNommes().length > 0) {
+    <div class="synthese-logistique">
+      <span class="tag"
+        >🚗 <span class="num">{{ store.resumeLogistique().placesOffertes }}</span> place(s)
+        offerte(s)</span
+      >
+      @if (store.resumeLogistique().chercheurs > 0) {
+        <span class="tag warn"
+          >🙋 <span class="num">{{ store.resumeLogistique().chercheurs }}</span> cherche(nt) un
+          covoit</span
+        >
+      }
+      <span class="tag"
+        >🛏 <span class="num">{{ store.resumeLogistique().dormeurs }}</span> dorment sur place</span
+      >
+      @if (store.resumeLogistique().preteurs > 0) {
+        <span class="tag"
+          >🧰 <span class="num">{{ store.resumeLogistique().preteurs }}</span> apportent du
+          materiel</span
+        >
+      }
+    </div>
+  }
 
   <div class="filtres">
     <label class="champ">
@@ -424,6 +486,112 @@
                 <span class="tag ok">Regle</span>
               }
             }
+          </div>
+          <span class="sous-titre">Logistique</span>
+          <div class="ligne">
+            <label class="champ">
+              <span>Arrivee</span>
+              <input
+                type="text"
+                placeholder="Samedi 14h..."
+                [value]="invite.logistique.arrivee"
+                (input)="majLogistique(invite, { arrivee: $any($event.target).value })"
+              />
+            </label>
+            <label class="champ">
+              <span>Depart</span>
+              <input
+                type="text"
+                placeholder="Dimanche matin..."
+                [value]="invite.logistique.depart"
+                (input)="majLogistique(invite, { depart: $any($event.target).value })"
+              />
+            </label>
+            <label class="champ">
+              <span>Hebergement</span>
+              <select (change)="majLogistique(invite, { hebergement: $any($event.target).value })">
+                @for (option of hebergements; track option.id) {
+                  <option
+                    [value]="option.id"
+                    [selected]="option.id === invite.logistique.hebergement"
+                  >
+                    {{ option.libelle }}
+                  </option>
+                }
+              </select>
+            </label>
+          </div>
+          <div class="ligne logistique-cases">
+            <label class="paye-mini">
+              <input
+                type="checkbox"
+                [checked]="invite.logistique.permis"
+                (change)="majLogistique(invite, { permis: !invite.logistique.permis })"
+              />
+              <span>Permis</span>
+            </label>
+            <label class="paye-mini">
+              <input
+                type="checkbox"
+                [checked]="invite.logistique.vehicule"
+                (change)="majLogistique(invite, { vehicule: !invite.logistique.vehicule })"
+              />
+              <span>Voiture</span>
+            </label>
+            <label class="paye-mini">
+              <input
+                type="checkbox"
+                [checked]="invite.logistique.chercheCovoiturage"
+                (change)="
+                  majLogistique(invite, {
+                    chercheCovoiturage: !invite.logistique.chercheCovoiturage,
+                  })
+                "
+              />
+              <span>Cherche covoit</span>
+            </label>
+            @if (invite.logistique.vehicule) {
+              <label class="champ places">
+                <span>Places libres</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="9"
+                  step="1"
+                  [value]="invite.logistique.placesVoiture"
+                  (input)="majPlacesVoiture(invite, $any($event.target).value)"
+                />
+              </label>
+            }
+          </div>
+          <div class="ligne">
+            <label class="champ">
+              <span>Apporte / prete</span>
+              <input
+                type="text"
+                placeholder="Enceinte, glaciere, barnum..."
+                [value]="invite.logistique.materielApporte"
+                (input)="majLogistique(invite, { materielApporte: $any($event.target).value })"
+              />
+            </label>
+            <label class="champ">
+              <span>Besoins particuliers</span>
+              <input
+                type="text"
+                placeholder="Sante, accessibilite..."
+                [value]="invite.logistique.besoins"
+                (input)="majLogistique(invite, { besoins: $any($event.target).value })"
+              />
+            </label>
+            <label class="champ">
+              <span>Styles musicaux</span>
+              <input
+                type="text"
+                placeholder="Techno, rap FR, rock..."
+                [value]="invite.stylesMusicaux"
+                (input)="maj(invite, { stylesMusicaux: $any($event.target).value })"
+              />
+            </label>
           </div>
           @if (libelleConsommations(invite.consommationDeclaree); as conso) {
             @if (conso) {

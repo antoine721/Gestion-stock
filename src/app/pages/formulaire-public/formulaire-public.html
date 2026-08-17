@@ -64,6 +64,7 @@
         <section class="card">
           <h2>Ta fiche, {{ prenom() }}</h2>
           <div class="champs">
+            <span class="groupe-titre">🍽️ Toi &amp; ce que tu manges</span>
             <label class="champ">
               <span>Tu viens avec combien de personnes ?</span>
               <input
@@ -93,6 +94,17 @@
                 (input)="allergies.set($any($event.target).value)"
               />
             </label>
+            <label class="champ">
+              <span>Besoins particuliers</span>
+              <input
+                type="text"
+                placeholder="Sante, accessibilite, tout ce qu'on doit savoir..."
+                [value]="besoins()"
+                (input)="besoins.set($any($event.target).value)"
+              />
+            </label>
+
+            <span class="groupe-titre">🍹 Ce que tu bois</span>
             <div class="conso">
               <span class="conso-titre">Qu'est-ce que tu bois sur une journee ?</span>
               <p class="muted conso-aide">
@@ -131,6 +143,84 @@
                 (input)="preferencesBoissons.set($any($event.target).value)"
               />
             </label>
+
+            <span class="groupe-titre">🚗 Logistique</span>
+            <div class="duo">
+              <label class="champ">
+                <span>Tu arrives quand ?</span>
+                <input
+                  type="text"
+                  placeholder="Samedi 14h..."
+                  [value]="arrivee()"
+                  (input)="arrivee.set($any($event.target).value)"
+                />
+              </label>
+              <label class="champ">
+                <span>Tu repars quand ?</span>
+                <input
+                  type="text"
+                  placeholder="Dimanche apres le brunch..."
+                  [value]="depart()"
+                  (input)="depart.set($any($event.target).value)"
+                />
+              </label>
+            </div>
+            <label class="champ">
+              <span>Tu dors ou ?</span>
+              <select (change)="hebergement.set($any($event.target).value)">
+                @for (option of hebergements; track option.id) {
+                  <option [value]="option.id" [selected]="option.id === hebergement()">
+                    {{ option.libelle }}
+                  </option>
+                }
+              </select>
+            </label>
+            <div class="cases-a-cocher">
+              <label class="case-cocher">
+                <input type="checkbox" [checked]="permis()" (change)="permis.set(!permis())" />
+                <span>J'ai le permis</span>
+              </label>
+              <label class="case-cocher">
+                <input
+                  type="checkbox"
+                  [checked]="vehicule()"
+                  (change)="vehicule.set(!vehicule())"
+                />
+                <span>Je viens en voiture</span>
+              </label>
+              <label class="case-cocher">
+                <input
+                  type="checkbox"
+                  [checked]="chercheCovoiturage()"
+                  (change)="chercheCovoiturage.set(!chercheCovoiturage())"
+                />
+                <span>Je cherche un covoiturage</span>
+              </label>
+            </div>
+            @if (vehicule()) {
+              <label class="champ">
+                <span>Places libres dans ta voiture pour covoiturer</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="9"
+                  step="1"
+                  [value]="placesVoiture()"
+                  (input)="majPlacesVoiture($any($event.target).value)"
+                />
+              </label>
+            }
+            <label class="champ">
+              <span>Tu peux apporter ou preter quoi ?</span>
+              <input
+                type="text"
+                placeholder="Enceinte, glaciere, barnum, jeux, tireuse..."
+                [value]="materielApporte()"
+                (input)="materielApporte.set($any($event.target).value)"
+              />
+            </label>
+
+            <span class="groupe-titre">🎶 Ambiance</span>
             <label class="champ">
               <span>Envie de faire quoi sur place ?</span>
               <input
@@ -138,6 +228,15 @@
                 placeholder="DJ, jeux, karaoke, petanque..."
                 [value]="envies()"
                 (input)="envies.set($any($event.target).value)"
+              />
+            </label>
+            <label class="champ">
+              <span>Tes styles musicaux preferes</span>
+              <input
+                type="text"
+                placeholder="Techno, rap FR, rock, annees 80..."
+                [value]="stylesMusicaux()"
+                (input)="stylesMusicaux.set($any($event.target).value)"
               />
             </label>
             <label class="champ">

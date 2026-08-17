@@ -1,8 +1,20 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
-import { LIBELLE_REGIME, REGIMES, libelleConsommations } from '../../domain/invites';
+import {
+  HEBERGEMENTS,
+  LIBELLE_HEBERGEMENT,
+  LIBELLE_REGIME,
+  REGIMES,
+  libelleConsommations,
+} from '../../domain/invites';
 import { fmtEntier, fmtEuro } from '../../domain/format';
-import { CategoriePaiement, Invite, Participant, ReponseFormulaire } from '../../domain/models';
+import {
+  CategoriePaiement,
+  Invite,
+  Logistique,
+  Participant,
+  ReponseFormulaire,
+} from '../../domain/models';
 
 type FiltrePaiement = 'tous' | 'paye' | 'non-paye';
 
@@ -25,6 +37,23 @@ export class SectionUtilisateurs {
   protected readonly regimes = REGIMES;
   protected readonly libelleRegime = LIBELLE_REGIME;
   protected readonly libelleConsommations = libelleConsommations;
+  protected readonly hebergements = HEBERGEMENTS;
+  protected readonly libelleHebergement = LIBELLE_HEBERGEMENT;
+
+  /** « Permis · Voiture (3 places) · Cherche covoiturage » en une ligne. */
+  protected resumeVoiture(logistique: Logistique): string {
+    const morceaux: string[] = [];
+    if (logistique.permis) morceaux.push('Permis');
+    if (logistique.vehicule) {
+      morceaux.push(
+        logistique.placesVoiture > 0
+          ? `Voiture (${logistique.placesVoiture} place(s) libre(s))`
+          : 'Voiture',
+      );
+    }
+    if (logistique.chercheCovoiturage) morceaux.push('Cherche un covoiturage');
+    return morceaux.join(' · ');
+  }
 
   // -- Filtres : ils remplacent les onglets par co-organisateur ------------
 
@@ -144,6 +173,17 @@ export class SectionUtilisateurs {
   ): void {
     const nombre = Number(valeur);
     if (Number.isFinite(nombre)) this.store.majInvite(invite.id, { [champ]: Math.max(0, nombre) });
+  }
+
+  protected majLogistique(invite: Invite, patch: Partial<Logistique>): void {
+    this.store.majInvite(invite.id, { logistique: { ...invite.logistique, ...patch } });
+  }
+
+  protected majPlacesVoiture(invite: Invite, valeur: string): void {
+    const places = Number(valeur);
+    if (Number.isFinite(places)) {
+      this.majLogistique(invite, { placesVoiture: Math.min(9, Math.max(0, Math.round(places))) });
+    }
   }
 
   /** Cocher « a paye » pre-remplit le montant avec le tarif de sa categorie. */

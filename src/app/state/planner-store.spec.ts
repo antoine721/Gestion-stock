@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { PARTAGE_INITIAL, PlannerStore } from './planner-store';
 import { Api, EvenementDistant } from './api';
+import { logistiqueVierge } from '../domain/invites';
 import { Participant, PersonneType } from '../domain/models';
 
 const BUVEUR_BIERE: PersonneType = {
@@ -224,6 +225,8 @@ describe('PlannerStore', () => {
           recommandations: '',
           commentaire: '',
           consommations: [{ boissonId: 'biere', verresParJour: 3 }],
+          stylesMusicaux: 'techno',
+          logistique: { ...logistiqueVierge(), vehicule: true, placesVoiture: 3 },
           creeLe: '2026-08-10T10:00:00.000Z',
         },
       ],
@@ -238,7 +241,11 @@ describe('PlannerStore', () => {
     // pas tant que l'organisateur n'a pas attache un profil.
     expect(fiche?.consommationDeclaree).toEqual([{ boissonId: 'biere', verresParJour: 3 }]);
     expect(fiche?.personneTypeId).toBe('');
+    expect(fiche?.stylesMusicaux).toBe('techno');
+    expect(fiche?.logistique.placesVoiture).toBe(3);
     expect(store.reponsesFormulaire()).toHaveLength(0);
+    // 3 places offertes, personne ne cherche : la synthese suit.
+    expect(store.resumeLogistique().placesOffertes).toBe(3);
   });
 
   it('cocher une ligne materiel bascule le statut de l’article', () => {
