@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { ESPACES, Espace, PlannerStore } from '../../state/planner-store';
 import { fmtEntier, fmtEuro } from '../../domain/format';
+import { joursAvant } from '../../domain/evenement';
 
 interface CarteHub {
   espace: Espace;
@@ -59,7 +60,25 @@ export class HubAccueil {
     const programme = this.store.resumeProgramme();
     const dj = this.store.resumeDj();
 
+    const fiche = this.store.infos();
+    const avant = joursAvant(fiche.debut, new Date());
+    const fmtDate = (iso: string) =>
+      new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(
+        new Date(`${iso}T00:00:00`),
+      );
+    const dates = fiche.debut
+      ? fiche.fin && fiche.fin !== fiche.debut
+        ? `${fmtDate(fiche.debut)} → ${fmtDate(fiche.fin)}`
+        : fmtDate(fiche.debut)
+      : '';
+
     return [
+      carte('profil', {
+        valeur: avant !== null && avant > 0 ? `J-${avant}` : dates || '—',
+        sous: [dates, fiche.lieu].filter(Boolean).join(' · ') || 'Cale le lieu et les dates',
+        etat: fiche.debut ? '' : 'attention',
+        etatTexte: fiche.debut ? '' : 'A completer',
+      }),
       carte('alcool', {
         valeur: fmtEuro(panier.coutTotal),
         sous: `${fmtEntier(this.store.lignesCourses().length)} references · ${fmtEntier(panier.verresTotal)} verres`,

@@ -20,6 +20,14 @@
   font-size: 1.5rem;
 }
 
+/* Le quand et le ou, juste sous le nom : la premiere chose qu'un invite cherche. */
+.quand-ou {
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
 h2 {
   font-size: 1.0625rem;
   margin-bottom: 1rem;

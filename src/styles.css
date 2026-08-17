@@ -271,6 +271,8 @@ p {
 input[type='number'],
 input[type='text'],
 input[type='password'],
+input[type='date'],
+textarea,
 select {
   width: 100%;
   padding: 0.5625rem 0.75rem;
@@ -289,8 +291,16 @@ select {
 [data-theme='sombre'] input[type='number'],
 [data-theme='sombre'] input[type='text'],
 [data-theme='sombre'] input[type='password'],
+[data-theme='sombre'] input[type='date'],
+[data-theme='sombre'] textarea,
 [data-theme='sombre'] select {
   background: rgba(255, 255, 255, 0.06);
+}
+
+/* Le texte long se redimensionne a la verticale seulement. */
+textarea {
+  resize: vertical;
+  min-height: 4.5rem;
 }
 
 /* Toute saisie chiffree adopte la face des chiffres. */
@@ -300,11 +310,13 @@ input[type='number'] {
 }
 
 input:hover,
+textarea:hover,
 select:hover {
   border-color: var(--bord-fort);
 }
 
 input:focus-visible,
+textarea:focus-visible,
 select:focus-visible,
 button:focus-visible,
 summary:focus-visible,
@@ -618,6 +630,8 @@ summary::-webkit-details-marker {
   input[type='number'],
   input[type='text'],
   input[type='password'],
+  input[type='date'],
+  textarea,
   select {
     font-size: 1rem;
     padding: 0.5625rem 0.6875rem;

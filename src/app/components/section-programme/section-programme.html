@@ -20,7 +20,12 @@
     @for (journee of journees(); track journee.jour) {
       <div class="jour-colonne">
         <div class="jour-head">
-          <h3>Jour {{ journee.jour }}</h3>
+          <h3>
+            Jour {{ journee.jour }}
+            @if (journee.date) {
+              <span class="muted date-jour">{{ journee.date }}</span>
+            }
+          </h3>
           <button type="button" class="discret" (click)="ajouter(journee.jour)">+</button>
         </div>
 

@@ -1,0 +1,42 @@
+.intro {
+  margin-bottom: 1rem;
+}
+
+.description {
+  margin-top: 0.875rem;
+}
+
+.avertissement {
+  margin-top: 1rem;
+  padding: 0.5625rem 0.75rem;
+  border-radius: var(--rayon-petit);
+  background: var(--warn-doux);
+  color: var(--warn);
+  font-size: 0.8125rem;
+}
+
+/* -- Les reperes : une tuile par chiffre ----------------------------------- */
+
+.reperes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: 0.75rem;
+}
+
+.repere {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--rayon-petit);
+  background: var(--surface-2);
+}
+
+.repere .valeur {
+  font-size: 1.1875rem;
+  font-weight: 600;
+}
+
+.repere .legende {
+  font-size: 0.6875rem;
+}

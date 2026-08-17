@@ -8,8 +8,14 @@
     </section>
   } @else {
     <header class="entete">
-      <p class="app-nom muted">Combien acheter ?</p>
+      <p class="app-nom muted">Vialcrm</p>
       <h1>{{ infos()?.nom ?? 'Chargement…' }}</h1>
+      @if (quandOu()) {
+        <p class="quand-ou">{{ quandOu() }}</p>
+      }
+      @if (infos()?.description) {
+        <p class="muted">{{ infos()?.description }}</p>
+      }
       <p class="muted">
         Ta fiche d'invite : deux minutes, et les organisateurs sauront quoi prevoir pour toi.
       </p>

@@ -33,6 +33,7 @@ import {
   repasVierge,
 } from '../domain/nourriture';
 import { estInviteTest, genererInvitesTest } from '../domain/donnees-test';
+import { infosVierges } from '../domain/evenement';
 import { articleVierge, budgetMateriel } from '../domain/materiel-liste';
 import { budgetGlobal, repartitionGlobale } from '../domain/stats';
 import { listeCoursesUnifiee, resumerCourses } from '../domain/courses';
@@ -82,6 +83,7 @@ export const SECTIONS: readonly { id: Section; libelle: string }[] = [
 /** Les grandes pieces du hub, servies par la sidebar. */
 export type Espace =
   | 'accueil'
+  | 'profil'
   | 'alcool'
   | 'nourriture'
   | 'utilisateurs'
@@ -100,6 +102,7 @@ export const ESPACES: readonly {
   teinte: string;
 }[] = [
   { id: 'accueil', libelle: 'Accueil', emoji: '🏠', teinte: 'ardoise' },
+  { id: 'profil', libelle: 'Profil', emoji: '🎪', teinte: 'ardoise' },
   { id: 'alcool', libelle: 'Bar & boissons', emoji: '🍹', teinte: 'petrole' },
   { id: 'nourriture', libelle: 'Nourriture', emoji: '🍽️', teinte: 'orange' },
   { id: 'utilisateurs', libelle: 'Invites', emoji: '🧑‍🤝‍🧑', teinte: 'bleu' },
@@ -129,6 +132,7 @@ export const PARTAGE_INITIAL: Partage = {
   coursesCochees: [],
   programme: { creneaux: [], tracklist: [] },
   djSets: [],
+  infos: infosVierges(),
 };
 
 /** Bibliotheque de depart, posee a la creation de l'evenement. */
@@ -409,6 +413,7 @@ export class PlannerStore {
         tracklist: partage.programme.tracklist ?? [],
       },
       djSets: partage.djSets ?? [],
+      infos: { ...infosVierges(), ...partage.infos },
       reponsesFormulaire: partage.reponsesFormulaire.map((x) => ({
         ...x,
         consommations: x.consommations ?? [],
@@ -464,6 +469,14 @@ export class PlannerStore {
 
   majCadre(patch: { jours?: number }): void {
     if (patch.jours !== undefined) this.majPartage({ jours: Math.max(1, patch.jours) });
+  }
+
+  // -- Profil de l'evenement -----------------------------------------------
+
+  readonly infos = computed(() => this.partage().infos);
+
+  majInfos(patch: Partial<Partage['infos']>): void {
+    this.majPartage({ infos: { ...this.infos(), ...patch } });
   }
 
   // -- Participants --------------------------------------------------------

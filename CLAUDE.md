@@ -5,7 +5,9 @@ qui demarrent sans aucun historique ni configuration locale.
 
 ## Le projet
 
-« Combien acheter ? » — calculateur d'achats pour un evenement. Chaque co-organisateur
+Vialcrm (anciennement « Combien acheter ? ») — le hub d'organisation d'un festival :
+profil de l'evenement, invites, paiements, bar, cuisine, materiel, courses, missions,
+DJ et formulaire public. Au coeur, le calculateur d'achats : chaque co-organisateur
 declare les invites qu'il amene et ce qu'ils boivent ; l'app additionne, sort la liste
 de courses et le budget, et dit si la prevision tient debout.
 
