@@ -154,6 +154,33 @@ export interface Effectif {
 export type Regime =
   'omnivore' | 'vegetarien' | 'vegan' | 'sans-gluten' | 'sans-lactose' | 'halal' | 'casher';
 
+/** Ou dort la personne : la question qui fache a 2 h du matin. */
+export type Hebergement = 'a-definir' | 'sur-place' | 'tente' | 'rentre';
+
+/**
+ * Le bloc logistique d'une personne : vehicule, covoiturage, horaires,
+ * hebergement, ce qu'elle peut apporter. Rempli via le formulaire, repris tel
+ * quel sur la fiche invite.
+ */
+export interface Logistique {
+  /** A le permis de conduire. */
+  permis: boolean;
+  /** Vient avec une voiture. */
+  vehicule: boolean;
+  /** Places libres dans sa voiture pour covoiturer. */
+  placesVoiture: number;
+  /** Cherche une place en covoiturage. */
+  chercheCovoiturage: boolean;
+  hebergement: Hebergement;
+  /** Arrivee et depart en texte libre : « samedi 14h », « dimanche matin ». */
+  arrivee: string;
+  depart: string;
+  /** Ce qu'elle peut apporter ou preter : enceinte, barnum, jeux, glaciere... */
+  materielApporte: string;
+  /** Besoins particuliers : sante, accessibilite, regime du chien... */
+  besoins: string;
+}
+
 /**
  * Une categorie de paiement : « week-end complet 40 € », « une journee 15 € »,
  * « gratuit »... Le paiement lui-meme se fait hors de l'app ; ici on suit qui
@@ -193,6 +220,15 @@ export interface Invite {
   montantPaye: number;
   /** Combien de jours il reste sur place. 0 = toute la duree de l'evenement. */
   joursPresence: number;
+  /**
+   * Ce que la personne DIT boire sur une journee, via le formulaire. Purement
+   * indicatif : ca aide l'organisateur a choisir un profil, ca n'entre jamais
+   * tout seul dans le calcul — les baremes restent aux mains des profils.
+   */
+  consommationDeclaree: ConsommationType[];
+  /** Styles musicaux preferes, pour le DJ. */
+  stylesMusicaux: string;
+  logistique: Logistique;
 }
 
 // ---------------------------------------------------------------------------
@@ -347,6 +383,14 @@ export interface ReponseFormulaire {
   /** Morceaux ou artistes a passer pendant la soiree. */
   recommandations: string;
   commentaire: string;
+  /**
+   * Ce que l'invite declare boire sur une journee, boisson par boisson.
+   * Indicatif : l'organisateur s'en inspire pour les profils, sans plus.
+   */
+  consommations: ConsommationType[];
+  /** Styles musicaux preferes, pour le DJ. */
+  stylesMusicaux: string;
+  logistique: Logistique;
   /** Date ISO de la reponse. */
   creeLe: string;
 }

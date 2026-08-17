@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { PARTAGE_INITIAL, PlannerStore } from './planner-store';
 import { Api, EvenementDistant } from './api';
+import { logistiqueVierge } from '../domain/invites';
 import { Participant, PersonneType } from '../domain/models';
 
 const BUVEUR_BIERE: PersonneType = {
@@ -206,6 +207,45 @@ describe('PlannerStore', () => {
     expect(ligne).toBeDefined();
     store.basculerCourse(ligne!.id);
     expect(store.listeCourses().find((x) => x.id === ligne!.id)?.cochee).toBe(true);
+  });
+
+  it('valider une reponse du formulaire en fait une fiche, conso comprise', () => {
+    store.majPartage({
+      reponsesFormulaire: [
+        {
+          id: 'f1',
+          prenom: 'Chloe',
+          nom: 'Petit',
+          invitePar: 'Antoine',
+          accompagnants: 0,
+          regime: 'vegan',
+          allergies: 'arachide',
+          preferencesBoissons: '',
+          envies: 'karaoke',
+          recommandations: '',
+          commentaire: '',
+          consommations: [{ boissonId: 'biere', verresParJour: 3 }],
+          stylesMusicaux: 'techno',
+          logistique: { ...logistiqueVierge(), vehicule: true, placesVoiture: 3 },
+          creeLe: '2026-08-10T10:00:00.000Z',
+        },
+      ],
+    });
+
+    store.importerReponse('f1', 'a');
+
+    const fiche = store.invitesNommes().find((x) => x.prenom === 'Chloe');
+    expect(fiche?.participantId).toBe('a');
+    expect(fiche?.regime).toBe('vegan');
+    // La conso suit la fiche, mais ne cree AUCUN profil : le calcul ne bouge
+    // pas tant que l'organisateur n'a pas attache un profil.
+    expect(fiche?.consommationDeclaree).toEqual([{ boissonId: 'biere', verresParJour: 3 }]);
+    expect(fiche?.personneTypeId).toBe('');
+    expect(fiche?.stylesMusicaux).toBe('techno');
+    expect(fiche?.logistique.placesVoiture).toBe(3);
+    expect(store.reponsesFormulaire()).toHaveLength(0);
+    // 3 places offertes, personne ne cherche : la synthese suit.
+    expect(store.resumeLogistique().placesOffertes).toBe(3);
   });
 
   it('cocher une ligne materiel bascule le statut de l’article', () => {

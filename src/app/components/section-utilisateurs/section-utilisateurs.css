@@ -2,6 +2,64 @@
   margin-bottom: 1rem;
 }
 
+/* -- Propositions du formulaire, a valider --------------------------------- */
+
+.proposition {
+  padding: 0.875rem;
+  border: 1px dashed var(--bord-fort);
+  border-radius: var(--rayon-petit);
+  background: var(--surface-2);
+}
+
+.proposition + .proposition {
+  margin-top: 0.75rem;
+}
+
+.proposition-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0 0;
+}
+
+.details .large {
+  grid-column: 1 / -1;
+}
+
+.details dt {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texte-doux);
+}
+
+.details dd {
+  margin: 0.125rem 0 0;
+  font-size: 0.8125rem;
+}
+
+.proposition-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+  margin-top: 0.875rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--bord);
+}
+
+.proposition-actions .champ {
+  min-width: 11rem;
+}
+
 /* -- Co-organisateurs ------------------------------------------------------ */
 
 .organisateurs {
@@ -65,7 +123,7 @@
   min-width: 11rem;
 }
 
-/* -- Fiches ---------------------------------------------------------------- */
+/* -- Fiches compactes ------------------------------------------------------ */
 
 .avertissement {
   margin-bottom: 1rem;
@@ -77,63 +135,114 @@
 }
 
 .fiche {
-  padding: 0.875rem;
   border: 1px solid var(--bord);
   border-radius: var(--rayon-petit);
   background: var(--surface-2);
 }
 
 .fiche + .fiche {
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 }
 
-.ligne {
+.fiche.ouverte {
+  border-color: var(--bord-fort);
+}
+
+/* La ligne compacte : prenom, nom, profil, paye — l'essentiel, rien d'autre. */
+.compacte {
   display: grid;
-  gap: 0.75rem;
-  align-items: end;
-}
-
-.principale {
-  grid-template-columns: 1fr 1fr 1fr 1.25fr auto;
-}
-
-.secondaire,
-.paiement {
-  margin-top: 0.75rem;
-}
-
-.secondaire {
-  grid-template-columns: 1fr 1.25fr 1.25fr 1.5fr;
-}
-
-.paiement {
-  grid-template-columns: 1.5fr 0.9fr auto 1fr auto;
-  padding-top: 0.75rem;
-  border-top: 1px dashed var(--bord);
-}
-
-.paye {
-  display: flex;
-  align-items: center;
+  grid-template-columns: 1fr 1fr 1.4fr auto auto auto;
   gap: 0.5rem;
-  padding-bottom: 0.5rem;
-  font-size: 0.8125rem;
-  color: var(--texte-doux);
+  align-items: center;
+  padding: 0.5rem 0.625rem;
 }
 
-.paye input {
+.paye-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--texte-doux);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.paye-mini input {
   accent-color: var(--ok);
   width: 1rem;
   height: 1rem;
 }
 
-.paye.regle {
+.paye-mini.regle {
   color: var(--ok);
   font-weight: 600;
 }
 
-.paiement .tag {
+.deplier {
+  white-space: nowrap;
+}
+
+/* -- Le detail deplie ------------------------------------------------------ */
+
+.deplie {
+  padding: 0.75rem 0.625rem 0.875rem;
+  border-top: 1px dashed var(--bord);
+}
+
+.ligne {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.ligne + .ligne {
+  margin-top: 0.75rem;
+}
+
+.ligne .tag {
   margin-bottom: 0.5rem;
+  justify-self: start;
+}
+
+.conso-declaree {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+}
+
+/* Le chapitre logistique du detail deplie. */
+.sous-titre {
+  display: block;
+  margin: 1rem 0 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--bord);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--texte-doux);
+}
+
+.logistique-cases {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem 1.25rem;
+}
+
+.logistique-cases .paye-mini {
+  padding-bottom: 0.375rem;
+}
+
+.places {
+  max-width: 7rem;
+}
+
+.synthese-logistique {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .ajout {
@@ -144,23 +253,33 @@
   margin-top: 1.25rem;
 }
 
+/* -- Petit ecran ----------------------------------------------------------- */
+
 @media (max-width: 52rem) {
-  .principale,
-  .secondaire,
-  .paiement {
+  .compacte {
     grid-template-columns: 1fr 1fr;
   }
 
-  /* La croix de suppression s'ancre en haut a droite de la fiche, au lieu de
-     flotter au milieu de la grille. */
-  .fiche {
-    position: relative;
-    padding-top: 1.75rem;
+  .ligne-profil {
+    grid-column: 1 / 2;
   }
 
-  .principale > button.discret {
+  .paye-mini {
+    justify-self: start;
+  }
+
+  .compacte .deplier {
+    justify-self: start;
+  }
+
+  .compacte > button[title='Retirer cet invite'] {
     position: absolute;
-    top: 0.375rem;
-    right: 0.375rem;
+    top: 0.25rem;
+    right: 0.25rem;
+  }
+
+  .fiche {
+    position: relative;
+    padding-top: 0.5rem;
   }
 }

@@ -18,7 +18,9 @@ import {
   effectifsAvecInvites,
   inviteVierge,
   invitesNommesDe,
+  logistiqueVierge,
   normaliserInvite,
+  resumerLogistique,
 } from '../domain/invites';
 import {
   IDEES_PLATS,
@@ -322,6 +324,9 @@ export class PlannerStore {
   /** Les invites qui veulent faire quelque chose : DJ, jeux, animation... */
   readonly volontaires = computed(() => volontaires(this.invitesNommes()));
 
+  /** Covoiturage, couchage, materiel prete : la logistique d'un coup d'oeil. */
+  readonly resumeLogistique = computed(() => resumerLogistique(this.invitesNommes()));
+
   /** Les effectifs anonymes herites de l'ancienne saisie par profil. */
   readonly effectifsAnonymes = computed(() =>
     this.participants().reduce(
@@ -368,6 +373,12 @@ export class PlannerStore {
         creneaux: partage.programme.creneaux ?? [],
         tracklist: partage.programme.tracklist ?? [],
       },
+      reponsesFormulaire: partage.reponsesFormulaire.map((x) => ({
+        ...x,
+        consommations: x.consommations ?? [],
+        stylesMusicaux: x.stylesMusicaux ?? '',
+        logistique: { ...logistiqueVierge(), ...x.logistique },
+      })),
     });
     this.participants.set(
       distant.participants.map((x) => ({
@@ -903,6 +914,11 @@ export class PlannerStore {
           allergies: reponse.allergies,
           envies: reponse.envies,
           remarques,
+          // La conso declaree suit la fiche : une aide pour choisir le
+          // profil, jamais un bareme.
+          consommationDeclaree: reponse.consommations.map((x) => ({ ...x })),
+          stylesMusicaux: reponse.stylesMusicaux,
+          logistique: { ...reponse.logistique },
         },
       ],
       reponsesFormulaire: this.reponsesFormulaire().filter((x) => x.id !== reponseId),

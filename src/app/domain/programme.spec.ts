@@ -6,7 +6,7 @@ import {
   resumerProgramme,
   volontaires,
 } from './programme';
-import { inviteVierge } from './invites';
+import { inviteVierge, logistiqueVierge } from './invites';
 import { Creneau, Programme } from './models';
 
 function creneau(id: string, jour: number, debut: string): Creneau {
@@ -50,6 +50,9 @@ describe('musique', () => {
     envies: '',
     recommandations: 'Daft Punk',
     commentaire: '',
+    consommations: [],
+    stylesMusicaux: '',
+    logistique: logistiqueVierge(),
     creeLe: '',
   };
 
