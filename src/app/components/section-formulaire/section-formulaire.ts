@@ -1,6 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
-import { LIBELLE_REGIME, REGIMES } from '../../domain/invites';
+import {
+  LIBELLE_REGIME,
+  REGIMES,
+  libelleConsommations,
+  logistiqueVierge,
+} from '../../domain/invites';
 import { fmtEntier } from '../../domain/format';
 import { Regime, ReponseFormulaire } from '../../domain/models';
 
@@ -21,6 +26,7 @@ export class SectionFormulaire {
   protected readonly fmtEntier = fmtEntier;
   protected readonly regimes = REGIMES;
   protected readonly libelleRegime = LIBELLE_REGIME;
+  protected readonly libelleConsommations = libelleConsommations;
 
   protected readonly prenom = signal('');
   protected readonly nom = signal('');
@@ -67,6 +73,10 @@ export class SectionFormulaire {
       envies: this.envies().trim(),
       recommandations: this.recommandations().trim(),
       commentaire: this.commentaire().trim(),
+      // La conso et la logistique ne se saisissent que sur la page publique.
+      consommations: [],
+      stylesMusicaux: '',
+      logistique: logistiqueVierge(),
     });
     this.vider();
     this.envoye.set(true);

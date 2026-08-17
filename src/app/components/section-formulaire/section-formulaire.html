@@ -155,6 +155,14 @@
             <dd>{{ reponse.allergies }}</dd>
           </div>
         }
+        @if (libelleConsommations(reponse.consommations); as conso) {
+          @if (conso) {
+            <div>
+              <dt>Boit sur une journee</dt>
+              <dd>{{ conso }}</dd>
+            </div>
+          }
+        }
         @if (reponse.preferencesBoissons) {
           <div>
             <dt>Boissons</dt>

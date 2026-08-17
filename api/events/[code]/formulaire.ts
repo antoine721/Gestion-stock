@@ -25,8 +25,31 @@ const REGIMES = new Set([
   'casher',
 ]);
 
+const HEBERGEMENTS = new Set(['a-definir', 'sur-place', 'tente', 'rentre']);
+
 function champ(valeur: unknown): string {
   return typeof valeur === 'string' ? valeur.trim().slice(0, MAX_CHAMP) : '';
+}
+
+/**
+ * La conso declaree : des paires boisson / verres par jour, bornees. Purement
+ * indicative cote produit — mais on la valide comme le reste, c'est la seule
+ * entree publique de l'app.
+ */
+function consommations(valeur: unknown): { boissonId: string; verresParJour: number }[] {
+  if (!Array.isArray(valeur)) return [];
+  return valeur
+    .slice(0, 40)
+    .map((x) => {
+      const brut = x as { boissonId?: unknown; verresParJour?: unknown };
+      const boissonId = champ(brut?.boissonId).slice(0, 60);
+      const verres = Number(brut?.verresParJour);
+      return {
+        boissonId,
+        verresParJour: Number.isFinite(verres) ? Math.min(30, Math.max(0, verres)) : 0,
+      };
+    })
+    .filter((x) => x.boissonId.length > 0 && x.verresParJour > 0);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -59,6 +82,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const accompagnants = Number(corps['accompagnants']);
   const regime = champ(corps['regime']);
+  const logistiqueBrute = (corps['logistique'] ?? {}) as Record<string, unknown>;
+  const hebergement = champ(logistiqueBrute['hebergement']);
+  const placesVoiture = Number(logistiqueBrute['placesVoiture']);
   const reponse = {
     id: randomBytes(12).toString('hex'),
     prenom,
@@ -73,6 +99,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     envies: champ(corps['envies']),
     recommandations: champ(corps['recommandations']),
     commentaire: champ(corps['commentaire']),
+    consommations: consommations(corps['consommations']),
+    stylesMusicaux: champ(corps['stylesMusicaux']),
+    logistique: {
+      permis: logistiqueBrute['permis'] === true,
+      vehicule: logistiqueBrute['vehicule'] === true,
+      placesVoiture: Number.isFinite(placesVoiture)
+        ? Math.min(9, Math.max(0, Math.round(placesVoiture)))
+        : 0,
+      chercheCovoiturage: logistiqueBrute['chercheCovoiturage'] === true,
+      hebergement: HEBERGEMENTS.has(hebergement) ? hebergement : 'a-definir',
+      arrivee: champ(logistiqueBrute['arrivee']),
+      depart: champ(logistiqueBrute['depart']),
+      materielApporte: champ(logistiqueBrute['materielApporte']),
+      besoins: champ(logistiqueBrute['besoins']),
+    },
     creeLe: new Date().toISOString(),
   };
 

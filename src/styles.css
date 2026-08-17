@@ -1,32 +1,40 @@
 /* ---------------------------------------------------------------------------
-   « La fiche de bar » : le document de derriere le comptoir.
+   « Liquid glass » : le hub comme une app Apple.
 
-   L'app est une calculatrice, donc les chiffres portent l'identite — tous les
-   nombres passent par .num, en mono tabulaire. Titres en Bricolage Grotesque,
-   texte en Instrument Sans, palette ardoise et petrole.
+   Tout est materiaux : un fond en degrades doux, des panneaux de verre
+   depoli (flou + saturation) poses dessus, des coins genereux, des boutons
+   pilule. La typo est la police systeme — SF sur les appareils Apple — et
+   chaque chiffre passe par .num, en mono tabulaire, comme une addition.
+
+   Deux niveaux de matiere, pas plus : les panneaux (.card, sidebar, barre
+   d'onglets) portent le flou ; les surfaces interieures (--surface-2) sont
+   de simples voiles translucides, sans flou — le verre dans le verre devient
+   de la buee.
 --------------------------------------------------------------------------- */
 
 :root {
-  /* Ardoise : le fond est un papier gris-froid, pas un creme. */
-  --fond: #eff1ef;
-  --surface: #ffffff;
-  --surface-2: #f2f4f2;
-  --bord: #dee2df;
-  --bord-fort: #c6ccc8;
-  --texte: #12171a;
-  --texte-doux: #5a666b;
+  /* Le verre : des voiles blancs sur un fond colore. */
+  --fond: #eef1f6;
+  --surface: rgba(255, 255, 255, 0.66);
+  --surface-2: rgba(94, 110, 125, 0.08);
+  --bord: rgba(94, 110, 125, 0.17);
+  --bord-verre: rgba(255, 255, 255, 0.65);
+  --bord-champ: rgba(94, 110, 125, 0.28);
+  --bord-fort: rgba(94, 110, 125, 0.34);
+  --texte: #0e151a;
+  --texte-doux: #5b6771;
 
   /* Petrole : la couleur des choix et de la selection. */
-  --accent: #0b5d6b;
-  --accent-doux: #e2eef0;
+  --accent: #0b6577;
+  --accent-doux: rgba(11, 101, 119, 0.12);
   --accent-fort: #084853;
 
-  --ok: #2c7a4b;
-  --ok-doux: #e7f2ea;
-  --warn: #a76a08;
-  --warn-doux: #f7efdf;
+  --ok: #247a48;
+  --ok-doux: rgba(36, 122, 72, 0.13);
+  --warn: #a26404;
+  --warn-doux: rgba(162, 100, 4, 0.13);
   --ko: #b3392c;
-  --ko-doux: #f8e8e6;
+  --ko-doux: rgba(179, 57, 44, 0.12);
 
   /* Couleurs de donnees des stats, validees daltonisme (voir section-stats). */
   --donnee-alcool: #0891b2;
@@ -35,32 +43,35 @@
 
   /* Les teintes des pieces du hub : une couleur par espace, cards et sidebar. */
   --teinte-ardoise: #5a666b;
-  --teinte-ardoise-doux: #eceff0;
+  --teinte-ardoise-doux: rgba(90, 102, 107, 0.14);
   --teinte-petrole: #0891b2;
-  --teinte-petrole-doux: #e0f2f7;
+  --teinte-petrole-doux: rgba(8, 145, 178, 0.14);
   --teinte-orange: #b45309;
-  --teinte-orange-doux: #f9ecdf;
+  --teinte-orange-doux: rgba(180, 83, 9, 0.13);
   --teinte-violet: #6d28d9;
-  --teinte-violet-doux: #eee8fb;
+  --teinte-violet-doux: rgba(109, 40, 217, 0.12);
   --teinte-bleu: #1d4ed8;
-  --teinte-bleu-doux: #e3eafc;
+  --teinte-bleu-doux: rgba(29, 78, 216, 0.12);
   --teinte-vert: #2c7a4b;
-  --teinte-vert-doux: #e7f2ea;
+  --teinte-vert-doux: rgba(44, 122, 75, 0.13);
   --teinte-rose: #be185d;
-  --teinte-rose-doux: #fae5ee;
+  --teinte-rose-doux: rgba(190, 24, 93, 0.11);
   --teinte-olive: #64751b;
-  --teinte-olive-doux: #eef2dd;
+  --teinte-olive-doux: rgba(100, 117, 27, 0.14);
   --teinte-indigo: #4338ca;
-  --teinte-indigo-doux: #e8e7fb;
+  --teinte-indigo-doux: rgba(67, 56, 202, 0.12);
 
-  --rayon: 12px;
-  --rayon-petit: 8px;
-  --ombre: 0 1px 2px rgba(18, 23, 26, 0.05);
-  --ombre-haute: 0 20px 50px rgba(18, 23, 26, 0.18);
+  /* La geometrie du verre : coins continus, genereux. */
+  --rayon: 22px;
+  --rayon-petit: 12px;
+  --flou: saturate(1.7) blur(22px);
+  --lueur: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --ombre: 0 1px 1px rgba(14, 21, 26, 0.03), 0 10px 30px rgba(14, 21, 26, 0.07);
+  --ombre-haute: 0 24px 60px rgba(14, 21, 26, 0.18);
 
-  --titre: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
-  --corps: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --chiffres: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --titre: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  --corps: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+  --chiffres: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
 
   font-family: var(--corps);
   line-height: 1.5;
@@ -72,50 +83,53 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --fond: #111517;
-    --surface: #191e21;
-    --surface-2: #21282b;
-    --bord: #2c3438;
-    --bord-fort: #3d474c;
-    --texte: #e9eeef;
-    --texte-doux: #939fa3;
+    --fond: #0b0f13;
+    --surface: rgba(28, 34, 41, 0.62);
+    --surface-2: rgba(255, 255, 255, 0.055);
+    --bord: rgba(255, 255, 255, 0.1);
+    --bord-verre: rgba(255, 255, 255, 0.14);
+    --bord-champ: rgba(255, 255, 255, 0.16);
+    --bord-fort: rgba(255, 255, 255, 0.22);
+    --texte: #eaeff2;
+    --texte-doux: #96a1aa;
 
     --accent: #5fd3e0;
-    --accent-doux: #14313a;
+    --accent-doux: rgba(95, 211, 224, 0.14);
     --accent-fort: #8ee3ed;
 
     --ok: #6fce97;
-    --ok-doux: #172c20;
+    --ok-doux: rgba(111, 206, 151, 0.14);
     --warn: #e0ad55;
-    --warn-doux: #322612;
+    --warn-doux: rgba(224, 173, 85, 0.14);
     --ko: #ef948a;
-    --ko-doux: #351d1b;
+    --ko-doux: rgba(239, 148, 138, 0.13);
 
-    --ombre: none;
-    --ombre-haute: 0 20px 50px rgba(0, 0, 0, 0.5);
+    --lueur: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    --ombre: 0 1px 1px rgba(0, 0, 0, 0.2), 0 12px 34px rgba(0, 0, 0, 0.35);
+    --ombre-haute: 0 24px 70px rgba(0, 0, 0, 0.55);
 
     --donnee-alcool: #0a97ad;
     --donnee-nourriture: #b57b2e;
     --donnee-materiel: #8b68e0;
 
-    --teinte-ardoise: #939fa3;
-    --teinte-ardoise-doux: #232a2d;
+    --teinte-ardoise: #96a1aa;
+    --teinte-ardoise-doux: rgba(150, 161, 170, 0.13);
     --teinte-petrole: #5fd3e0;
-    --teinte-petrole-doux: #123239;
+    --teinte-petrole-doux: rgba(95, 211, 224, 0.13);
     --teinte-orange: #e0ad55;
-    --teinte-orange-doux: #33270f;
+    --teinte-orange-doux: rgba(224, 173, 85, 0.13);
     --teinte-violet: #b79df5;
-    --teinte-violet-doux: #261d3d;
+    --teinte-violet-doux: rgba(183, 157, 245, 0.13);
     --teinte-bleu: #93b4f5;
-    --teinte-bleu-doux: #17233d;
+    --teinte-bleu-doux: rgba(147, 180, 245, 0.13);
     --teinte-vert: #6fce97;
-    --teinte-vert-doux: #172c20;
+    --teinte-vert-doux: rgba(111, 206, 151, 0.13);
     --teinte-rose: #f191bd;
-    --teinte-rose-doux: #341a26;
+    --teinte-rose-doux: rgba(241, 145, 189, 0.12);
     --teinte-olive: #bccf6d;
-    --teinte-olive-doux: #262c11;
+    --teinte-olive-doux: rgba(188, 207, 109, 0.13);
     --teinte-indigo: #a7a4f7;
-    --teinte-indigo-doux: #1f1d45;
+    --teinte-indigo-doux: rgba(167, 164, 247, 0.13);
   }
 }
 
@@ -123,10 +137,31 @@
   box-sizing: border-box;
 }
 
+/**
+ * Le fond qui fait vivre le verre : des halos de couleur fixes, que le flou
+ * des panneaux revele au defilement. Sans eux, le depoli serait invisible.
+ */
 body {
   margin: 0;
-  background: var(--fond);
+  min-height: 100vh;
   color: var(--texte);
+  background-color: var(--fond);
+  background-image:
+    radial-gradient(38rem 30rem at 12% -6%, rgba(8, 145, 178, 0.16), transparent 60%),
+    radial-gradient(34rem 26rem at 96% 4%, rgba(109, 40, 217, 0.1), transparent 62%),
+    radial-gradient(40rem 32rem at 84% 92%, rgba(180, 83, 9, 0.1), transparent 60%),
+    radial-gradient(30rem 26rem at 4% 78%, rgba(29, 78, 216, 0.09), transparent 60%);
+  background-attachment: fixed;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-image:
+      radial-gradient(38rem 30rem at 12% -6%, rgba(10, 151, 173, 0.2), transparent 60%),
+      radial-gradient(34rem 26rem at 96% 4%, rgba(139, 104, 224, 0.14), transparent 62%),
+      radial-gradient(40rem 32rem at 84% 92%, rgba(181, 123, 46, 0.12), transparent 60%),
+      radial-gradient(30rem 26rem at 4% 78%, rgba(29, 78, 216, 0.12), transparent 60%);
+  }
 }
 
 /* -- Typographie ---------------------------------------------------------- */
@@ -136,16 +171,16 @@ h2,
 h3 {
   margin: 0;
   font-family: var(--titre);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-weight: 650;
+  letter-spacing: -0.022em;
 }
 
 h1 {
-  font-size: 1.375rem;
+  font-size: 1.4375rem;
 }
 
 h2 {
-  font-size: 0.9375rem;
+  font-size: 1rem;
 }
 
 h3 {
@@ -178,17 +213,19 @@ p {
   line-height: 1.55;
   margin-top: 1rem;
   padding-top: 0.875rem;
-  border-top: 1px solid var(--bord);
+  border-top: 1px solid var(--surface-2);
 }
 
-/* -- Blocs ---------------------------------------------------------------- */
+/* -- Panneaux de verre ----------------------------------------------------- */
 
 .card {
   background: var(--surface);
-  border: 1px solid var(--bord);
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
+  border: 1px solid var(--bord-verre);
   border-radius: var(--rayon);
-  box-shadow: var(--ombre);
-  padding: 1.25rem;
+  box-shadow: var(--ombre), var(--lueur);
+  padding: 1.375rem;
 }
 
 .card + .card {
@@ -220,7 +257,7 @@ p {
 .champ > span {
   font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--texte-doux);
 }
@@ -230,16 +267,26 @@ input[type='text'],
 input[type='password'],
 select {
   width: 100%;
-  padding: 0.5rem 0.625rem;
+  padding: 0.5625rem 0.75rem;
   font-family: var(--corps);
   font-size: 0.875rem;
   color: var(--texte);
-  background: var(--surface);
-  border: 1px solid var(--bord-fort);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--bord-champ);
   border-radius: var(--rayon-petit);
   transition:
-    border-color 0.12s ease,
-    box-shadow 0.12s ease;
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  input[type='number'],
+  input[type='text'],
+  input[type='password'],
+  select {
+    background: rgba(255, 255, 255, 0.06);
+  }
 }
 
 /* Toute saisie chiffree adopte la face des chiffres. */
@@ -250,7 +297,7 @@ input[type='number'] {
 
 input:hover,
 select:hover {
-  border-color: var(--texte-doux);
+  border-color: var(--bord-fort);
 }
 
 input:focus-visible,
@@ -258,8 +305,16 @@ select:focus-visible,
 button:focus-visible,
 summary:focus-visible,
 [role='dialog']:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3.5px var(--accent-doux);
+}
+
+button:focus-visible,
+summary:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 input[type='range'] {
@@ -267,43 +322,52 @@ input[type='range'] {
   accent-color: var(--accent);
 }
 
-/* -- Boutons -------------------------------------------------------------- */
+/* -- Boutons : des pilules ------------------------------------------------- */
 
 button {
   font-family: var(--corps);
   font-size: 0.8125rem;
-  font-weight: 500;
+  font-weight: 560;
   color: var(--texte);
   background: var(--surface);
-  border: 1px solid var(--bord-fort);
-  border-radius: var(--rayon-petit);
-  padding: 0.4375rem 0.8125rem;
+  border: 1px solid var(--bord-champ);
+  border-radius: 999px;
+  padding: 0.4375rem 0.9375rem;
   cursor: pointer;
+  box-shadow: var(--lueur);
   transition:
-    border-color 0.12s ease,
-    background 0.12s ease,
-    color 0.12s ease;
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
 }
 
 button:hover {
-  border-color: var(--texte-doux);
+  border-color: var(--bord-fort);
+}
+
+button:active {
+  transform: scale(0.97);
 }
 
 button.primaire {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-fort) 130%);
+  border-color: transparent;
   color: #fff;
-  font-weight: 600;
+  font-weight: 620;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 6px 16px var(--accent-doux);
 }
 
 button.primaire:hover {
-  background: var(--accent-fort);
-  border-color: var(--accent-fort);
+  filter: brightness(1.08);
 }
 
 @media (prefers-color-scheme: dark) {
   button.primaire {
     color: #0d1416;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
   }
 }
 
@@ -311,7 +375,8 @@ button.discret {
   border-color: transparent;
   background: transparent;
   color: var(--texte-doux);
-  padding: 0.3125rem 0.5rem;
+  box-shadow: none;
+  padding: 0.3125rem 0.625rem;
 }
 
 button.discret:hover {
@@ -322,6 +387,7 @@ button.discret:hover {
 
 button:disabled {
   cursor: default;
+  opacity: 0.55;
 }
 
 .actions {
@@ -336,15 +402,16 @@ button:disabled {
   display: inline-flex;
   padding: 3px;
   background: var(--surface-2);
-  border: 1px solid var(--bord);
-  border-radius: 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
 }
 
 .segments button {
   border: none;
   background: transparent;
-  border-radius: 7px;
-  padding: 0.25rem 0.6875rem;
+  box-shadow: none;
+  border-radius: 999px;
+  padding: 0.28125rem 0.75rem;
   color: var(--texte-doux);
 }
 
@@ -356,8 +423,8 @@ button:disabled {
 .segments button[aria-pressed='true'] {
   background: var(--surface);
   color: var(--texte);
-  font-weight: 600;
-  box-shadow: var(--ombre);
+  font-weight: 620;
+  box-shadow: var(--ombre), var(--lueur);
 }
 
 /* -- Etats ---------------------------------------------------------------- */
@@ -398,8 +465,8 @@ button:disabled {
 
 .tag {
   display: inline-block;
-  padding: 0.125rem 0.4375rem;
-  border-radius: 6px;
+  padding: 0.1875rem 0.5625rem;
+  border-radius: 999px;
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -475,7 +542,7 @@ th {
 
 td {
   padding: 0.5625rem 0.5rem;
-  border-top: 1px solid var(--bord);
+  border-top: 1px solid var(--surface-2);
   vertical-align: middle;
 }
 
@@ -520,6 +587,19 @@ summary::-webkit-details-marker {
   }
 }
 
+/* Sans support du flou, le verre devient simplement plus opaque. */
+@supports not (backdrop-filter: blur(1px)) {
+  .card {
+    background: color-mix(in srgb, var(--fond) 30%, rgb(255 255 255 / 0.92));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .card {
+      background: rgba(28, 34, 41, 0.96);
+    }
+  }
+}
+
 /* -- Petits ecrans : confort tactile --------------------------------------- */
 
 @media (max-width: 48rem) {
@@ -536,7 +616,7 @@ summary::-webkit-details-marker {
   input[type='password'],
   select {
     font-size: 1rem;
-    padding: 0.5625rem 0.625rem;
+    padding: 0.5625rem 0.6875rem;
   }
 
   /* Des cibles tactiles dignes d'un pouce, sauf les petites croix discretes. */
@@ -553,6 +633,7 @@ summary::-webkit-details-marker {
   }
 
   .card {
-    padding: 1rem;
+    padding: 1.0625rem;
+    border-radius: 18px;
   }
 }

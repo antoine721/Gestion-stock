@@ -1,4 +1,13 @@
-import { CategoriePaiement, Effectif, Invite, Regime } from './models';
+import { BOISSON_PAR_ID } from './catalogue';
+import {
+  CategoriePaiement,
+  ConsommationType,
+  Effectif,
+  Hebergement,
+  Invite,
+  Logistique,
+  Regime,
+} from './models';
 
 /**
  * Invites nommes.
@@ -23,6 +32,31 @@ export const LIBELLE_REGIME: Record<Regime, string> = Object.fromEntries(
   REGIMES.map((x) => [x.id, x.libelle]),
 ) as Record<Regime, string>;
 
+export const HEBERGEMENTS: readonly { id: Hebergement; libelle: string }[] = [
+  { id: 'a-definir', libelle: 'A definir' },
+  { id: 'sur-place', libelle: 'Dort sur place' },
+  { id: 'tente', libelle: 'Amene sa tente' },
+  { id: 'rentre', libelle: 'Rentre chez lui' },
+];
+
+export const LIBELLE_HEBERGEMENT: Record<Hebergement, string> = Object.fromEntries(
+  HEBERGEMENTS.map((x) => [x.id, x.libelle]),
+) as Record<Hebergement, string>;
+
+export function logistiqueVierge(): Logistique {
+  return {
+    permis: false,
+    vehicule: false,
+    placesVoiture: 0,
+    chercheCovoiturage: false,
+    hebergement: 'a-definir',
+    arrivee: '',
+    depart: '',
+    materielApporte: '',
+    besoins: '',
+  };
+}
+
 export function inviteVierge(id: string, participantId: string): Invite {
   return {
     id,
@@ -38,7 +72,25 @@ export function inviteVierge(id: string, participantId: string): Invite {
     paye: false,
     montantPaye: 0,
     joursPresence: 0,
+    consommationDeclaree: [],
+    stylesMusicaux: '',
+    logistique: logistiqueVierge(),
   };
+}
+
+/**
+ * « Biere × 4 · Spritz × 2 » : la conso declaree en toutes lettres. Les
+ * boissons inconnues du catalogue sont ignorees a l'affichage.
+ */
+export function libelleConsommations(consommations: readonly ConsommationType[]): string {
+  return consommations
+    .filter((x) => x.verresParJour > 0)
+    .map((x) => {
+      const boisson = BOISSON_PAR_ID.get(x.boissonId);
+      return boisson ? `${boisson.nom} × ${x.verresParJour}` : '';
+    })
+    .filter((x) => x.length > 0)
+    .join(' · ');
 }
 
 /**
@@ -46,7 +98,38 @@ export function inviteVierge(id: string, participantId: string): Invite {
  * creation : les evenements anterieurs au suivi de paiement restent lisibles.
  */
 export function normaliserInvite(brut: Partial<Invite> & { id: string }): Invite {
-  return { ...inviteVierge(brut.id, brut.participantId ?? ''), ...brut };
+  return {
+    ...inviteVierge(brut.id, brut.participantId ?? ''),
+    ...brut,
+    logistique: { ...logistiqueVierge(), ...brut.logistique },
+  };
+}
+
+export interface ResumeLogistique {
+  /** Places de covoiturage offertes, toutes voitures confondues. */
+  placesOffertes: number;
+  /** Invites qui cherchent une place. */
+  chercheurs: number;
+  /** Invites qui dorment sur place (tente comprise). */
+  dormeurs: number;
+  /** Invites qui apportent du materiel. */
+  preteurs: number;
+}
+
+/** La synthese covoiturage / couchage, pour la piloter d'un coup d'oeil. */
+export function resumerLogistique(invites: readonly Invite[]): ResumeLogistique {
+  let placesOffertes = 0;
+  let chercheurs = 0;
+  let dormeurs = 0;
+  let preteurs = 0;
+  for (const invite of invites) {
+    placesOffertes += Math.max(0, invite.logistique.placesVoiture);
+    if (invite.logistique.chercheCovoiturage) chercheurs += 1;
+    if (invite.logistique.hebergement === 'sur-place' || invite.logistique.hebergement === 'tente')
+      dormeurs += 1;
+    if (invite.logistique.materielApporte.trim().length > 0) preteurs += 1;
+  }
+  return { placesOffertes, chercheurs, dormeurs, preteurs };
 }
 
 /** Les invites nommes qu'un co-organisateur amene. */
