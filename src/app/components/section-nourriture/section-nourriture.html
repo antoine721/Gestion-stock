@@ -3,11 +3,19 @@
     <h2>Les repas planifies</h2>
     <span class="muted num">{{ fmtEntier(repasPlanifies().length) }} repas</span>
     <span class="muted num pousse">{{ fmtEuro(store.budgetNourriture().total) }}</span>
+    <button type="button" (click)="chargerMenus()">Charger les menus du Festivial</button>
   </div>
+
+  @if (menusCharges() > 0) {
+    <p class="pose-ok">
+      {{ fmtEntier(menusCharges()) }} repas poses. Les cases deja remplies n'ont pas ete touchees.
+    </p>
+  }
 
   @if (repasPlanifies().length === 0) {
     <p class="vide">
-      Aucun repas pose. Utilise la grille ci-dessous pour remplir les cases jour par jour.
+      Aucun repas pose. Charge les menus du Festivial, ou remplis la grille ci-dessous case par
+      case.
     </p>
   } @else {
     <div class="boite-tableau">
@@ -134,8 +142,7 @@
                     <span>Ingredient</span>
                     <span class="droite">/pers</span>
                     <span>Unite</span>
-                    <span class="droite">Paquet</span>
-                    <span class="droite">€/paq</span>
+                    <span class="droite">Prix</span>
                     <span></span>
                   </div>
                   @for (ingredient of repas.ingredients; track ingredient.id) {
@@ -178,35 +185,26 @@
                           </option>
                         }
                       </select>
-                      <input
-                        type="number"
-                        min="0"
-                        title="Taille du paquet achete"
-                        [value]="ingredient.conditionnement"
-                        (input)="
-                          majIngredientNombre(
-                            repas,
-                            ingredient,
-                            'conditionnement',
-                            $any($event.target).value
-                          )
-                        "
-                      />
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.1"
-                        title="Prix du paquet"
-                        [value]="ingredient.prixConditionnement"
-                        (input)="
-                          majIngredientNombre(
-                            repas,
-                            ingredient,
-                            'prixConditionnement',
-                            $any($event.target).value
-                          )
-                        "
-                      />
+                      <!-- Le prix tel qu'il est affiche en rayon : au kilo, au
+                           litre, ou a la piece. -->
+                      <label class="prix-unitaire">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          [title]="'Prix ' + libellePrix[ingredient.unite]"
+                          [value]="ingredient.prixUnitaire"
+                          (input)="
+                            majIngredientNombre(
+                              repas,
+                              ingredient,
+                              'prixUnitaire',
+                              $any($event.target).value
+                            )
+                          "
+                        />
+                        <span class="unite-prix">{{ libellePrix[ingredient.unite] }}</span>
+                      </label>
                       <button
                         type="button"
                         class="discret"

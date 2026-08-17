@@ -24,7 +24,7 @@ export interface LigneCourses {
   id: string;
   groupe: GroupeCourses;
   nom: string;
-  /** « 3 × 75 cl », « 2 paquets de 500 g »... */
+  /** « 3 × 75 cl », « 2 kg », « 15 piece(s) »... */
   quantite: string;
   /** D'ou vient le besoin : boissons servies, plats, notes. */
   detail: string;
@@ -62,15 +62,17 @@ export function listeCoursesUnifiee(
   }
 
   for (const ligne of cuisine) {
-    if (ligne.paquets <= 0 && ligne.besoin <= 0) continue;
+    if (ligne.quantiteAchat <= 0 && ligne.besoin <= 0) continue;
     const id = `cuisine:${ligne.cle}`;
     lignes.push({
       id,
       groupe: 'cuisine',
       nom: ligne.nom,
+      // Ce qu'on met dans le caddie, pas le besoin theorique : « 2 kg », pas
+      // « 1,4 kg ». C'est la ligne qu'on lit au magasin.
       quantite:
-        ligne.paquets > 0
-          ? `${ligne.paquets} × ${qte(ligne.conditionnement, ligne.unite)}`
+        ligne.quantiteAchat > 0
+          ? `${ligne.quantiteAchat} ${ligne.uniteAchat}`
           : qte(ligne.besoin, ligne.unite),
       detail: ligne.plats.join(' · '),
       prix: ligne.prixTotal,

@@ -199,9 +199,9 @@ describe('PlannerStore', () => {
     store.appliquerIdee(1, 'diner', 'Barbecue');
 
     const viande = store.lignesCuisine().find((x) => x.nom === 'Viande a griller');
-    // 12 tetes x 180 g, agreges avant l'arrondi en paquets.
+    // 12 tetes x 180 g, agreges avant l'arrondi au kilo.
     expect(viande?.besoin).toBe(2160);
-    expect(viande?.paquets).toBe(3);
+    expect(viande?.quantiteAchat).toBe(3);
 
     const ligne = store.listeCourses().find((x) => x.groupe === 'cuisine');
     expect(ligne).toBeDefined();
