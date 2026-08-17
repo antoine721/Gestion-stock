@@ -9,9 +9,16 @@
       name="description"
       content="Combien de bouteilles acheter pour ta soiree, et ce que ca coute. A plusieurs organisateurs."
     />
-    <meta name="theme-color" content="#eef1f6" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0b0f13" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#eef1f6" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!-- Le theme choisi se pose avant le premier rendu, sinon la page clignote. -->
+    <script>
+      try {
+        if (localStorage.getItem('combien-acheter.theme') === 'sombre') {
+          document.documentElement.setAttribute('data-theme', 'sombre');
+        }
+      } catch (e) {}
+    </script>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
   </head>

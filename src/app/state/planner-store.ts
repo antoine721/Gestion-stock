@@ -32,6 +32,7 @@ import {
   repasPour,
   repasVierge,
 } from '../domain/nourriture';
+import { estInviteTest, genererInvitesTest } from '../domain/donnees-test';
 import { articleVierge, budgetMateriel } from '../domain/materiel-liste';
 import { budgetGlobal, repartitionGlobale } from '../domain/stats';
 import { listeCoursesUnifiee, resumerCourses } from '../domain/courses';
@@ -158,6 +159,10 @@ export class PlannerStore {
   readonly participants = signal<readonly Participant[]>([]);
   readonly section = signal<Section>('courses');
   readonly espace = signal<Espace>('accueil');
+
+  /** Le fil d'Ariane du hub : d'ou l'on vient, pour le bouton retour du menu. */
+  private readonly historique = signal<readonly Espace[]>([]);
+  readonly peutRevenir = computed(() => this.historique().length > 0);
 
   readonly chargement = signal(false);
   readonly erreur = signal('');
@@ -367,9 +372,24 @@ export class PlannerStore {
     }
   }
 
+  /** Toute navigation entre espaces passe par ici : le retour sait d'ou l'on vient. */
+  allerA(espace: Espace): void {
+    if (espace === this.espace()) return;
+    this.historique.update((x) => [...x.slice(-19), this.espace()]);
+    this.espace.set(espace);
+  }
+
+  retour(): void {
+    const precedent = this.historique().at(-1);
+    if (precedent === undefined) return;
+    this.historique.update((x) => x.slice(0, -1));
+    this.espace.set(precedent);
+  }
+
   fermer(): void {
     if (this.rafraichissement) clearInterval(this.rafraichissement);
     this.rafraichissement = undefined;
+    this.historique.set([]);
   }
 
   private appliquer(distant: EvenementDistant): void {
@@ -666,6 +686,34 @@ export class PlannerStore {
 
   supprimerInvite(inviteId: string): void {
     this.majPartage({ invites: this.invitesNommes().filter((x) => x.id !== inviteId) });
+  }
+
+  // -- Jeu de test : des invites de demonstration pour essayer l'app --------
+
+  readonly invitesTest = computed(() => this.invitesNommes().filter(estInviteTest).length);
+
+  /**
+   * Peuple l'evenement d'invites credibles, `parParticipant` par
+   * co-organisateur. Rejouable : l'ancien jeu de test est remplace, les
+   * vraies fiches ne bougent pas.
+   */
+  peuplerJeuTest(parParticipant = 50): number {
+    const generes = genererInvitesTest(
+      this.participants(),
+      this.personnesTypes(),
+      this.categoriesPaiement(),
+      this.partage().jours,
+      parParticipant,
+    );
+    this.majPartage({
+      invites: [...this.invitesNommes().filter((x) => !estInviteTest(x)), ...generes],
+    });
+    return generes.length;
+  }
+
+  /** Retire toutes les fiches de test, sans toucher aux vraies. */
+  viderJeuTest(): void {
+    this.majPartage({ invites: this.invitesNommes().filter((x) => !estInviteTest(x)) });
   }
 
   // -- Paiement des invites ------------------------------------------------

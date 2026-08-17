@@ -279,6 +279,33 @@ describe('PlannerStore', () => {
     expect(store.resumeDj().total).toBe(0);
   });
 
+  it('le bouton retour rejoue la navigation entre espaces', () => {
+    store.allerA('programme');
+    store.allerA('dj');
+    expect(store.peutRevenir()).toBe(true);
+
+    store.retour();
+    expect(store.espace()).toBe('programme');
+    store.retour();
+    expect(store.espace()).toBe('accueil');
+    expect(store.peutRevenir()).toBe(false);
+  });
+
+  it('genere puis retire un jeu de test sans toucher aux vraies fiches', () => {
+    const vrai = store.ajouterInvite('a');
+
+    // 10 fiches par co-organisateur, et il y en a deux dans cet evenement.
+    expect(store.peuplerJeuTest(10)).toBe(20);
+    expect(store.invitesNommes()).toHaveLength(21);
+    expect(store.invitesTest()).toBe(20);
+    // Regenerer remplace le jeu au lieu de l'empiler.
+    store.peuplerJeuTest(10);
+    expect(store.invitesNommes()).toHaveLength(21);
+
+    store.viderJeuTest();
+    expect(store.invitesNommes().map((x) => x.id)).toEqual([vrai]);
+  });
+
   it('cocher une ligne materiel bascule le statut de l’article', () => {
     const id = store.ajouterArticle({ nom: 'Guirlandes' });
     store.basculerCourse(`materiel:${id}`);

@@ -102,6 +102,17 @@
   color: var(--texte);
 }
 
+/* Le retour du menu : il rejoue la navigation, d'espace en espace. */
+.espaces .retour {
+  border-bottom: 1px solid var(--surface-2);
+  border-radius: var(--rayon-petit) var(--rayon-petit) 0 0;
+  margin-bottom: 0.25rem;
+}
+
+.espaces .retour:disabled {
+  opacity: 0.45;
+}
+
 /* L'espace ouvert prend sa teinte : on sait toujours dans quelle piece on est. */
 .espaces button[aria-pressed='true'] {
   background: var(--douce);
@@ -247,10 +258,8 @@
     background: color-mix(in srgb, var(--fond) 20%, rgb(255 255 255 / 0.85));
   }
 
-  @media (prefers-color-scheme: dark) {
-    .sidebar {
-      background: rgba(28, 34, 41, 0.92);
-    }
+  :host-context([data-theme='sombre']) .sidebar {
+    background: rgba(28, 34, 41, 0.92);
   }
 
   .app-nom {
