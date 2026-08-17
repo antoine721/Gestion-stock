@@ -20,14 +20,6 @@
   overflow-wrap: anywhere;
 }
 
-.champ.large {
-  grid-column: 1 / -1;
-}
-
-.envoi {
-  margin-top: 1.25rem;
-}
-
 .reponse {
   padding: 0.875rem;
   border: 1px solid var(--bord);
@@ -71,8 +63,4 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.875rem;
-}
-
-.reponse-actions select {
-  width: auto;
 }

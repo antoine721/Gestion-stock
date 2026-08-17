@@ -154,9 +154,6 @@ export interface Effectif {
 export type Regime =
   'omnivore' | 'vegetarien' | 'vegan' | 'sans-gluten' | 'sans-lactose' | 'halal' | 'casher';
 
-/** Ou dort la personne : la question qui fache a 2 h du matin. */
-export type Hebergement = 'a-definir' | 'sur-place' | 'tente' | 'rentre';
-
 /** Paliers declaratifs de consommation, du « rien » a « abuse ». */
 export type NiveauConso = 'aucun' | 'peu' | 'moyen' | 'beaucoup' | 'abuse';
 
@@ -184,16 +181,19 @@ export interface GoutBoisson {
 }
 
 /**
- * Le bloc logistique d'une personne : vehicule, covoiturage, horaires,
- * hebergement, ce qu'elle peut apporter. Rempli via le formulaire, repris tel
- * quel sur la fiche invite.
+ * Le bloc logistique d'une personne : vehicule, covoiturage, horaires, ce
+ * qu'elle peut apporter. Rempli via le formulaire, repris tel quel sur la
+ * fiche invite.
+ *
+ * Il n'y a pas de champ « hebergement » : tout le monde dort sur place, sous
+ * tente. La seule question qui reste est de savoir qui amene la sienne.
  */
 export interface Logistique {
   /** A le permis de conduire. */
   permis: boolean;
   /** Vient avec une voiture. */
   vehicule: boolean;
-  /** Apporte sa tente. */
+  /** Apporte sa tente — sinon il faudra lui trouver une place sous celle d'un autre. */
   tente: boolean;
   /** Present sur toute la duree ; sinon arrivee et depart font foi. */
   sejourComplet: boolean;
@@ -201,7 +201,6 @@ export interface Logistique {
   placesVoiture: number;
   /** Cherche une place en covoiturage. */
   chercheCovoiturage: boolean;
-  hebergement: Hebergement;
   /** Arrivee et depart en texte libre : « samedi 14h », « dimanche matin ». */
   arrivee: string;
   depart: string;
@@ -248,14 +247,13 @@ export interface Invite {
   paye: boolean;
   /** Ce qu'il a reellement verse, qui peut differer du tarif de la categorie. */
   montantPaye: number;
-  /** Combien de jours il reste sur place. 0 = toute la duree de l'evenement. */
-  joursPresence: number;
   /**
-   * Ce que la personne DIT boire sur une journee, via le formulaire. Purement
-   * indicatif : ca aide l'organisateur a choisir un profil, ca n'entre jamais
-   * tout seul dans le calcul — les baremes restent aux mains des profils.
+   * Les jours de l'evenement ou la personne est la, 1 = premier jour. Liste
+   * vide = toute la duree. On garde les jours eux-memes plutot qu'un compte :
+   * « samedi et dimanche » et « vendredi et samedi » ne se preparent pas
+   * pareil, alors que ca fait deux jours dans les deux cas.
    */
-  consommationDeclaree: ConsommationType[];
+  joursPresents: number[];
   /** Styles musicaux preferes, pour le DJ. */
   stylesMusicaux: string;
   logistique: Logistique;
@@ -271,6 +269,10 @@ export interface Invite {
   team: TeamBuveur | '';
   /** Les coups de main qu'elle prefere donner (ids de preferences.ts). */
   servicesPreferes: string[];
+  /** Les goodies qui l'interessent (ids de preferences.ts). */
+  goodies: string[];
+  /** Le goodie qu'on n'avait pas prevu, dans ses mots. */
+  goodiesAutre: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -460,23 +462,17 @@ export interface ReponseFormulaire {
   id: string;
   prenom: string;
   nom: string;
-  /** Qui l'invite, en toutes lettres : le lien se fait a la main ensuite. */
+  /**
+   * Le co-organisateur choisi dans le formulaire. C'est lui qui recuperera la
+   * fiche a la validation, sans qu'on ait a deviner : l'invite sait tres bien
+   * qui l'a invite, nous non.
+   */
+  invitParId: string;
+  /** Son nom au moment de la reponse, pour rester lisible s'il s'en va. */
   invitePar: string;
-  /** Combien de personnes il amene avec lui (+1, conjoint, enfants...). */
-  accompagnants: number;
   regime: Regime;
   allergies: string;
-  preferencesBoissons: string;
-  /** DJ, jeux, karaoke, tournoi de petanque... */
-  envies: string;
-  /** Morceaux ou artistes a passer pendant la soiree. */
-  recommandations: string;
   commentaire: string;
-  /**
-   * Ce que l'invite declare boire sur une journee, boisson par boisson.
-   * Indicatif : l'organisateur s'en inspire pour les profils, sans plus.
-   */
-  consommations: ConsommationType[];
   /** Styles musicaux preferes, pour le DJ. */
   stylesMusicaux: string;
   logistique: Logistique;
@@ -490,6 +486,10 @@ export interface ReponseFormulaire {
   team: TeamBuveur | '';
   /** Les coups de main qu'il prefere donner (ids de preferences.ts). */
   servicesPreferes: string[];
+  /** Les goodies qui l'interessent (ids de preferences.ts). */
+  goodies: string[];
+  /** Le goodie qu'on n'avait pas prevu, dans ses mots. */
+  goodiesAutre: string;
   /** Date ISO de la reponse. */
   creeLe: string;
 }

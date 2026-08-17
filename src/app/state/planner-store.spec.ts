@@ -209,22 +209,19 @@ describe('PlannerStore', () => {
     expect(store.listeCourses().find((x) => x.id === ligne!.id)?.cochee).toBe(true);
   });
 
-  it('valider une reponse du formulaire en fait une fiche, conso comprise', () => {
+  it('valider une reponse du formulaire en fait une fiche, gouts compris', () => {
     store.majPartage({
+      jours: 2,
       reponsesFormulaire: [
         {
           id: 'f1',
           prenom: 'Chloe',
           nom: 'Petit',
+          invitParId: 'a',
           invitePar: 'Antoine',
-          accompagnants: 0,
           regime: 'vegan',
           allergies: 'arachide',
-          preferencesBoissons: '',
-          envies: 'karaoke',
-          recommandations: '',
-          commentaire: '',
-          consommations: [{ boissonId: 'biere', verresParJour: 3 }],
+          commentaire: 'a hate',
           stylesMusicaux: 'techno',
           logistique: { ...logistiqueVierge(), vehicule: true, placesVoiture: 3 },
           surnom: 'Chlo',
@@ -233,6 +230,8 @@ describe('PlannerStore', () => {
           autreAlcool: 'Limoncello',
           team: 'croisiere',
           servicesPreferes: ['cuisine'],
+          goodies: ['t-shirt', 'stickers'],
+          goodiesAutre: 'un tablier',
           creeLe: '2026-08-10T10:00:00.000Z',
         },
       ],
@@ -243,15 +242,27 @@ describe('PlannerStore', () => {
     const fiche = store.invitesNommes().find((x) => x.prenom === 'Chloe');
     expect(fiche?.participantId).toBe('a');
     expect(fiche?.regime).toBe('vegan');
-    // La conso suit la fiche, mais ne cree AUCUN profil : le calcul ne bouge
-    // pas tant que l'organisateur n'a pas attache un profil.
-    expect(fiche?.consommationDeclaree).toEqual([{ boissonId: 'biere', verresParJour: 3 }]);
+    // Les gouts suivent la fiche, mais ne creent AUCUN profil : le calcul ne
+    // bouge pas tant que l'organisateur n'a pas attache un profil.
+    expect(fiche?.boissonsAimees).toEqual([{ boissonId: 'biere', intensite: 4 }]);
     expect(fiche?.personneTypeId).toBe('');
+    expect(fiche?.goodies).toEqual(['t-shirt', 'stickers']);
     expect(fiche?.stylesMusicaux).toBe('techno');
     expect(fiche?.logistique.placesVoiture).toBe(3);
     expect(store.reponsesFormulaire()).toHaveLength(0);
     // 3 places offertes, personne ne cherche : la synthese suit.
     expect(store.resumeLogistique().placesOffertes).toBe(3);
+    // « Je reste tout le sejour » devient une presence sur tous les jours.
+    expect(fiche?.joursPresents).toEqual([1, 2]);
+    // Les goodies demandes remontent au comptage, avec la suggestion libre.
+    expect(
+      store
+        .resumeGoodies()
+        .map((x) => x.id)
+        .sort(),
+    ).toEqual(['stickers', 't-shirt']);
+    expect(store.resumeGoodies().every((x) => x.nombre === 1)).toBe(true);
+    expect(store.suggestionsGoodies()).toEqual([{ qui: 'Chloe', quoi: 'un tablier' }]);
   });
 
   it('assigne et retire des missions sur un creneau', () => {
