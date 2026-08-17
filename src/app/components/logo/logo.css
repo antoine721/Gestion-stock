@@ -1,0 +1,48 @@
+.logo {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.icone {
+  width: 5.5rem;
+  height: auto;
+  display: block;
+}
+
+/**
+ * Le mot : capitales geometriques largement espacees, comme sur le logo.
+ * « Vial » porte la teinte de marque, « CRM » reste en encre — c'est ce
+ * contraste qui fait la signature.
+ */
+.mot {
+  font-family: var(--titre);
+  font-size: 1.75rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1;
+  /* Le pas de droite compense l'espacement, qui pousse le mot vers la gauche. */
+  padding-left: 0.16em;
+  white-space: nowrap;
+}
+
+.via {
+  color: var(--marque, #17365d);
+}
+
+.crm {
+  color: var(--texte);
+}
+
+/* En sidebar : petit, sur une ligne, sans icone. */
+.mot-seul {
+  gap: 0;
+}
+
+.mot-seul .mot {
+  font-size: 0.875rem;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+}

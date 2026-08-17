@@ -1,0 +1,12 @@
+<span class="logo" [class.mot-seul]="variante() === 'mot'">
+  @if (variante() === 'complet' && !iconeAbsente()) {
+    <img
+      class="icone"
+      src="logo-vialcrm.png"
+      alt=""
+      aria-hidden="true"
+      (error)="iconeAbsente.set(true)"
+    />
+  }
+  <span class="mot"> <span class="via">Vial</span><span class="crm">CRM</span> </span>
+</span>

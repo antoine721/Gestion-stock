@@ -1,12 +1,8 @@
 <div class="connexion">
-  <section class="card panneau">
+  <main class="panneau card">
     <div class="marque">
-      <span class="logo" aria-hidden="true">🎪</span>
-      <p class="app-nom">Vialcrm</p>
-      <h1>Bienvenue</h1>
-      <p class="chapo">
-        Le hub qui organise ton festival : invites, budget, courses, missions, DJ.
-      </p>
+      <app-logo />
+      <p class="baseline muted">Le hub qui organise ton festival.</p>
     </div>
 
     <div class="champs">
@@ -19,6 +15,7 @@
           (keyup.enter)="entrer()"
           placeholder="Antoine"
           autocomplete="given-name"
+          autocapitalize="words"
         />
       </label>
 
@@ -40,12 +37,12 @@
     }
 
     <button type="button" class="primaire valider" [disabled]="occupe()" (click)="entrer()">
-      {{ occupe() ? 'Un instant…' : 'Entrer' }}
+      {{ occupe() ? 'Un instant…' : 'Se connecter' }}
     </button>
 
-    <p class="hint">
+    <p class="pied muted">
       Un seul mot de passe pour toute l'equipe. Ton prenom sert a savoir quels invites sont les
-      tiens.
+      tiens — reprends le meme d'un appareil a l'autre.
     </p>
-  </section>
+  </main>
 </div>

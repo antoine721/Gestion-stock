@@ -17,6 +17,7 @@ import { SectionStats } from '../../components/section-stats/section-stats';
 import { SectionUtilisateurs } from '../../components/section-utilisateurs/section-utilisateurs';
 import { ValidationPanel } from '../../components/validation-panel/validation-panel';
 import { VisiteGuidee } from '../../components/visite-guidee/visite-guidee';
+import { Logo } from '../../components/logo/logo';
 import { ESPACES, Espace, PlannerStore, SECTIONS } from '../../state/planner-store';
 import { SessionStore } from '../../state/session';
 import { ThemeStore } from '../../state/theme';
@@ -52,6 +53,7 @@ const CLE_VISITE = 'vialcrm.visite';
     SectionUtilisateurs,
     ValidationPanel,
     VisiteGuidee,
+    Logo,
   ],
   templateUrl: './planner.html',
   styleUrl: './planner.css',

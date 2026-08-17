@@ -19,6 +19,9 @@
   --texte: #1a1a18;
   --texte-doux: #6b6a66;
 
+  /* Le bleu du logo : reserve a la marque, jamais aux etats. */
+  --marque: #17365d;
+
   /* L'encre est l'accent : les actions principales sont noires, pas colorees. */
   --accent: #1a1a18;
   --accent-doux: rgba(26, 26, 24, 0.08);
@@ -94,6 +97,8 @@
   --bord-fort: #4a4a45;
   --texte: #f0efec;
   --texte-doux: #a3a29d;
+
+  --marque: #7fb4e0;
 
   --accent: #f0efec;
   --accent-doux: rgba(240, 239, 236, 0.1);
