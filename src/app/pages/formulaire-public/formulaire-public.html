@@ -8,7 +8,7 @@
     </section>
   } @else {
     <header class="entete">
-      <p class="app-nom muted">Vialcrm</p>
+      <app-logo variante="mot" />
       <h1>{{ infos()?.nom ?? 'Chargement…' }}</h1>
       @if (quandOu()) {
         <p class="quand-ou">{{ quandOu() }}</p>

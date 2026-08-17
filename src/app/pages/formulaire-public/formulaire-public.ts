@@ -4,6 +4,7 @@ import { Api, InfosPubliques } from '../../state/api';
 import { HEBERGEMENTS, REGIMES } from '../../domain/invites';
 import { BOISSONS, LIBELLE_FAMILLE, ORDRE_FAMILLE } from '../../domain/catalogue';
 import { Hebergement, Regime } from '../../domain/models';
+import { Logo } from '../../components/logo/logo';
 
 /**
  * La page publique du formulaire : le seul ecran de l'app accessible sans mot
@@ -13,6 +14,7 @@ import { Hebergement, Regime } from '../../domain/models';
  */
 @Component({
   selector: 'app-formulaire-public',
+  imports: [Logo],
   templateUrl: './formulaire-public.html',
   styleUrl: './formulaire-public.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
