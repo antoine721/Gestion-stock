@@ -1,16 +1,29 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
+import { Modale } from '../modale/modale';
+import { Panneau } from '../panneau/panneau';
 import { STATUTS_DJ_SET, nomDeRef, trierDjSets, volontaires } from '../../domain/programme';
 import { fmtEntier } from '../../domain/format';
-import { DjSet } from '../../domain/models';
+import { DjSet, StatutDjSet } from '../../domain/models';
+
+/** La saisie minimale d'un set : qui, quand, quel statut. */
+interface BrouillonSet {
+  jour: number;
+  debut: string;
+  fin: string;
+  dj: string;
+  style: string;
+  statut: StatutDjSet;
+}
 
 /**
  * Le coin DJ : le tableau horaire des sets et son workflow. Un invite
  * demande un creneau, l'orga valide (ou refuse), et le set finit « joue ».
- * Les envies musicales collectees par le formulaire nourrissent le tout.
+ * La creation passe par une modale, le suivi par le panneau lateral.
  */
 @Component({
   selector: 'app-section-dj',
+  imports: [Modale, Panneau],
   templateUrl: './section-dj.html',
   styleUrl: './section-dj.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +48,71 @@ export class SectionDj {
     return nomDeRef(ref, this.store.participants(), this.store.invitesNommes()) || ref;
   }
 
+  protected libelleStatut(id: string): string {
+    return STATUTS_DJ_SET.find((x) => x.id === id)?.libelle ?? '';
+  }
+
+  /** La couleur de la pilule : valide et joue sont acquis, refuse est mort. */
+  protected tonStatut(statut: StatutDjSet): 'ok' | 'warn' | 'ko' | '' {
+    if (statut === 'valide' || statut === 'joue') return 'ok';
+    if (statut === 'demande') return 'warn';
+    if (statut === 'refuse') return 'ko';
+    return '';
+  }
+
+  protected creneauDe(set: DjSet): string {
+    if (!set.debut) return '—';
+    return set.fin ? `${set.debut} – ${set.fin}` : set.debut;
+  }
+
+  // -- Creation --------------------------------------------------------------
+
+  protected readonly creationOuverte = signal(false);
+  protected readonly brouillon = signal<BrouillonSet>({
+    jour: 1,
+    debut: '',
+    fin: '',
+    dj: '',
+    style: '',
+    statut: 'demande',
+  });
+
+  protected ouvrirCreation(dj = ''): void {
+    this.brouillon.set({ jour: 1, debut: '', fin: '', dj, style: '', statut: 'demande' });
+    this.creationOuverte.set(true);
+  }
+
+  protected majBrouillon(patch: Partial<BrouillonSet>): void {
+    this.brouillon.set({ ...this.brouillon(), ...patch });
+  }
+
+  protected creer(): void {
+    const brouillon = this.brouillon();
+    const id = this.store.ajouterDjSet({
+      jour: Math.max(1, brouillon.jour),
+      debut: brouillon.debut.trim(),
+      fin: brouillon.fin.trim(),
+      dj: brouillon.dj,
+      style: brouillon.style.trim(),
+      statut: brouillon.statut,
+    });
+    this.creationOuverte.set(false);
+    this.detailId.set(id);
+  }
+
+  /** Un volontaire arrive pre-rempli dans la modale de creation. */
+  protected proposerVolontaire(inviteId: string): void {
+    this.ouvrirCreation(`inv:${inviteId}`);
+  }
+
+  // -- Detail ----------------------------------------------------------------
+
+  protected readonly detailId = signal('');
+
+  protected readonly detail = computed(() =>
+    this.store.djSets().find((x) => x.id === this.detailId()),
+  );
+
   protected maj(set: DjSet, patch: Partial<Omit<DjSet, 'id'>>): void {
     this.store.majDjSet(set.id, patch);
   }
@@ -44,14 +122,10 @@ export class SectionDj {
     if (Number.isFinite(jour)) this.store.majDjSet(set.id, { jour: Math.max(1, Math.round(jour)) });
   }
 
-  /** Un volontaire devient une demande de set, d'un clic. */
-  protected proposerVolontaire(inviteId: string): void {
-    this.store.ajouterDjSet({ dj: `inv:${inviteId}`, statut: 'demande' });
-  }
-
   protected supprimer(set: DjSet): void {
     if (confirm(`Retirer ce set (${this.nomDe(set.dj) || 'sans DJ'}) du tableau ?`)) {
       this.store.supprimerDjSet(set.id);
+      if (this.detailId() === set.id) this.detailId.set('');
     }
   }
 }

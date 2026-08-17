@@ -1,20 +1,19 @@
 <section class="card">
-  <div class="card-head">
+  <div class="barre-tableau">
     <h2>Le planning des missions</h2>
     <span class="muted num">{{ fmtEntier(store.resumeProgramme().creneaux) }} creneau(x)</span>
+    @if (store.resumeProgramme().sansAssigne > 0) {
+      <span class="pill warn"> {{ store.resumeProgramme().sansAssigne }} a pourvoir </span>
+    }
+    <button type="button" class="primaire pousse" (click)="ouvrirCreation(1)">
+      + Nouvelle mission
+    </button>
   </div>
 
   <p class="intro muted">
     Tout le monde participe : chaque creneau est une mission, avec son equipe. Clique sur une carte
-    pour l'editer et assigner du monde — les equipes changent d'un creneau a l'autre.
+    pour ouvrir son detail et assigner du monde — les equipes changent d'un creneau a l'autre.
   </p>
-
-  @if (store.resumeProgramme().sansAssigne > 0) {
-    <p class="avertissement">
-      <span class="num">{{ store.resumeProgramme().sansAssigne }}</span> creneau(x) sans personne
-      dessus : des missions a pourvoir.
-    </p>
-  }
 
   <div class="calendrier">
     @for (journee of journees(); track journee.jour) {
@@ -26,7 +25,14 @@
               <span class="muted date-jour">{{ journee.date }}</span>
             }
           </h3>
-          <button type="button" class="discret" (click)="ajouter(journee.jour)">+</button>
+          <button
+            type="button"
+            class="discret"
+            title="Ajouter une mission ce jour-la"
+            (click)="ouvrirCreation(journee.jour)"
+          >
+            +
+          </button>
         </div>
 
         @if (journee.creneaux.length === 0) {
@@ -34,8 +40,8 @@
         }
 
         @for (creneau of journee.creneaux; track creneau.id) {
-          <article class="evenement" [class.ouvert]="ouvert() === creneau.id">
-            <button type="button" class="entete-evt" (click)="basculer(creneau.id)">
+          <article class="evenement" [class.ouvert]="detailId() === creneau.id">
+            <button type="button" class="entete-evt" (click)="detailId.set(creneau.id)">
               <span class="heures num">
                 {{ creneau.debut || '—' }}
                 @if (creneau.fin) {
@@ -60,104 +66,6 @@
                 <span class="tag warn">a pourvoir</span>
               }
             </button>
-
-            @if (ouvert() === creneau.id) {
-              <div class="edition">
-                <div class="ligne">
-                  <label class="champ">
-                    <span>Debut</span>
-                    <input
-                      type="text"
-                      placeholder="15:00"
-                      [value]="creneau.debut"
-                      (input)="maj(creneau, { debut: $any($event.target).value })"
-                    />
-                  </label>
-                  <label class="champ">
-                    <span>Fin</span>
-                    <input
-                      type="text"
-                      placeholder="17:00"
-                      [value]="creneau.fin"
-                      (input)="maj(creneau, { fin: $any($event.target).value })"
-                    />
-                  </label>
-                  <label class="champ">
-                    <span>Type</span>
-                    <select (change)="maj(creneau, { type: $any($event.target).value })">
-                      @for (type of types; track type.id) {
-                        <option [value]="type.id" [selected]="type.id === creneau.type">
-                          {{ type.emoji }} {{ type.libelle }}
-                        </option>
-                      }
-                    </select>
-                  </label>
-                </div>
-                <label class="champ">
-                  <span>Mission</span>
-                  <input
-                    type="text"
-                    placeholder="Tenir le bar, accueil parking, tournoi de petanque..."
-                    [value]="creneau.titre"
-                    (input)="maj(creneau, { titre: $any($event.target).value })"
-                  />
-                </label>
-                <div class="ligne">
-                  <label class="champ">
-                    <span>Lieu</span>
-                    <input
-                      type="text"
-                      placeholder="Ou ?"
-                      [value]="creneau.lieu"
-                      (input)="maj(creneau, { lieu: $any($event.target).value })"
-                    />
-                  </label>
-                  <label class="champ">
-                    <span>Notes</span>
-                    <input
-                      type="text"
-                      placeholder="Materiel, consignes..."
-                      [value]="creneau.notes"
-                      (input)="maj(creneau, { notes: $any($event.target).value })"
-                    />
-                  </label>
-                </div>
-
-                <div class="assignation">
-                  <span class="assignation-titre">L'equipe</span>
-                  <div class="membres">
-                    @for (ref of creneau.assignes; track ref) {
-                      <span class="membre avec-retrait">
-                        {{ nomDe(ref) || 'Parti(e)' }}
-                        <button
-                          type="button"
-                          class="discret"
-                          title="Retirer de la mission"
-                          (click)="store.retirerAssignation(creneau.id, ref)"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    }
-                    <select (change)="assigner(creneau, $event)">
-                      <option value="">+ Assigner quelqu'un…</option>
-                      @for (personne of store.personnesAssignables(); track personne.ref) {
-                        @if (!creneau.assignes.includes(personne.ref)) {
-                          <option [value]="personne.ref">{{ personne.nom }}</option>
-                        }
-                      }
-                    </select>
-                  </div>
-                </div>
-
-                <div class="pied-edition">
-                  <button type="button" class="discret" (click)="supprimer(creneau)">
-                    Supprimer ce creneau
-                  </button>
-                  <button type="button" (click)="ouvert.set('')">Fermer</button>
-                </div>
-              </div>
-            }
           </article>
         }
       </div>
@@ -188,4 +96,195 @@
       }
     </ul>
   </section>
+}
+
+@if (creationOuverte()) {
+  <app-modale
+    titre="Nouvelle mission"
+    sousTitre="Pose le creneau : l'equipe s'assigne juste apres, dans le detail."
+    libelleValider="Creer la mission"
+    [valideDesactive]="creationInvalide()"
+    (fermee)="creationOuverte.set(false)"
+    (validee)="creer()"
+  >
+    <label class="champ">
+      <span>Mission *</span>
+      <input
+        type="text"
+        placeholder="Tenir le bar, accueil parking, tournoi de petanque..."
+        autocomplete="off"
+        [value]="brouillon().titre"
+        (input)="majBrouillon({ titre: $any($event.target).value })"
+        (keyup.enter)="creer()"
+      />
+    </label>
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Jour</span>
+        <select (change)="majBrouillon({ jour: +$any($event.target).value })">
+          @for (jour of jours(); track jour) {
+            <option [value]="jour" [selected]="jour === brouillon().jour">Jour {{ jour }}</option>
+          }
+        </select>
+      </label>
+      <label class="champ">
+        <span>Type</span>
+        <select (change)="majBrouillon({ type: $any($event.target).value })">
+          @for (type of types; track type.id) {
+            <option [value]="type.id" [selected]="type.id === brouillon().type">
+              {{ type.emoji }} {{ type.libelle }}
+            </option>
+          }
+        </select>
+      </label>
+    </div>
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Debut</span>
+        <input
+          type="text"
+          placeholder="15:00"
+          [value]="brouillon().debut"
+          (input)="majBrouillon({ debut: $any($event.target).value })"
+        />
+      </label>
+      <label class="champ">
+        <span>Fin</span>
+        <input
+          type="text"
+          placeholder="17:00"
+          [value]="brouillon().fin"
+          (input)="majBrouillon({ fin: $any($event.target).value })"
+        />
+      </label>
+    </div>
+    <label class="champ">
+      <span>Lieu</span>
+      <input
+        type="text"
+        placeholder="Terrain du bas, grange, terrasse..."
+        [value]="brouillon().lieu"
+        (input)="majBrouillon({ lieu: $any($event.target).value })"
+        (keyup.enter)="creer()"
+      />
+    </label>
+  </app-modale>
+}
+
+@if (detail(); as creneau) {
+  <app-panneau
+    [titre]="emojiDe(creneau.type) + ' ' + (creneau.titre || 'Sans titre')"
+    [sousTitre]="
+      'Jour ' +
+      creneau.jour +
+      (creneau.debut ? ' · ' + creneau.debut : '') +
+      (creneau.lieu ? ' · ' + creneau.lieu : '')
+    "
+    libelleSupprimer="Supprimer la mission"
+    (fermee)="detailId.set('')"
+    (supprimee)="supprimer(creneau)"
+  >
+    <label class="champ">
+      <span>Mission</span>
+      <input
+        type="text"
+        [value]="creneau.titre"
+        (input)="maj(creneau, { titre: $any($event.target).value })"
+      />
+    </label>
+
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Jour</span>
+        <select (change)="majJour(creneau, $any($event.target).value)">
+          @for (jour of jours(); track jour) {
+            <option [value]="jour" [selected]="jour === creneau.jour">Jour {{ jour }}</option>
+          }
+        </select>
+      </label>
+      <label class="champ">
+        <span>Type</span>
+        <select (change)="maj(creneau, { type: $any($event.target).value })">
+          @for (type of types; track type.id) {
+            <option [value]="type.id" [selected]="type.id === creneau.type">
+              {{ type.emoji }} {{ type.libelle }}
+            </option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Debut</span>
+        <input
+          type="text"
+          placeholder="15:00"
+          [value]="creneau.debut"
+          (input)="maj(creneau, { debut: $any($event.target).value })"
+        />
+      </label>
+      <label class="champ">
+        <span>Fin</span>
+        <input
+          type="text"
+          placeholder="17:00"
+          [value]="creneau.fin"
+          (input)="maj(creneau, { fin: $any($event.target).value })"
+        />
+      </label>
+    </div>
+
+    <label class="champ">
+      <span>Lieu</span>
+      <input
+        type="text"
+        placeholder="Ou ?"
+        [value]="creneau.lieu"
+        (input)="maj(creneau, { lieu: $any($event.target).value })"
+      />
+    </label>
+
+    <span class="sous-titre">L'equipe</span>
+    <div class="membres">
+      @for (ref of creneau.assignes; track ref) {
+        <span class="membre avec-retrait">
+          {{ nomDe(ref) || 'Parti(e)' }}
+          <button
+            type="button"
+            class="discret"
+            title="Retirer de la mission"
+            (click)="store.retirerAssignation(creneau.id, ref)"
+          >
+            ×
+          </button>
+        </span>
+      }
+      @if (creneau.assignes.length === 0) {
+        <span class="tag warn">Personne dessus</span>
+      }
+    </div>
+    <label class="champ">
+      <span>Assigner quelqu'un</span>
+      <select (change)="assigner(creneau, $event)">
+        <option value="">+ Choisir une personne…</option>
+        @for (personne of store.personnesAssignables(); track personne.ref) {
+          @if (!creneau.assignes.includes(personne.ref)) {
+            <option [value]="personne.ref">{{ personne.nom }}</option>
+          }
+        }
+      </select>
+    </label>
+
+    <span class="sous-titre">Consignes</span>
+    <label class="champ">
+      <span>Notes</span>
+      <textarea
+        rows="3"
+        placeholder="Materiel a prendre, consignes, points d'attention..."
+        [value]="creneau.notes"
+        (input)="maj(creneau, { notes: $any($event.target).value })"
+      ></textarea>
+    </label>
+  </app-panneau>
 }

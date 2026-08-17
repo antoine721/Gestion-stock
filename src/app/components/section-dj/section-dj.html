@@ -1,29 +1,29 @@
 <section class="card">
-  <div class="card-head">
+  <div class="barre-tableau">
     <h2>Le tableau horaire</h2>
     <span class="muted num">
       {{ fmtEntier(store.resumeDj().valides) }} valide(s) ·
       {{ fmtEntier(store.resumeDj().demandes) }} demande(s)
     </span>
+    <button type="button" class="primaire pousse" (click)="ouvrirCreation()">+ Nouveau set</button>
   </div>
 
   <p class="intro muted">
     Qui mixe, quand, et ou en est la demande : un invite propose un set, vous validez (ou pas), et
-    le set finit « joue ». Le suivi se note dans la derniere colonne.
+    le set finit « joue ». Clique une ligne pour la suivre en detail.
   </p>
 
   @if (sets().length === 0) {
     <p class="vide">
-      Aucun set pour l'instant. Ajoute une ligne, ou pioche dans les volontaires ci-dessous.
+      Aucun set pour l'instant. Cree une ligne, ou pioche dans les volontaires ci-dessous.
     </p>
   } @else {
-    <div class="defilement">
-      <table>
+    <div class="boite-tableau">
+      <table class="tableau">
         <thead>
           <tr>
             <th>Jour</th>
-            <th>Debut</th>
-            <th>Fin</th>
+            <th>Creneau</th>
             <th>DJ</th>
             <th>Style / ambiance</th>
             <th>Statut</th>
@@ -33,82 +33,46 @@
         </thead>
         <tbody>
           @for (set of sets(); track set.id) {
-            <tr [class]="'statut-' + set.statut">
+            <tr
+              class="cliquable"
+              [class.active]="detailId() === set.id"
+              (click)="detailId.set(set.id)"
+            >
+              <td class="num">J{{ set.jour }}</td>
+              <td class="num principal">{{ creneauDe(set) }}</td>
               <td>
-                <select class="etroit" (change)="majJour(set, $any($event.target).value)">
-                  @for (jour of jours(); track jour) {
-                    <option [value]="jour" [selected]="jour === set.jour">J{{ jour }}</option>
-                  }
-                </select>
-              </td>
-              <td>
-                <input
-                  class="heure num"
-                  type="text"
-                  placeholder="21:00"
-                  [value]="set.debut"
-                  (input)="maj(set, { debut: $any($event.target).value })"
-                />
+                @if (set.dj) {
+                  {{ nomDe(set.dj) }}
+                } @else {
+                  <span class="muted">A definir</span>
+                }
               </td>
               <td>
-                <input
-                  class="heure num"
-                  type="text"
-                  placeholder="23:00"
-                  [value]="set.fin"
-                  (input)="maj(set, { fin: $any($event.target).value })"
-                />
+                @if (set.style) {
+                  {{ set.style }}
+                } @else {
+                  <span class="muted">—</span>
+                }
               </td>
               <td>
-                <select (change)="maj(set, { dj: $any($event.target).value })">
-                  <option value="" [selected]="!set.dj">— A definir</option>
-                  @for (personne of store.personnesAssignables(); track personne.ref) {
-                    <option [value]="personne.ref" [selected]="personne.ref === set.dj">
-                      {{ personne.nom }}
-                    </option>
-                  }
-                </select>
+                <span class="pill" [class]="'pill ' + tonStatut(set.statut)">
+                  {{ libelleStatut(set.statut) }}
+                </span>
               </td>
               <td>
-                <input
-                  type="text"
-                  placeholder="Techno, annees 80, libre..."
-                  [value]="set.style"
-                  (input)="maj(set, { style: $any($event.target).value })"
-                />
+                @if (set.notes) {
+                  <span class="secondaire notes-courtes">{{ set.notes }}</span>
+                } @else {
+                  <span class="muted">—</span>
+                }
               </td>
-              <td>
-                <select class="statut" (change)="maj(set, { statut: $any($event.target).value })">
-                  @for (statut of statuts; track statut.id) {
-                    <option [value]="statut.id" [selected]="statut.id === set.statut">
-                      {{ statut.libelle }}
-                    </option>
-                  }
-                </select>
-              </td>
-              <td>
-                <input
-                  type="text"
-                  placeholder="Materiel, contraintes, retours..."
-                  [value]="set.notes"
-                  (input)="maj(set, { notes: $any($event.target).value })"
-                />
-              </td>
-              <td class="droite">
-                <button type="button" class="discret" title="Retirer" (click)="supprimer(set)">
-                  ×
-                </button>
-              </td>
+              <td class="chevron droite">›</td>
             </tr>
           }
         </tbody>
       </table>
     </div>
   }
-
-  <div class="ajout">
-    <button type="button" class="primaire" (click)="store.ajouterDjSet()">+ Ajouter un set</button>
-  </div>
 
   <p class="hint">
     Valide un set pour l'inscrire au marbre ; le planning des missions reste l'espace Programme —
@@ -161,3 +125,159 @@
     </section>
   }
 </div>
+
+@if (creationOuverte()) {
+  <app-modale
+    titre="Nouveau set"
+    sousTitre="Pose le creneau : le suivi et les notes se remplissent ensuite."
+    libelleValider="Ajouter le set"
+    (fermee)="creationOuverte.set(false)"
+    (validee)="creer()"
+  >
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Jour</span>
+        <select (change)="majBrouillon({ jour: +$any($event.target).value })">
+          @for (jour of jours(); track jour) {
+            <option [value]="jour" [selected]="jour === brouillon().jour">Jour {{ jour }}</option>
+          }
+        </select>
+      </label>
+      <label class="champ">
+        <span>Statut</span>
+        <select (change)="majBrouillon({ statut: $any($event.target).value })">
+          @for (statut of statuts; track statut.id) {
+            <option [value]="statut.id" [selected]="statut.id === brouillon().statut">
+              {{ statut.libelle }}
+            </option>
+          }
+        </select>
+      </label>
+    </div>
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Debut</span>
+        <input
+          type="text"
+          placeholder="21:00"
+          [value]="brouillon().debut"
+          (input)="majBrouillon({ debut: $any($event.target).value })"
+        />
+      </label>
+      <label class="champ">
+        <span>Fin</span>
+        <input
+          type="text"
+          placeholder="23:00"
+          [value]="brouillon().fin"
+          (input)="majBrouillon({ fin: $any($event.target).value })"
+        />
+      </label>
+    </div>
+    <label class="champ">
+      <span>DJ</span>
+      <select (change)="majBrouillon({ dj: $any($event.target).value })">
+        <option value="" [selected]="!brouillon().dj">— A definir</option>
+        @for (personne of store.personnesAssignables(); track personne.ref) {
+          <option [value]="personne.ref" [selected]="personne.ref === brouillon().dj">
+            {{ personne.nom }}
+          </option>
+        }
+      </select>
+    </label>
+    <label class="champ">
+      <span>Style / ambiance</span>
+      <input
+        type="text"
+        placeholder="Techno, annees 80, libre..."
+        [value]="brouillon().style"
+        (input)="majBrouillon({ style: $any($event.target).value })"
+        (keyup.enter)="creer()"
+      />
+    </label>
+  </app-modale>
+}
+
+@if (detail(); as set) {
+  <app-panneau
+    [titre]="(set.dj ? nomDe(set.dj) : 'Set sans DJ') + ' · J' + set.jour"
+    [sousTitre]="creneauDe(set) + (set.style ? ' · ' + set.style : '')"
+    libelleSupprimer="Retirer ce set"
+    (fermee)="detailId.set('')"
+    (supprimee)="supprimer(set)"
+  >
+    <label class="champ">
+      <span>Statut de la demande</span>
+      <select (change)="maj(set, { statut: $any($event.target).value })">
+        @for (statut of statuts; track statut.id) {
+          <option [value]="statut.id" [selected]="statut.id === set.statut">
+            {{ statut.libelle }}
+          </option>
+        }
+      </select>
+    </label>
+
+    <span class="sous-titre">Creneau</span>
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Jour</span>
+        <select (change)="majJour(set, $any($event.target).value)">
+          @for (jour of jours(); track jour) {
+            <option [value]="jour" [selected]="jour === set.jour">Jour {{ jour }}</option>
+          }
+        </select>
+      </label>
+      <label class="champ">
+        <span>Debut</span>
+        <input
+          type="text"
+          placeholder="21:00"
+          [value]="set.debut"
+          (input)="maj(set, { debut: $any($event.target).value })"
+        />
+      </label>
+      <label class="champ">
+        <span>Fin</span>
+        <input
+          type="text"
+          placeholder="23:00"
+          [value]="set.fin"
+          (input)="maj(set, { fin: $any($event.target).value })"
+        />
+      </label>
+    </div>
+
+    <span class="sous-titre">Artiste</span>
+    <label class="champ">
+      <span>DJ</span>
+      <select (change)="maj(set, { dj: $any($event.target).value })">
+        <option value="" [selected]="!set.dj">— A definir</option>
+        @for (personne of store.personnesAssignables(); track personne.ref) {
+          <option [value]="personne.ref" [selected]="personne.ref === set.dj">
+            {{ personne.nom }}
+          </option>
+        }
+      </select>
+    </label>
+    <label class="champ">
+      <span>Style / ambiance</span>
+      <input
+        type="text"
+        placeholder="Techno, annees 80, libre..."
+        [value]="set.style"
+        (input)="maj(set, { style: $any($event.target).value })"
+      />
+    </label>
+
+    <span class="sous-titre">Suivi</span>
+    <label class="champ">
+      <span>Notes de regie</span>
+      <textarea
+        rows="4"
+        placeholder="Materiel apporte, contraintes techniques, retours apres le set..."
+        [value]="set.notes"
+        (input)="maj(set, { notes: $any($event.target).value })"
+      ></textarea>
+    </label>
+  </app-panneau>
+}
