@@ -19,6 +19,7 @@ import {
   inviteVierge,
   invitesNommesDe,
   logistiqueVierge,
+  niveauxVierges,
   normaliserInvite,
   resumerLogistique,
 } from '../domain/invites';
@@ -422,8 +423,8 @@ export class PlannerStore {
         logistique: { ...logistiqueVierge(), ...x.logistique },
         surnom: x.surnom ?? '',
         boissonsAimees: x.boissonsAimees ?? [],
-        niveauBasiques: x.niveauBasiques ?? 'aucun',
-        niveauSpiritueux: x.niveauSpiritueux ?? 'aucun',
+        niveaux: { ...niveauxVierges(), ...x.niveaux },
+        autreAlcool: x.autreAlcool ?? '',
         team: x.team ?? '',
         servicesPreferes: x.servicesPreferes ?? [],
       })),
@@ -1009,8 +1010,8 @@ export class PlannerStore {
           // Les gouts declares suivent aussi : ils orientent le profil, sans
           // jamais le decider a la place de l'organisateur.
           boissonsAimees: [...reponse.boissonsAimees],
-          niveauBasiques: reponse.niveauBasiques,
-          niveauSpiritueux: reponse.niveauSpiritueux,
+          niveaux: { ...reponse.niveaux },
+          autreAlcool: reponse.autreAlcool,
           team: reponse.team,
           servicesPreferes: [...reponse.servicesPreferes],
         },

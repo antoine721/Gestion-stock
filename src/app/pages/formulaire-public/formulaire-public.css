@@ -176,43 +176,89 @@ h2 {
   font-weight: 600;
 }
 
-/* Un gout : le jeton, et son curseur d'intensite quand il est coche. */
+/* -- Les familles d'alcool -------------------------------------------------
+ *
+ * Chaque famille porte sa couleur, et la garde sur ses curseurs comme sur sa
+ * question de rythme. C'est ce qui evite de repondre « beaucoup » en pensant
+ * a la biere alors qu'on est dans le bloc des spiritueux. Les trois teintes
+ * sortent de la palette validee pour les daltonismes courants.
+ */
+.famille {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.875rem;
+  border: 1px solid var(--bord);
+  border-left: 3px solid var(--famille-teinte);
+  border-radius: var(--rayon-petit);
+  background: var(--famille-fond);
+}
+
+.famille[data-famille='biere'] {
+  --famille-teinte: var(--famille-biere);
+  --famille-fond: var(--famille-biere-fond);
+}
+
+.famille[data-famille='vin'] {
+  --famille-teinte: var(--famille-vin);
+  --famille-fond: var(--famille-vin-fond);
+}
+
+.famille[data-famille='spiritueux'] {
+  --famille-teinte: var(--famille-spiritueux);
+  --famille-fond: var(--famille-spiritueux-fond);
+}
+
+.famille-titre {
+  font-size: 0.875rem;
+  font-weight: 680;
+  color: var(--famille-teinte);
+}
+
+.famille-question {
+  margin-top: 0.25rem;
+}
+
+/* Un gout : son nom, son curseur, et l'avis en toutes lettres a droite. */
 .gouts {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 0.25rem;
 }
 
 .gout {
-  display: flex;
+  display: grid;
+  grid-template-columns: 6.5rem 1fr 8rem;
   align-items: center;
   gap: 0.625rem;
-  flex-wrap: wrap;
+  padding: 0.25rem 0;
+  cursor: pointer;
 }
 
-.gout .jeton {
-  flex: none;
-}
-
-.curseur {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1;
-  min-width: 9rem;
-}
-
-.curseur input[type='range'] {
-  flex: 1;
-  accent-color: var(--accent);
-}
-
-.curseur-valeur {
-  font-size: 0.71875rem;
-  font-weight: 650;
+.gout-nom {
+  font-size: 0.8125rem;
   color: var(--texte-doux);
-  min-width: 2rem;
+}
+
+.gout.choisi .gout-nom {
+  font-weight: 640;
+  color: var(--texte);
+}
+
+.gout input[type='range'] {
+  width: 100%;
+  accent-color: var(--famille-teinte);
+}
+
+.gout-avis {
+  font-size: 0.71875rem;
+  color: var(--texte-doux);
   text-align: right;
+}
+
+.gout.choisi .gout-avis {
+  font-weight: 620;
+  color: var(--famille-teinte);
 }
 
 /* Le chameau n'a rien a remplir : on le lui dit clairement. */
@@ -257,6 +303,11 @@ h2 {
   color: var(--fond);
 }
 
+.famille .palier[aria-pressed='true'] {
+  border-color: var(--famille-teinte);
+  background: var(--famille-teinte);
+}
+
 .palier[aria-pressed='true'] .palier-repere {
   color: var(--fond);
   opacity: 0.75;
@@ -298,6 +349,13 @@ h2 {
   line-height: 1.4;
 }
 
+.team-verres {
+  margin-top: 0.125rem;
+  font-size: 0.6875rem;
+  font-weight: 640;
+  color: var(--marque);
+}
+
 .team[aria-pressed='true'] {
   border-color: var(--accent);
   background: var(--accent);
@@ -307,6 +365,11 @@ h2 {
 .team[aria-pressed='true'] .muted {
   color: var(--fond);
   opacity: 0.8;
+}
+
+.team[aria-pressed='true'] .team-verres {
+  color: var(--fond);
+  opacity: 0.95;
 }
 
 .case-cocher {
@@ -349,6 +412,14 @@ h2 {
 @media (max-width: 30rem) {
   .duo {
     grid-template-columns: 1fr;
+  }
+
+  .gout {
+    grid-template-columns: 1fr 6.5rem;
+  }
+
+  .gout-nom {
+    grid-column: 1 / -1;
   }
 
   .etapes li {

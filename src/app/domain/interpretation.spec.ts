@@ -34,7 +34,7 @@ describe('estimation de consommation', () => {
     const estimation = estimerConsommation(
       fiche({
         team: 'croisiere',
-        niveauBasiques: 'moyen',
+        niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' },
         boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
       }),
     );
@@ -46,26 +46,26 @@ describe('estimation de consommation', () => {
     const estimation = estimerConsommation(
       fiche({
         team: 'bateau-ivre',
-        niveauBasiques: 'moyen',
+        niveaux: { biere: 'aucun', vin: 'moyen', spiritueux: 'aucun' },
         boissonsAimees: [
-          { boissonId: 'biere', intensite: 3 },
-          { boissonId: 'vin-rouge', intensite: 1 },
+          { boissonId: 'vin-rouge', intensite: 3 },
+          { boissonId: 'vin-blanc', intensite: 1 },
         ],
       }),
     );
-    const biere = estimation.find((x) => x.boissonId === 'biere');
-    const vin = estimation.find((x) => x.boissonId === 'vin-rouge');
-    // 4 verres partages 3/1 : la biere en prend trois fois plus.
-    expect(biere?.verresParJour).toBe(3);
-    expect(vin?.verresParJour).toBe(1);
+    const rouge = estimation.find((x) => x.boissonId === 'vin-rouge');
+    const blanc = estimation.find((x) => x.boissonId === 'vin-blanc');
+    // Les 4 verres de la famille « vin » se partagent 3/1 entre les deux.
+    expect(rouge?.verresParJour).toBe(3);
+    expect(blanc?.verresParJour).toBe(1);
   });
 
   it('le chameau ne boit rien, quoi qu’il ait coche', () => {
     const estimation = estimerConsommation(
       fiche({
         team: 'chameau',
-        niveauBasiques: 'beaucoup',
-        boissonsAimees: [{ boissonId: 'biere', intensite: 5 }],
+        niveaux: { biere: 'beaucoup', vin: 'aucun', spiritueux: 'aucun' },
+        boissonsAimees: [{ boissonId: 'biere', intensite: 4 }],
       }),
     );
     expect(estimation).toEqual([]);
@@ -75,7 +75,7 @@ describe('estimation de consommation', () => {
     const estimation = estimerConsommation(
       fiche({
         team: 'degustation',
-        niveauBasiques: 'abuse',
+        niveaux: { biere: 'abuse', vin: 'aucun', spiritueux: 'aucun' },
         boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
       }),
     );
@@ -88,14 +88,15 @@ describe('estimation de consommation', () => {
     const estimation = estimerConsommation(
       fiche({
         team: 'croisiere',
-        niveauBasiques: 'moyen',
+        niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'moyen' },
         boissonsAimees: [
           { boissonId: 'biere', intensite: 2 },
-          { boissonId: 'cidre', intensite: 2 },
+          { boissonId: 'tequila', intensite: 2 },
         ],
       }),
     );
-    // Le cidre n'existe pas au catalogue : ses verres reviennent a la biere.
+    // La tequila n'existe pas au catalogue : son budget spiritueux ne part
+    // nulle part, et surtout il ne se deverse pas sur la biere.
     expect(estimation).toEqual([{ boissonId: 'biere', verresParJour: 4 }]);
   });
 });
@@ -104,7 +105,7 @@ describe('garde-fous', () => {
   it('signale le chameau qui coche des alcools', () => {
     const invite = fiche({
       team: 'chameau',
-      boissonsAimees: [{ boissonId: 'biere', intensite: 4 }],
+      boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
     });
     const alertes = alerterSurEstimation(invite, estimerConsommation(invite));
     expect(alertes.some((x) => x.gravite === 'attention' && /sans alcool/i.test(x.texte))).toBe(
@@ -115,11 +116,11 @@ describe('garde-fous', () => {
   it('signale une estimation trop haute', () => {
     const invite = fiche({
       team: 'bateau-ivre',
-      niveauBasiques: 'abuse',
-      niveauSpiritueux: 'abuse',
+      niveaux: { biere: 'abuse', vin: 'abuse', spiritueux: 'abuse' },
       boissonsAimees: [
-        { boissonId: 'biere', intensite: 5 },
-        { boissonId: 'whisky', intensite: 5 },
+        { boissonId: 'biere', intensite: 4 },
+        { boissonId: 'vin-rouge', intensite: 4 },
+        { boissonId: 'whisky', intensite: 4 },
       ],
     });
     const alertes = alerterSurEstimation(invite, estimerConsommation(invite));
@@ -129,17 +130,28 @@ describe('garde-fous', () => {
   it('signale le rythme declare qui depasse le plafond de l’equipe', () => {
     const invite = fiche({
       team: 'degustation',
-      niveauBasiques: 'abuse',
+      niveaux: { biere: 'abuse', vin: 'aucun', spiritueux: 'aucun' },
       boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
     });
     const alertes = alerterSurEstimation(invite, estimerConsommation(invite));
     expect(alertes.some((x) => /plafond/i.test(x.texte))).toBe(true);
   });
 
+  it('remonte l’alcool ecrit en clair, absent de la liste', () => {
+    const invite = fiche({
+      team: 'croisiere',
+      niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' },
+      boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
+      autreAlcool: 'Limoncello',
+    });
+    const alertes = alerterSurEstimation(invite, estimerConsommation(invite));
+    expect(alertes.some((x) => /Limoncello/.test(x.texte))).toBe(true);
+  });
+
   it('signale un gout qu’on ne sait pas servir', () => {
     const invite = fiche({
       team: 'croisiere',
-      niveauSpiritueux: 'moyen',
+      niveaux: { biere: 'aucun', vin: 'aucun', spiritueux: 'moyen' },
       boissonsAimees: [{ boissonId: 'tequila', intensite: 4 }],
     });
     const alertes = alerterSurEstimation(invite, estimerConsommation(invite));
@@ -158,7 +170,7 @@ describe('correspondance avec les profils', () => {
   it('propose le meilleur profil quand il colle assez', () => {
     const invite = fiche({
       team: 'croisiere',
-      niveauBasiques: 'moyen',
+      niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' },
       boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
     });
     const resultat = interpreter(invite, [
@@ -178,7 +190,7 @@ describe('correspondance avec les profils', () => {
   it('ne propose rien quand aucun profil ne ressemble', () => {
     const invite = fiche({
       team: 'croisiere',
-      niveauBasiques: 'moyen',
+      niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' },
       boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
     });
     const resultat = interpreter(invite, [profil('team-vin', [['vin-rouge', 5]])]);

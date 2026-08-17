@@ -1,15 +1,23 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Api, InfosPubliques } from '../../state/api';
-import { HEBERGEMENTS, REGIMES, logistiqueVierge } from '../../domain/invites';
+import { REGIMES, logistiqueVierge, niveauxVierges } from '../../domain/invites';
 import {
-  BOISSONS_AIMEES,
-  INTENSITES,
+  FAMILLES_ALCOOL,
+  INTENSITE_MAX,
+  LIBELLE_INTENSITE,
   PALIERS_CONSO,
   SERVICES,
   TEAMS,
+  boissonsDeFamille,
 } from '../../domain/preferences';
-import { Hebergement, NiveauConso, Regime, TeamBuveur } from '../../domain/models';
+import {
+  FamilleAlcool,
+  NiveauConso,
+  NiveauxParFamille,
+  Regime,
+  TeamBuveur,
+} from '../../domain/models';
 import { Logo } from '../../components/logo/logo';
 
 /**
@@ -34,13 +42,15 @@ export class FormulairePublic {
   private readonly route = inject(ActivatedRoute);
 
   protected readonly regimes = REGIMES;
-  protected readonly hebergements = HEBERGEMENTS;
   protected readonly paliers = PALIERS_CONSO;
-  protected readonly intensites = INTENSITES;
+  protected readonly intensiteMax = INTENSITE_MAX;
   protected readonly teams = TEAMS;
   protected readonly services = SERVICES;
-  protected readonly basiques = BOISSONS_AIMEES.filter((x) => x.famille === 'basique');
-  protected readonly spiritueux = BOISSONS_AIMEES.filter((x) => x.famille === 'spiritueux');
+  /** Les trois blocs d'alcool, chacun avec ses boissons et sa question. */
+  protected readonly familles = FAMILLES_ALCOOL.map((famille) => ({
+    ...famille,
+    boissons: boissonsDeFamille(famille.id),
+  }));
 
   protected readonly code = computed(() => this.route.snapshot.paramMap.get('code') ?? '');
   protected readonly infos = signal<InfosPubliques | undefined>(undefined);
@@ -57,8 +67,6 @@ export class FormulairePublic {
   protected readonly nom = signal('');
   protected readonly surnom = signal('');
   protected readonly invitePar = signal('');
-  protected readonly accompagne = signal<'' | 'non' | 'oui'>('');
-  protected readonly accompagnants = signal(1);
 
   // -- Ton sejour -----------------------------------------------------------
 
@@ -70,17 +78,16 @@ export class FormulairePublic {
   protected readonly tente = signal<'' | 'oui' | 'non'>('');
   protected readonly placesVoiture = signal(0);
   protected readonly chercheCovoiturage = signal(false);
-  protected readonly hebergement = signal<Hebergement>('a-definir');
 
   // -- Tes gouts ------------------------------------------------------------
 
   protected readonly regime = signal<Regime>('omnivore');
   protected readonly aDesAllergies = signal<'' | 'non' | 'oui'>('');
   protected readonly allergies = signal('');
-  /** boissonId -> intensite du gout, de 1 a 5. Absente = pas cochee. */
+  /** boissonId -> cran du curseur, de 0 (« j'en bois pas ») a 4. */
   protected readonly boissonsAimees = signal<ReadonlyMap<string, number>>(new Map());
-  protected readonly niveauBasiques = signal<NiveauConso>('aucun');
-  protected readonly niveauSpiritueux = signal<NiveauConso>('aucun');
+  protected readonly niveaux = signal<NiveauxParFamille>(niveauxVierges());
+  protected readonly autreAlcool = signal('');
   protected readonly team = signal<TeamBuveur | ''>('');
   protected readonly servicesPreferes = signal<ReadonlySet<string>>(new Set());
   protected readonly materielApporte = signal('');
@@ -108,8 +115,7 @@ export class FormulairePublic {
   // -- Validation : une etape ne se quitte pas incomplete -------------------
 
   protected readonly identiteValide = computed(
-    () =>
-      this.prenom().trim().length > 0 && this.nom().trim().length > 0 && this.accompagne() !== '',
+    () => this.prenom().trim().length > 0 && this.nom().trim().length > 0,
   );
 
   protected readonly sejourValide = computed(() => {
@@ -156,56 +162,47 @@ export class FormulairePublic {
 
   // -- Petits utilitaires de saisie -----------------------------------------
 
-  protected majAccompagnants(valeur: string): void {
-    const nombre = Number(valeur);
-    if (Number.isFinite(nombre))
-      this.accompagnants.set(Math.min(20, Math.max(1, Math.round(nombre))));
-  }
-
   protected majPlacesVoiture(valeur: string): void {
     const places = Number(valeur);
     if (Number.isFinite(places))
       this.placesVoiture.set(Math.min(9, Math.max(0, Math.round(places))));
   }
 
-  protected aimeBoisson(id: string): boolean {
-    return this.boissonsAimees().has(id);
+  protected intensiteDe(id: string): number {
+    return this.boissonsAimees().get(id) ?? 0;
   }
 
-  protected intensiteDe(id: string): number {
-    return this.boissonsAimees().get(id) ?? 3;
+  protected libelleIntensiteDe(id: string): string {
+    return LIBELLE_INTENSITE.get(this.intensiteDe(id)) ?? '';
+  }
+
+  protected niveauDe(famille: FamilleAlcool): NiveauConso {
+    return this.niveaux()[famille];
+  }
+
+  protected majNiveau(famille: FamilleAlcool, niveau: NiveauConso): void {
+    this.niveaux.set({ ...this.niveaux(), [famille]: niveau });
   }
 
   /**
-   * Cocher une boisson la pose a « j'aime bien » ; le curseur affine ensuite.
+   * Le curseur bouge, le rythme de la famille suit.
    *
-   * Le rythme de la famille suit la case : cocher un premier alcool alors qu'on
-   * est encore a « rien du tout » n'a pas de sens, et decocher le dernier laisse
-   * un rythme declare sans rien pour le porter. On evite ainsi de faire remonter
-   * des fiches contradictoires a l'interpretation.
+   * Passer un premier alcool au-dessus de zero alors qu'on est encore a « rien
+   * du tout » n'a pas de sens, et retomber a zero partout laisse un rythme
+   * declare sans rien pour le porter. On evite ainsi de faire remonter des
+   * fiches contradictoires a l'interpretation.
    */
-  protected basculerBoisson(id: string): void {
+  protected majIntensite(id: string, famille: FamilleAlcool, valeur: string): void {
+    const cran = Number(valeur);
+    if (!Number.isFinite(cran)) return;
     const suivantes = new Map(this.boissonsAimees());
-    if (suivantes.has(id)) suivantes.delete(id);
-    else suivantes.set(id, 3);
+    suivantes.set(id, Math.min(INTENSITE_MAX, Math.max(0, Math.round(cran))));
     this.boissonsAimees.set(suivantes);
 
-    const famille = BOISSONS_AIMEES.find((x) => x.id === id)?.famille;
-    if (!famille) return;
-    const niveau = famille === 'basique' ? this.niveauBasiques : this.niveauSpiritueux;
-    const restantes = BOISSONS_AIMEES.filter(
-      (x) => x.famille === famille && suivantes.has(x.id),
-    ).length;
-    if (restantes > 0 && niveau() === 'aucun') niveau.set('moyen');
-    else if (restantes === 0) niveau.set('aucun');
-  }
-
-  protected majIntensite(id: string, valeur: string): void {
-    const intensite = Number(valeur);
-    if (!Number.isFinite(intensite)) return;
-    const suivantes = new Map(this.boissonsAimees());
-    suivantes.set(id, Math.min(5, Math.max(1, Math.round(intensite))));
-    this.boissonsAimees.set(suivantes);
+    const aimees = boissonsDeFamille(famille).some((x) => (suivantes.get(x.id) ?? 0) > 0);
+    const niveau = this.niveaux()[famille];
+    if (aimees && niveau === 'aucun') this.majNiveau(famille, 'moyen');
+    else if (!aimees && niveau !== 'aucun') this.majNiveau(famille, 'aucun');
   }
 
   /** Le chameau ne repond pas aux questions d'alcool : elles disparaissent. */
@@ -237,7 +234,7 @@ export class FormulairePublic {
         nom: this.nom().trim(),
         surnom: this.surnom().trim(),
         invitePar: this.invitePar().trim(),
-        accompagnants: this.accompagne() === 'oui' ? this.accompagnants() : 0,
+        accompagnants: 0,
         regime: this.regime(),
         allergies: this.aDesAllergies() === 'oui' ? this.allergies().trim() : '',
         preferencesBoissons: '',
@@ -246,12 +243,14 @@ export class FormulairePublic {
         commentaire: this.commentaire().trim(),
         consommations: [],
         stylesMusicaux: this.stylesMusicaux().trim(),
-        boissonsAimees: [...this.boissonsAimees().entries()].map(([boissonId, intensite]) => ({
-          boissonId,
-          intensite,
-        })),
-        niveauBasiques: this.sansAlcool() ? 'aucun' : this.niveauBasiques(),
-        niveauSpiritueux: this.sansAlcool() ? 'aucun' : this.niveauSpiritueux(),
+        // Un curseur laisse a zero ne dit rien : on ne l'envoie pas.
+        boissonsAimees: this.sansAlcool()
+          ? []
+          : [...this.boissonsAimees().entries()]
+              .filter(([, intensite]) => intensite > 0)
+              .map(([boissonId, intensite]) => ({ boissonId, intensite })),
+        niveaux: this.sansAlcool() ? niveauxVierges() : this.niveaux(),
+        autreAlcool: this.sansAlcool() ? '' : this.autreAlcool().trim(),
         team: this.team(),
         servicesPreferes: [...this.servicesPreferes()],
         logistique: {
@@ -262,7 +261,7 @@ export class FormulairePublic {
           sejourComplet: complet,
           placesVoiture: this.voiture() === 'oui' ? this.placesVoiture() : 0,
           chercheCovoiturage: this.chercheCovoiturage(),
-          hebergement: this.tente() === 'oui' ? 'tente' : this.hebergement(),
+          hebergement: this.tente() === 'oui' ? 'tente' : 'a-definir',
           arrivee: complet ? '' : this.arrivee().trim(),
           depart: complet ? '' : this.depart().trim(),
           materielApporte: this.materielApporte().trim(),
@@ -282,8 +281,6 @@ export class FormulairePublic {
     this.prenom.set('');
     this.nom.set('');
     this.surnom.set('');
-    this.accompagne.set('');
-    this.accompagnants.set(1);
     this.sejourComplet.set('');
     this.arrivee.set('');
     this.depart.set('');
@@ -292,13 +289,12 @@ export class FormulairePublic {
     this.tente.set('');
     this.placesVoiture.set(0);
     this.chercheCovoiturage.set(false);
-    this.hebergement.set('a-definir');
     this.regime.set('omnivore');
     this.aDesAllergies.set('');
     this.allergies.set('');
     this.boissonsAimees.set(new Map());
-    this.niveauBasiques.set('aucun');
-    this.niveauSpiritueux.set('aucun');
+    this.niveaux.set(niveauxVierges());
+    this.autreAlcool.set('');
     this.team.set('');
     this.servicesPreferes.set(new Set());
     this.materielApporte.set('');
