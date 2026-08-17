@@ -7,6 +7,7 @@ import { PersonnesTypes } from '../../components/personnes-types/personnes-types
 import { ReglagesForm } from '../../components/reglages-form/reglages-form';
 import { RepartitionPanel } from '../../components/repartition-panel/repartition-panel';
 import { SectionCourses } from '../../components/section-courses/section-courses';
+import { SectionDj } from '../../components/section-dj/section-dj';
 import { SectionFormulaire } from '../../components/section-formulaire/section-formulaire';
 import { SectionMateriel } from '../../components/section-materiel/section-materiel';
 import { SectionNourriture } from '../../components/section-nourriture/section-nourriture';
@@ -34,6 +35,7 @@ import { fmtEntier, fmtEuro } from '../../domain/format';
     ReglagesForm,
     RepartitionPanel,
     SectionCourses,
+    SectionDj,
     SectionFormulaire,
     SectionMateriel,
     SectionNourriture,
@@ -83,6 +85,10 @@ export class Planner {
       case 'programme': {
         const resume = this.store.resumeProgramme();
         return resume.creneaux > 0 ? fmtEntier(resume.creneaux) : '';
+      }
+      case 'dj': {
+        const resume = this.store.resumeDj();
+        return resume.total > 0 ? `${resume.valides}/${resume.total}` : '';
       }
       case 'formulaire':
         return fmtEntier(this.store.reponsesFormulaire().length);

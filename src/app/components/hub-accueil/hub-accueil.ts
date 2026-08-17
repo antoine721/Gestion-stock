@@ -57,6 +57,7 @@ export class HubAccueil {
     const encaissements = this.store.encaissements();
     const courses = this.store.resumeCourses();
     const programme = this.store.resumeProgramme();
+    const dj = this.store.resumeDj();
 
     return [
       carte('alcool', {
@@ -107,20 +108,31 @@ export class HubAccueil {
         etatTexte: courses.lignes > 0 && courses.restant === 0 ? 'Caddie plein' : '',
       }),
       carte('programme', {
-        valeur: `${fmtEntier(programme.creneaux)} creneau(x)`,
-        sous: `${fmtEntier(programme.morceaux)} morceau(x) dans la tracklist`,
+        valeur: `${fmtEntier(programme.creneaux)} mission(s)`,
+        sous:
+          programme.sansAssigne > 0
+            ? `${fmtEntier(programme.sansAssigne)} sans equipe`
+            : 'Toutes les missions ont leur equipe',
         etat:
-          programme.creneaux > 0 && programme.joursVides > 0
+          programme.creneaux > 0 && (programme.joursVides > 0 || programme.sansAssigne > 0)
             ? 'attention'
             : programme.creneaux > 0
               ? 'pret'
               : '',
         etatTexte:
-          programme.creneaux > 0 && programme.joursVides > 0
-            ? `${programme.joursVides} jour(s) vide(s)`
-            : programme.creneaux > 0
-              ? 'Programme'
-              : '',
+          programme.creneaux > 0 && programme.sansAssigne > 0
+            ? `${programme.sansAssigne} a pourvoir`
+            : programme.creneaux > 0 && programme.joursVides > 0
+              ? `${programme.joursVides} jour(s) vide(s)`
+              : programme.creneaux > 0
+                ? 'Complet'
+                : '',
+      }),
+      carte('dj', {
+        valeur: `${fmtEntier(dj.valides)}/${fmtEntier(dj.total)} sets`,
+        sous: 'valides sur le tableau horaire',
+        etat: dj.demandes > 0 ? 'attention' : dj.valides > 0 ? 'pret' : '',
+        etatTexte: dj.demandes > 0 ? `${dj.demandes} demande(s)` : dj.valides > 0 ? 'Cale' : '',
       }),
       carte('stats', {
         valeur: fmtEuro(this.store.budgetGlobal().total),

@@ -1,0 +1,163 @@
+<section class="card">
+  <div class="card-head">
+    <h2>Le tableau horaire</h2>
+    <span class="muted num">
+      {{ fmtEntier(store.resumeDj().valides) }} valide(s) ·
+      {{ fmtEntier(store.resumeDj().demandes) }} demande(s)
+    </span>
+  </div>
+
+  <p class="intro muted">
+    Qui mixe, quand, et ou en est la demande : un invite propose un set, vous validez (ou pas), et
+    le set finit « joue ». Le suivi se note dans la derniere colonne.
+  </p>
+
+  @if (sets().length === 0) {
+    <p class="vide">
+      Aucun set pour l'instant. Ajoute une ligne, ou pioche dans les volontaires ci-dessous.
+    </p>
+  } @else {
+    <div class="defilement">
+      <table>
+        <thead>
+          <tr>
+            <th>Jour</th>
+            <th>Debut</th>
+            <th>Fin</th>
+            <th>DJ</th>
+            <th>Style / ambiance</th>
+            <th>Statut</th>
+            <th>Suivi</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (set of sets(); track set.id) {
+            <tr [class]="'statut-' + set.statut">
+              <td>
+                <select class="etroit" (change)="majJour(set, $any($event.target).value)">
+                  @for (jour of jours(); track jour) {
+                    <option [value]="jour" [selected]="jour === set.jour">J{{ jour }}</option>
+                  }
+                </select>
+              </td>
+              <td>
+                <input
+                  class="heure num"
+                  type="text"
+                  placeholder="21:00"
+                  [value]="set.debut"
+                  (input)="maj(set, { debut: $any($event.target).value })"
+                />
+              </td>
+              <td>
+                <input
+                  class="heure num"
+                  type="text"
+                  placeholder="23:00"
+                  [value]="set.fin"
+                  (input)="maj(set, { fin: $any($event.target).value })"
+                />
+              </td>
+              <td>
+                <select (change)="maj(set, { dj: $any($event.target).value })">
+                  <option value="" [selected]="!set.dj">— A definir</option>
+                  @for (personne of store.personnesAssignables(); track personne.ref) {
+                    <option [value]="personne.ref" [selected]="personne.ref === set.dj">
+                      {{ personne.nom }}
+                    </option>
+                  }
+                </select>
+              </td>
+              <td>
+                <input
+                  type="text"
+                  placeholder="Techno, annees 80, libre..."
+                  [value]="set.style"
+                  (input)="maj(set, { style: $any($event.target).value })"
+                />
+              </td>
+              <td>
+                <select class="statut" (change)="maj(set, { statut: $any($event.target).value })">
+                  @for (statut of statuts; track statut.id) {
+                    <option [value]="statut.id" [selected]="statut.id === set.statut">
+                      {{ statut.libelle }}
+                    </option>
+                  }
+                </select>
+              </td>
+              <td>
+                <input
+                  type="text"
+                  placeholder="Materiel, contraintes, retours..."
+                  [value]="set.notes"
+                  (input)="maj(set, { notes: $any($event.target).value })"
+                />
+              </td>
+              <td class="droite">
+                <button type="button" class="discret" title="Retirer" (click)="supprimer(set)">
+                  ×
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <div class="ajout">
+    <button type="button" class="primaire" (click)="store.ajouterDjSet()">+ Ajouter un set</button>
+  </div>
+
+  <p class="hint">
+    Valide un set pour l'inscrire au marbre ; le planning des missions reste l'espace Programme —
+    ici, c'est la regie musicale.
+  </p>
+</section>
+
+<div class="colonnes-dj">
+  @if (volontairesDj().length > 0) {
+    <section class="card">
+      <div class="card-head">
+        <h2>🙋 Volontaires DJ</h2>
+        <span class="muted num">{{ fmtEntier(volontairesDj().length) }}</span>
+      </div>
+      <p class="intro muted">Ils se sont proposes via leur fiche : un clic en fait une demande.</p>
+      <ul class="volontaires">
+        @for (invite of volontairesDj(); track invite.id) {
+          <li>
+            <div>
+              <strong>{{ invite.prenom }} {{ invite.nom }}</strong>
+              <span class="muted"> — {{ invite.envies }}</span>
+              @if (invite.stylesMusicaux) {
+                <span class="muted"> · {{ invite.stylesMusicaux }}</span>
+              }
+            </div>
+            <button type="button" (click)="proposerVolontaire(invite.id)">Proposer un set</button>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  @if (store.demandesMusicales().length > 0) {
+    <section class="card">
+      <div class="card-head">
+        <h2>🎶 Ce que le public veut entendre</h2>
+        <span class="muted num">{{ fmtEntier(store.demandesMusicales().length) }}</span>
+      </div>
+      <p class="intro muted">
+        Les envies musicales collectees par le formulaire : de quoi briefer les DJ.
+      </p>
+      <ul class="demandes">
+        @for (demande of store.demandesMusicales(); track demande.cle) {
+          <li>
+            <span>{{ demande.texte }}</span>
+            <span class="muted">— {{ demande.demandePar }}</span>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+</div>

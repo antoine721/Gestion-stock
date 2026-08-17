@@ -248,6 +248,37 @@ describe('PlannerStore', () => {
     expect(store.resumeLogistique().placesOffertes).toBe(3);
   });
 
+  it('assigne et retire des missions sur un creneau', () => {
+    const creneauId = store.ajouterCreneau(1);
+    const inviteId = store.ajouterInvite('a');
+
+    store.assignerPersonne(creneauId, `inv:${inviteId}`);
+    store.assignerPersonne(creneauId, 'org:m');
+    // Une deuxieme assignation identique ne double pas l'equipe.
+    store.assignerPersonne(creneauId, 'org:m');
+
+    const creneau = store.programme().creneaux.find((x) => x.id === creneauId);
+    expect(creneau?.assignes).toEqual([`inv:${inviteId}`, 'org:m']);
+    expect(store.resumeProgramme().sansAssigne).toBe(0);
+
+    store.retirerAssignation(creneauId, 'org:m');
+    expect(store.programme().creneaux.find((x) => x.id === creneauId)?.assignes).toEqual([
+      `inv:${inviteId}`,
+    ]);
+  });
+
+  it('suit le workflow des sets DJ', () => {
+    const setId = store.ajouterDjSet({ jour: 1, debut: '21:00', dj: 'org:a' });
+    expect(store.resumeDj().demandes).toBe(1);
+
+    store.majDjSet(setId, { statut: 'valide' });
+    expect(store.resumeDj().demandes).toBe(0);
+    expect(store.resumeDj().valides).toBe(1);
+
+    store.supprimerDjSet(setId);
+    expect(store.resumeDj().total).toBe(0);
+  });
+
   it('cocher une ligne materiel bascule le statut de l’article', () => {
     const id = store.ajouterArticle({ nom: 'Guirlandes' });
     store.basculerCourse(`materiel:${id}`);
