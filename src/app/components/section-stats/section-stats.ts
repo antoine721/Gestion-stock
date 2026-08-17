@@ -48,6 +48,7 @@ export class SectionStats {
         | 'materiel'
         | 'courses'
         | 'programme'
+        | 'dj'
         | 'formulaire';
       texte: string;
     }[] = [];
@@ -100,6 +101,16 @@ export class SectionStats {
         espace: 'programme',
         texte: `${programme.joursVides} jour(s) sans creneau au programme`,
       });
+    }
+    if (programme.sansAssigne > 0) {
+      taches.push({
+        espace: 'programme',
+        texte: `${programme.sansAssigne} mission(s) sans equipe`,
+      });
+    }
+    const dj = this.store.resumeDj();
+    if (dj.demandes > 0) {
+      taches.push({ espace: 'dj', texte: `${dj.demandes} set(s) DJ en attente de validation` });
     }
     return taches;
   });

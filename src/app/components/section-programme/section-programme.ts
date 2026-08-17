@@ -1,14 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
-import { DemandeMusicale, TYPES_CRENEAU, planningDuJour } from '../../domain/programme';
+import { TYPES_CRENEAU, nomDeRef, planningDuJour } from '../../domain/programme';
 import { fmtEntier } from '../../domain/format';
-import { Creneau, Morceau } from '../../domain/models';
+import { Creneau, TypeCreneau } from '../../domain/models';
 
 /**
- * Le programme du festival : le planning jour par jour — ce qui a ete mis en
- * place, quand, qui s'en occupe — et le coin DJ : la tracklist commune,
- * alimentee a la main ou depuis les demandes du formulaire, et les
- * volontaires qui ont envie de faire quelque chose.
+ * Le programme du festival, en calendrier : une colonne par jour, les
+ * creneaux-missions en ordre chronologique. Tout le monde participe — chaque
+ * creneau porte ses assignes, visibles d'un coup d'oeil, et l'edition s'ouvre
+ * au clic sur la carte.
  */
 @Component({
   selector: 'app-section-programme',
@@ -21,6 +21,9 @@ export class SectionProgramme {
   protected readonly fmtEntier = fmtEntier;
   protected readonly types = TYPES_CRENEAU;
 
+  /** Le creneau ouvert en edition, un seul a la fois. */
+  protected readonly ouvert = signal('');
+
   protected readonly journees = computed(() => {
     const programme = this.store.programme();
     const jours = Math.max(1, this.store.partage().jours);
@@ -30,22 +33,36 @@ export class SectionProgramme {
     }));
   });
 
+  protected emojiDe(type: TypeCreneau): string {
+    return TYPES_CRENEAU.find((x) => x.id === type)?.emoji ?? '📌';
+  }
+
+  protected nomDe(ref: string): string {
+    return nomDeRef(ref, this.store.participants(), this.store.invitesNommes());
+  }
+
+  protected basculer(creneauId: string): void {
+    this.ouvert.set(this.ouvert() === creneauId ? '' : creneauId);
+  }
+
+  protected ajouter(jour: number): void {
+    // Un creneau neuf s'ouvre en edition : il y a tout a remplir.
+    this.ouvert.set(this.store.ajouterCreneau(jour));
+  }
+
   protected maj(creneau: Creneau, patch: Partial<Omit<Creneau, 'id'>>): void {
     this.store.majCreneau(creneau.id, patch);
   }
 
-  protected supprimerCreneau(creneau: Creneau): void {
+  protected assigner(creneau: Creneau, evenement: Event): void {
+    const select = evenement.target as HTMLSelectElement;
+    if (select.value) this.store.assignerPersonne(creneau.id, select.value);
+    select.value = '';
+  }
+
+  protected supprimer(creneau: Creneau): void {
     if (confirm(`Retirer « ${creneau.titre || 'ce creneau'} » du planning ?`)) {
       this.store.supprimerCreneau(creneau.id);
     }
-  }
-
-  protected majMorceau(morceau: Morceau, patch: Partial<Omit<Morceau, 'id'>>): void {
-    this.store.majMorceau(morceau.id, patch);
-  }
-
-  /** Une demande du formulaire devient une ligne de tracklist, d'un clic. */
-  protected ajouterDemande(demande: DemandeMusicale): void {
-    this.store.ajouterMorceau({ titre: demande.texte, demandePar: demande.demandePar });
   }
 }
