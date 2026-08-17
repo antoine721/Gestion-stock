@@ -160,13 +160,23 @@ export type Hebergement = 'a-definir' | 'sur-place' | 'tente' | 'rentre';
 /** Paliers declaratifs de consommation, du « rien » a « abuse ». */
 export type NiveauConso = 'aucun' | 'peu' | 'moyen' | 'beaucoup' | 'abuse';
 
+/**
+ * Les trois familles d'alcool DECLAREES au formulaire, a ne pas confondre avec
+ * les familles du catalogue : on ne boit pas la biere, le vin et les
+ * spiritueux au meme compteur, donc chacune a son propre rythme.
+ */
+export type FamilleAlcool = 'biere' | 'vin' | 'spiritueux';
+
+/** Le rythme declare, famille par famille. */
+export type NiveauxParFamille = Record<FamilleAlcool, NiveauConso>;
+
 /** Les quatre equipes de buveurs, telles que l'invite se declare. */
 export type TeamBuveur = 'chameau' | 'degustation' | 'croisiere' | 'bateau-ivre';
 
 /**
- * Un gout declare : une boisson, et a quel point la personne l'aime, de 1
- * (« a l'occasion ») a 5 (« c'est ma boisson »). L'intensite sert a repartir
- * une consommation estimee entre les boissons cochees — jamais a l'augmenter.
+ * Un gout declare : une boisson, et a quel point la personne l'aime, de 0
+ * (« j'en bois pas ») a 4 (« je bois que ca »). L'intensite sert a repartir
+ * une consommation estimee entre les boissons aimees — jamais a l'augmenter.
  */
 export interface GoutBoisson {
   boissonId: string;
@@ -253,9 +263,10 @@ export interface Invite {
   surnom: string;
   /** Ce qu'elle aime boire, avec l'intensite du gout — declaratif. */
   boissonsAimees: GoutBoisson[];
-  /** Ce qu'elle dit boire en basiques et en spiritueux, sur une soiree. */
-  niveauBasiques: NiveauConso;
-  niveauSpiritueux: NiveauConso;
+  /** Ce qu'elle dit boire sur une soiree, famille par famille. */
+  niveaux: NiveauxParFamille;
+  /** L'alcool qu'on a oublie dans la liste, dans ses mots. */
+  autreAlcool: string;
   /** L'equipe dans laquelle elle se range. '' = pas repondu. */
   team: TeamBuveur | '';
   /** Les coups de main qu'elle prefere donner (ids de preferences.ts). */
@@ -288,10 +299,10 @@ export type UniteIngredient = 'g' | 'ml' | 'piece';
 
 /**
  * Un ingredient d'un repas, dose PAR PERSONNE — le meme invariant que le bar :
- * on raisonne en grammes et millilitres, jamais en paquets. La conversion en
- * paquets n'arrive qu'une fois, a la toute fin, sur le besoin agrege de tous
- * les repas (la viande du barbecue du samedi et celle du dimanche ne font
- * qu'une ligne de courses).
+ * on raisonne en grammes et millilitres. L'arrondi a l'unite d'achat n'arrive
+ * qu'une fois, a la toute fin, sur le besoin agrege de tous les repas (la
+ * viande du barbecue du samedi et celle du dimanche ne font qu'une ligne de
+ * courses, et donc un seul arrondi).
  */
 export interface IngredientRepas {
   id: string;
@@ -299,9 +310,13 @@ export interface IngredientRepas {
   /** Dose par personne, dans l'unite choisie. */
   qteParPersonne: number;
   unite: UniteIngredient;
-  /** Taille du conditionnement achete (paquet de 500 g, bouteille d'1 L...). */
-  conditionnement: number;
-  prixConditionnement: number;
+  /**
+   * Prix dans l'unite d'ACHAT : au kilo pour des grammes, au litre pour des
+   * millilitres, a la piece sinon. On ne decrit plus la taille du paquet :
+   * personne ne la connait en faisant sa liste, et le magasin affiche de
+   * toute facon un prix au kilo.
+   */
+  prixUnitaire: number;
 }
 
 /**
@@ -469,8 +484,9 @@ export interface ReponseFormulaire {
   surnom: string;
   /** Ce qu'il aime boire, avec l'intensite du gout — declaratif. */
   boissonsAimees: GoutBoisson[];
-  niveauBasiques: NiveauConso;
-  niveauSpiritueux: NiveauConso;
+  niveaux: NiveauxParFamille;
+  /** L'alcool qu'on a oublie dans la liste, dans ses mots. */
+  autreAlcool: string;
   team: TeamBuveur | '';
   /** Les coups de main qu'il prefere donner (ids de preferences.ts). */
   servicesPreferes: string[];

@@ -5,6 +5,7 @@ import {
   REGIMES,
   libelleConsommations,
   logistiqueVierge,
+  niveauxVierges,
 } from '../../domain/invites';
 import { fmtEntier } from '../../domain/format';
 import { Regime, ReponseFormulaire } from '../../domain/models';
@@ -79,8 +80,8 @@ export class SectionFormulaire {
       logistique: logistiqueVierge(),
       surnom: '',
       boissonsAimees: [],
-      niveauBasiques: 'aucun',
-      niveauSpiritueux: 'aucun',
+      niveaux: niveauxVierges(),
+      autreAlcool: '',
       team: '',
       servicesPreferes: [],
     });

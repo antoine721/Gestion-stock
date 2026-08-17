@@ -12,11 +12,12 @@ import {
  * Nourriture.
  *
  * Meme invariant que le bar : cote besoin on raisonne PAR PERSONNE, en grammes
- * et millilitres, jamais en paquets. Tous les repas s'agregent d'abord (la
- * viande du samedi et celle du dimanche ne font qu'un besoin), et la
- * conversion en paquets n'arrive qu'une fois, a la toute fin, dans
- * coursesCuisine(). Un repas sans ingredients garde un simple cout par
- * personne (pizzas commandees, traiteur).
+ * et millilitres. Tous les repas s'agregent d'abord (la viande du samedi et
+ * celle du dimanche ne font qu'un besoin), et l'arrondi a l'unite d'achat —
+ * des kilos, des litres, des pieces ENTIERS — n'arrive qu'une fois, a la toute
+ * fin, dans coursesCuisine(). On n'achete pas 1,4 kg de viande : on en achete
+ * 2. Un repas sans ingredients garde un simple cout par personne (pizzas
+ * commandees, traiteur).
  */
 
 export const NOURRITURE_PAR_DEFAUT: Nourriture = { repas: [], extras: [] };
@@ -68,6 +69,27 @@ export const UNITES_INGREDIENT: readonly { id: UniteIngredient; libelle: string 
   { id: 'piece', libelle: 'piece(s)' },
 ];
 
+/**
+ * Combien d'unites de dosage tient une unite d'ACHAT. On dose en grammes et en
+ * millilitres, on achete au kilo et au litre — c'est la seule conversion du
+ * module, et elle n'arrive qu'a la fin, sur le besoin agrege.
+ */
+export const PAS_ACHAT: Record<UniteIngredient, number> = { g: 1000, ml: 1000, piece: 1 };
+
+/** L'unite dans laquelle on remplit le caddie, et dans laquelle on paie. */
+export const UNITE_ACHAT: Record<UniteIngredient, string> = {
+  g: 'kg',
+  ml: 'L',
+  piece: 'piece(s)',
+};
+
+/** « € / kg », « € / L », « € / piece » — l'intitule du prix a saisir. */
+export const LIBELLE_PRIX: Record<UniteIngredient, string> = {
+  g: '€/kg',
+  ml: '€/L',
+  piece: '€/piece',
+};
+
 /** Un ingredient d'idee de plat : la meme chose sans identifiant. */
 type IdeeIngredient = Omit<IngredientRepas, 'id'>;
 
@@ -75,10 +97,9 @@ function ing(
   nom: string,
   qteParPersonne: number,
   unite: UniteIngredient,
-  conditionnement: number,
-  prixConditionnement: number,
+  prixUnitaire: number,
 ): IdeeIngredient {
-  return { nom, qteParPersonne, unite, conditionnement, prixConditionnement };
+  return { nom, qteParPersonne, unite, prixUnitaire };
 }
 
 /**
@@ -102,9 +123,9 @@ export const IDEES_PLATS: readonly {
     moments: ['petit-dejeuner'],
     vegetarienFacile: true,
     ingredients: [
-      ing('Viennoiseries', 1.5, 'piece', 10, 8),
-      ing('Jus d’orange', 150, 'ml', 1000, 2.2),
-      ing('Cafe moulu', 10, 'g', 250, 4),
+      ing('Viennoiseries', 1.5, 'piece', 0.8),
+      ing('Jus d’orange', 150, 'ml', 2.2),
+      ing('Cafe moulu', 10, 'g', 16),
     ],
   },
   {
@@ -114,10 +135,10 @@ export const IDEES_PLATS: readonly {
     moments: ['petit-dejeuner'],
     vegetarienFacile: true,
     ingredients: [
-      ing('Oeufs', 2, 'piece', 12, 3.5),
-      ing('Pain', 80, 'g', 400, 1.4),
-      ing('Lardons / bacon', 50, 'g', 200, 2.5),
-      ing('Jus d’orange', 200, 'ml', 1000, 2.2),
+      ing('Oeufs', 2, 'piece', 0.29),
+      ing('Pain', 80, 'g', 3.5),
+      ing('Lardons / bacon', 50, 'g', 12.5),
+      ing('Jus d’orange', 200, 'ml', 2.2),
     ],
   },
   {
@@ -127,10 +148,10 @@ export const IDEES_PLATS: readonly {
     moments: ['dejeuner', 'diner'],
     vegetarienFacile: true,
     ingredients: [
-      ing('Viande a griller', 180, 'g', 1000, 12),
-      ing('Chipolatas / merguez', 2, 'piece', 12, 7),
-      ing('Pain', 100, 'g', 400, 1.4),
-      ing('Crudites', 100, 'g', 1000, 3.5),
+      ing('Viande a griller', 180, 'g', 12),
+      ing('Chipolatas / merguez', 2, 'piece', 0.58),
+      ing('Pain', 100, 'g', 3.5),
+      ing('Crudites', 100, 'g', 3.5),
     ],
   },
   {
@@ -140,10 +161,10 @@ export const IDEES_PLATS: readonly {
     moments: ['dejeuner', 'diner'],
     vegetarienFacile: true,
     ingredients: [
-      ing('Pates', 120, 'g', 1000, 1.8),
-      ing('Boeuf hache', 120, 'g', 1000, 11),
-      ing('Sauce tomate', 120, 'ml', 700, 2.2),
-      ing('Parmesan', 15, 'g', 200, 4),
+      ing('Pates', 120, 'g', 1.8),
+      ing('Boeuf hache', 120, 'g', 11),
+      ing('Sauce tomate', 120, 'ml', 3.14),
+      ing('Parmesan', 15, 'g', 20),
     ],
   },
   {
@@ -153,10 +174,10 @@ export const IDEES_PLATS: readonly {
     moments: ['dejeuner', 'diner'],
     vegetarienFacile: true,
     ingredients: [
-      ing('Riz', 90, 'g', 1000, 2.2),
-      ing('Boeuf hache', 100, 'g', 1000, 11),
-      ing('Haricots rouges', 130, 'g', 800, 1.6),
-      ing('Tomates concassees', 130, 'ml', 800, 1.5),
+      ing('Riz', 90, 'g', 2.2),
+      ing('Boeuf hache', 100, 'g', 11),
+      ing('Haricots rouges', 130, 'g', 2),
+      ing('Tomates concassees', 130, 'ml', 1.88),
     ],
   },
   {
@@ -166,9 +187,9 @@ export const IDEES_PLATS: readonly {
     moments: ['dejeuner', 'diner'],
     vegetarienFacile: true,
     ingredients: [
-      ing('Riz', 90, 'g', 1000, 2.2),
-      ing('Legumes varies', 250, 'g', 1000, 3),
-      ing('Lait de coco', 100, 'ml', 400, 2.3),
+      ing('Riz', 90, 'g', 2.2),
+      ing('Legumes varies', 250, 'g', 3),
+      ing('Lait de coco', 100, 'ml', 5.75),
     ],
   },
   {
@@ -178,10 +199,10 @@ export const IDEES_PLATS: readonly {
     moments: ['dejeuner', 'diner'],
     vegetarienFacile: false,
     ingredients: [
-      ing('Riz', 100, 'g', 1000, 2.2),
-      ing('Poulet', 120, 'g', 1000, 9),
-      ing('Fruits de mer', 100, 'g', 500, 7),
-      ing('Poivrons', 80, 'g', 500, 2.5),
+      ing('Riz', 100, 'g', 2.2),
+      ing('Poulet', 120, 'g', 9),
+      ing('Fruits de mer', 100, 'g', 14),
+      ing('Poivrons', 80, 'g', 5),
     ],
   },
   {
@@ -191,10 +212,10 @@ export const IDEES_PLATS: readonly {
     moments: ['diner'],
     vegetarienFacile: true,
     ingredients: [
-      ing('Fromage a raclette', 200, 'g', 400, 6.5),
-      ing('Pommes de terre', 300, 'g', 2500, 3.5),
-      ing('Charcuterie', 120, 'g', 300, 5),
-      ing('Cornichons', 30, 'g', 350, 2.5),
+      ing('Fromage a raclette', 200, 'g', 16.25),
+      ing('Pommes de terre', 300, 'g', 1.4),
+      ing('Charcuterie', 120, 'g', 16.67),
+      ing('Cornichons', 30, 'g', 7.14),
     ],
   },
   {
@@ -204,10 +225,10 @@ export const IDEES_PLATS: readonly {
     moments: ['dejeuner', 'diner'],
     vegetarienFacile: true,
     ingredients: [
-      ing('Tortillas', 2.5, 'piece', 8, 2.2),
-      ing('Poulet', 130, 'g', 1000, 9),
-      ing('Fromage rape', 40, 'g', 200, 2.5),
-      ing('Crudites', 80, 'g', 1000, 3.5),
+      ing('Tortillas', 2.5, 'piece', 0.28),
+      ing('Poulet', 130, 'g', 9),
+      ing('Fromage rape', 40, 'g', 12.5),
+      ing('Crudites', 80, 'g', 3.5),
     ],
   },
   {
@@ -225,10 +246,10 @@ export const IDEES_PLATS: readonly {
     moments: ['dejeuner'],
     vegetarienFacile: true,
     ingredients: [
-      ing('Salade', 60, 'g', 300, 2),
-      ing('Feta / mozzarella', 60, 'g', 200, 2.5),
-      ing('Tomates', 120, 'g', 1000, 3),
-      ing('Pain', 80, 'g', 400, 1.4),
+      ing('Salade', 60, 'g', 6.67),
+      ing('Feta / mozzarella', 60, 'g', 12.5),
+      ing('Tomates', 120, 'g', 3),
+      ing('Pain', 80, 'g', 3.5),
     ],
   },
   {
@@ -238,9 +259,9 @@ export const IDEES_PLATS: readonly {
     moments: ['dejeuner'],
     vegetarienFacile: true,
     ingredients: [
-      ing('Pain / wraps', 1.2, 'piece', 6, 2.5),
-      ing('Jambon / poulet', 80, 'g', 300, 4),
-      ing('Crudites', 60, 'g', 1000, 3.5),
+      ing('Pain / wraps', 1.2, 'piece', 0.42),
+      ing('Jambon / poulet', 80, 'g', 13.33),
+      ing('Crudites', 60, 'g', 3.5),
     ],
   },
 ];
@@ -261,12 +282,31 @@ export function repasVierge(id: string, jour: number, moment: MomentRepas): Repa
 }
 
 export function ingredientVierge(id: string): IngredientRepas {
-  return { id, nom: '', qteParPersonne: 0, unite: 'g', conditionnement: 0, prixConditionnement: 0 };
+  return { id, nom: '', qteParPersonne: 0, unite: 'g', prixUnitaire: 0 };
 }
 
-/** Complete un repas venu de la base avec les champs apparus depuis. */
+/**
+ * Complete un repas venu de la base avec les champs apparus depuis. Les
+ * ingredients d'avant le prix au kilo portaient un couple taille de paquet /
+ * prix du paquet : on en deduit le prix unitaire plutot que de perdre la ligne.
+ */
 export function normaliserRepas(brut: Partial<Repas> & { id: string }): Repas {
-  return { ...repasVierge(brut.id, brut.jour ?? 1, brut.moment ?? 'diner'), ...brut };
+  const repas = { ...repasVierge(brut.id, brut.jour ?? 1, brut.moment ?? 'diner'), ...brut };
+  return {
+    ...repas,
+    ingredients: (repas.ingredients ?? []).map((x) => {
+      const ancien = x as Partial<IngredientRepas> & {
+        conditionnement?: number;
+        prixConditionnement?: number;
+      };
+      if (typeof ancien.prixUnitaire === 'number') return { ...ingredientVierge(x.id), ...x };
+      const taille = Math.max(0, ancien.conditionnement ?? 0);
+      const prixPaquet = Math.max(0, ancien.prixConditionnement ?? 0);
+      const unite = ancien.unite ?? 'g';
+      const prixUnitaire = taille > 0 ? (prixPaquet / taille) * PAS_ACHAT[unite] : 0;
+      return { ...ingredientVierge(x.id), ...x, unite, prixUnitaire };
+    }),
+  };
 }
 
 export function extraNourritureVierge(id: string): ExtraNourriture {
@@ -296,9 +336,8 @@ export function coutDuRepas(repas: Repas, invites: number): number {
   if (repas.ingredients.length === 0) return convives * Math.max(0, repas.coutParPersonne);
 
   return repas.ingredients.reduce((somme, x) => {
-    if (x.conditionnement <= 0) return somme;
     const besoin = Math.max(0, x.qteParPersonne) * convives;
-    return somme + (besoin / x.conditionnement) * Math.max(0, x.prixConditionnement);
+    return somme + (besoin / PAS_ACHAT[x.unite]) * Math.max(0, x.prixUnitaire);
   }, 0);
 }
 
@@ -318,22 +357,28 @@ export interface LigneCuisine {
   cle: string;
   nom: string;
   unite: UniteIngredient;
-  /** Besoin brut agrege sur tous les repas, dans l'unite de l'ingredient. */
+  /** Besoin theorique agrege sur tous les repas, dans l'unite de dosage. */
   besoin: number;
-  conditionnement: number;
-  prixConditionnement: number;
-  paquets: number;
+  /** Prix dans l'unite d'achat : au kilo, au litre, ou a la piece. */
+  prixUnitaire: number;
+  /**
+   * Ce qu'on met dans le caddie : des kilos, des litres ou des pieces ENTIERS.
+   * On n'achete pas 1,4 kg de viande — on en achete 2.
+   */
+  quantiteAchat: number;
+  /** L'unite du caddie : « kg », « L », « piece(s) ». */
+  uniteAchat: string;
   prixTotal: number;
-  /** Ce qu'il restera une fois les paquets entames (dans l'unite). */
+  /** Ce qu'il restera une fois l'arrondi fait, dans l'unite de dosage. */
   reste: number;
   /** Les plats qui consomment cet ingredient. */
   plats: string[];
 }
 
 /**
- * Agrege les ingredients de TOUS les repas planifies puis convertit en
- * paquets, a la toute fin. Deux repas qui utilisent « riz » ne font qu'une
- * ligne : le premier conditionnement renseigne fait foi.
+ * Agrege les ingredients de TOUS les repas planifies puis arrondit a l'unite
+ * d'achat, a la toute fin. Deux repas qui utilisent « riz » ne font qu'une
+ * ligne — et donc un seul arrondi : le premier prix renseigne fait foi.
  */
 export function coursesCuisine(
   nourriture: Nourriture,
@@ -362,9 +407,9 @@ export function coursesCuisine(
           nom: ingredient.nom.trim(),
           unite: ingredient.unite,
           besoin,
-          conditionnement: Math.max(0, ingredient.conditionnement),
-          prixConditionnement: Math.max(0, ingredient.prixConditionnement),
-          paquets: 0,
+          prixUnitaire: Math.max(0, ingredient.prixUnitaire),
+          quantiteAchat: 0,
+          uniteAchat: UNITE_ACHAT[ingredient.unite],
           prixTotal: 0,
           reste: 0,
           plats: [repas.plat],
@@ -374,12 +419,15 @@ export function coursesCuisine(
   }
 
   return [...lignes.values()].map((ligne) => {
-    const paquets = ligne.conditionnement > 0 ? Math.ceil(ligne.besoin / ligne.conditionnement) : 0;
+    // On ne compte pas les virgules : 1,4 kg de viande se traduit par 2 kg dans
+    // le caddie. L'arrondi n'arrive qu'ici, sur le besoin de TOUS les repas.
+    const pas = PAS_ACHAT[ligne.unite];
+    const quantiteAchat = Math.ceil(ligne.besoin / pas);
     return {
       ...ligne,
-      paquets,
-      prixTotal: paquets * ligne.prixConditionnement,
-      reste: paquets > 0 ? paquets * ligne.conditionnement - ligne.besoin : 0,
+      quantiteAchat,
+      prixTotal: quantiteAchat * ligne.prixUnitaire,
+      reste: quantiteAchat * pas - ligne.besoin,
     };
   });
 }

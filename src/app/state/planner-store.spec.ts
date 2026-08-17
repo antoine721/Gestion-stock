@@ -199,9 +199,9 @@ describe('PlannerStore', () => {
     store.appliquerIdee(1, 'diner', 'Barbecue');
 
     const viande = store.lignesCuisine().find((x) => x.nom === 'Viande a griller');
-    // 12 tetes x 180 g, agreges avant l'arrondi en paquets.
+    // 12 tetes x 180 g, agreges avant l'arrondi au kilo.
     expect(viande?.besoin).toBe(2160);
-    expect(viande?.paquets).toBe(3);
+    expect(viande?.quantiteAchat).toBe(3);
 
     const ligne = store.listeCourses().find((x) => x.groupe === 'cuisine');
     expect(ligne).toBeDefined();
@@ -229,8 +229,8 @@ describe('PlannerStore', () => {
           logistique: { ...logistiqueVierge(), vehicule: true, placesVoiture: 3 },
           surnom: 'Chlo',
           boissonsAimees: [{ boissonId: 'biere', intensite: 4 }],
-          niveauBasiques: 'moyen',
-          niveauSpiritueux: 'aucun',
+          niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' },
+          autreAlcool: 'Limoncello',
           team: 'croisiere',
           servicesPreferes: ['cuisine'],
           creeLe: '2026-08-10T10:00:00.000Z',

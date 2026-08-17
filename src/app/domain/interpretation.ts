@@ -1,10 +1,10 @@
 import { BOISSONS } from './catalogue';
 import {
-  BOISSONS_AIMEES,
+  FAMILLES_ALCOOL,
+  FAMILLE_PAR_GOUT,
   LIBELLE_BOISSON_AIMEE,
   PLAFOND_TEAM,
-  VERRES_BASIQUES,
-  VERRES_SPIRITUEUX,
+  VERRES_PAR_FAMILLE,
 } from './preferences';
 import { ConsommationType, GoutBoisson, Invite, PersonneType } from './models';
 
@@ -16,7 +16,7 @@ import { ConsommationType, GoutBoisson, Invite, PersonneType } from './models';
  * de consommation existant qui s'en approche le plus.
  *
  * Rien n'est applique tout seul : la proposition attend un clic. C'est
- * volontaire — une case cochee trop vite ne doit pas changer les courses.
+ * volontaire — un curseur pousse trop vite ne doit pas changer les courses.
  * D'ou aussi les garde-fous : on prend le milieu de chaque fourchette, on
  * respecte le plafond de l'equipe choisie, et on signale ce qui sort des
  * clous plutot que de le lisser en silence.
@@ -38,11 +38,12 @@ const SEUIL_BON_MATCH = 70;
  */
 const BOISSONS_PAR_GOUT: Record<string, string[]> = {
   biere: ['biere'],
-  cidre: [],
   'vin-rouge': ['vin-rouge'],
   'vin-blanc': ['vin-blanc'],
   'vin-rose': ['rose'],
+  spritz: ['spritz'],
   rhum: ['rhum-coca', 'mojito'],
+  captain: ['captain-coca'],
   vodka: ['vodka-orange', 'vodka-redbull'],
   gin: ['gin-tonic'],
   whisky: ['whisky-coca', 'whisky-sec'],
@@ -65,8 +66,6 @@ export function goutsIntraduisibles(gouts: readonly GoutBoisson[]): string[] {
     .filter((x) => boissonsDuGout(x.boissonId).length === 0)
     .map((x) => LIBELLE_BOISSON_AIMEE.get(x.boissonId) ?? x.boissonId);
 }
-
-const FAMILLE_PAR_GOUT = new Map(BOISSONS_AIMEES.map((x) => [x.id, x.famille]));
 
 export type GraviteAlerte = 'info' | 'attention';
 
@@ -98,15 +97,15 @@ export interface Correspondance {
 export function aDeclareQuelqueChose(invite: Invite): boolean {
   return (
     invite.team !== '' ||
-    invite.boissonsAimees.length > 0 ||
-    invite.niveauBasiques !== 'aucun' ||
-    invite.niveauSpiritueux !== 'aucun'
+    invite.autreAlcool.trim() !== '' ||
+    invite.boissonsAimees.some((x) => x.intensite > 0) ||
+    FAMILLES_ALCOOL.some((famille) => invite.niveaux[famille.id] !== 'aucun')
   );
 }
 
 /**
  * Traduit les gouts declares en verres par jour et par boisson du catalogue.
- * Les verres d'une famille se repartissent entre les boissons cochees, au
+ * Les verres d'une famille se repartissent entre les boissons aimees, au
  * prorata de l'intensite du gout.
  */
 export function estimerConsommation(invite: Invite): ConsommationType[] {
@@ -118,13 +117,11 @@ export function estimerConsommation(invite: Invite): ConsommationType[] {
   const gouts = invite.boissonsAimees.filter(
     (x) => x.intensite > 0 && boissonsDuGout(x.boissonId).length > 0,
   );
-  const parFamille = (famille: 'basique' | 'spiritueux') =>
-    gouts.filter((x) => FAMILLE_PAR_GOUT.get(x.boissonId) === famille);
 
-  const budgets: [number, typeof gouts][] = [
-    [VERRES_BASIQUES[invite.niveauBasiques], parFamille('basique')],
-    [VERRES_SPIRITUEUX[invite.niveauSpiritueux], parFamille('spiritueux')],
-  ];
+  const budgets: [number, typeof gouts][] = FAMILLES_ALCOOL.map((famille) => [
+    VERRES_PAR_FAMILLE[famille.id][invite.niveaux[famille.id]],
+    gouts.filter((x) => FAMILLE_PAR_GOUT.get(x.boissonId) === famille.id),
+  ]);
 
   // Le plafond de l'equipe s'applique au total, puis se repercute a la baisse
   // sur chaque famille : c'est la promesse que la personne a faite.
@@ -190,19 +187,19 @@ export function alerterSurEstimation(
 ): AlerteInterpretation[] {
   const alertes: AlerteInterpretation[] = [];
   const total = estimation.reduce((somme, x) => somme + x.verresParJour, 0);
-  const aCocheDesAlcools = invite.boissonsAimees.length > 0;
+  const aCocheDesAlcools = invite.boissonsAimees.some((x) => x.intensite > 0);
 
   if (invite.team === 'chameau' && aCocheDesAlcools) {
     alertes.push({
       gravite: 'attention',
-      texte: 'Se dit sans alcool mais a coche des boissons alcoolisees : a confirmer.',
+      texte: 'Se dit sans alcool mais a declare aimer des alcools : a confirmer.',
     });
   }
 
   if (total === 0 && invite.team !== 'chameau' && invite.team !== '') {
     alertes.push({
       gravite: 'info',
-      texte: "Rien d'estimable : aucune boisson cochee, ou un rythme declare a zero.",
+      texte: "Rien d'estimable : aucun alcool declare, ou un rythme laisse a zero.",
     });
   }
 
@@ -221,7 +218,10 @@ export function alerterSurEstimation(
   }
 
   const plafond = invite.team === '' ? Number.POSITIVE_INFINITY : PLAFOND_TEAM[invite.team];
-  const brut = VERRES_BASIQUES[invite.niveauBasiques] + VERRES_SPIRITUEUX[invite.niveauSpiritueux];
+  const brut = FAMILLES_ALCOOL.reduce(
+    (somme, famille) => somme + VERRES_PAR_FAMILLE[famille.id][invite.niveaux[famille.id]],
+    0,
+  );
   if (Number.isFinite(plafond) && brut > plafond && plafond > 0) {
     alertes.push({
       gravite: 'info',
@@ -234,6 +234,14 @@ export function alerterSurEstimation(
     alertes.push({
       gravite: 'info',
       texte: `Aime ${orphelins.join(', ')} : absent du catalogue, a prevoir a la main.`,
+    });
+  }
+
+  // Ce qu'on a oublie de proposer ne doit pas se perdre au fond d'une fiche.
+  if (invite.autreAlcool.trim()) {
+    alertes.push({
+      gravite: 'info',
+      texte: `Demande aussi « ${invite.autreAlcool.trim()} » : hors liste, a prevoir a la main.`,
     });
   }
 

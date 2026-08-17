@@ -3,7 +3,7 @@ import {
   ConsommationType,
   GoutBoisson,
   Logistique,
-  NiveauConso,
+  NiveauxParFamille,
   Partage,
   Participant,
   Regime,
@@ -37,8 +37,8 @@ export interface ReponsePublique {
   logistique: Logistique;
   surnom: string;
   boissonsAimees: GoutBoisson[];
-  niveauBasiques: NiveauConso;
-  niveauSpiritueux: NiveauConso;
+  niveaux: NiveauxParFamille;
+  autreAlcool: string;
   team: TeamBuveur | '';
   servicesPreferes: string[];
 }

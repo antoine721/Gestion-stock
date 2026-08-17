@@ -39,6 +39,19 @@
   --donnee-nourriture: #e0813f;
   --donnee-materiel: #6f56cc;
 
+  /*
+   * Les trois familles d'alcool du formulaire. Une couleur par famille, tenue
+   * du titre au curseur jusqu'au palier choisi : c'est ce qui evite de repondre
+   * « beaucoup » en pensant a la biere alors qu'on est dans les spiritueux.
+   * Meme palette validee que les graphiques.
+   */
+  --famille-biere: #e0813f;
+  --famille-biere-fond: #fdf4ec;
+  --famille-vin: #6f56cc;
+  --famille-vin-fond: #f4f1fd;
+  --famille-spiritueux: #3f7fb8;
+  --famille-spiritueux-fond: #eef4fa;
+
   /* Les teintes des pieces du hub : des points de couleur, pas des fonds. */
   --teinte-ardoise: #6b6a66;
   --teinte-ardoise-doux: rgba(107, 106, 102, 0.12);
@@ -117,6 +130,13 @@
   --donnee-alcool: #3a90d6;
   --donnee-nourriture: #cc763a;
   --donnee-materiel: #8558d6;
+
+  --famille-biere: #cc763a;
+  --famille-biere-fond: #2a221b;
+  --famille-vin: #8558d6;
+  --famille-vin-fond: #241f2e;
+  --famille-spiritueux: #3a90d6;
+  --famille-spiritueux-fond: #1c242c;
 
   --teinte-ardoise: #a3a29d;
   --teinte-ardoise-doux: rgba(163, 162, 157, 0.14);
