@@ -32,6 +32,23 @@ export class FormulairePublic {
   })).filter((x) => x.boissons.length > 0);
 
   protected readonly infos = signal<InfosPubliques | undefined>(undefined);
+
+  /** « Du ven. 21 aout au dim. 23 aout · Le champ derriere la grange ». */
+  protected readonly quandOu = computed(() => {
+    const infos = this.infos();
+    if (!infos) return '';
+    const format = new Intl.DateTimeFormat('fr-FR', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'long',
+    });
+    const date = (iso?: string) =>
+      iso && /^\d{4}-\d{2}-\d{2}$/.test(iso) ? format.format(new Date(`${iso}T00:00:00`)) : '';
+    const debut = date(infos.debut);
+    const fin = date(infos.fin);
+    const quand = debut && fin && fin !== debut ? `Du ${debut} au ${fin}` : debut;
+    return [quand, infos.lieu].filter(Boolean).join(' · ');
+  });
   protected readonly introuvable = signal(false);
   protected readonly etape = signal<'identite' | 'fiche' | 'merci'>('identite');
   protected readonly envoiEnCours = signal(false);

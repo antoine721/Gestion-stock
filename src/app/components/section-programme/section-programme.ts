@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
 import { TYPES_CRENEAU, nomDeRef, planningDuJour } from '../../domain/programme';
+import { dateDuJour } from '../../domain/evenement';
 import { fmtEntier } from '../../domain/format';
 import { Creneau, TypeCreneau } from '../../domain/models';
 
@@ -27,10 +28,20 @@ export class SectionProgramme {
   protected readonly journees = computed(() => {
     const programme = this.store.programme();
     const jours = Math.max(1, this.store.partage().jours);
-    return Array.from({ length: jours }, (_, i) => ({
-      jour: i + 1,
-      creneaux: planningDuJour(programme, i + 1),
-    }));
+    // Avec une date de debut posee au profil, chaque colonne porte sa vraie date.
+    const format = new Intl.DateTimeFormat('fr-FR', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    });
+    return Array.from({ length: jours }, (_, i) => {
+      const date = dateDuJour(this.store.infos().debut, i + 1);
+      return {
+        jour: i + 1,
+        date: date ? format.format(date) : '',
+        creneaux: planningDuJour(programme, i + 1),
+      };
+    });
   });
 
   protected emojiDe(type: TypeCreneau): string {

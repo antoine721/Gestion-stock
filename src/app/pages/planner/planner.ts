@@ -11,6 +11,7 @@ import { SectionDj } from '../../components/section-dj/section-dj';
 import { SectionFormulaire } from '../../components/section-formulaire/section-formulaire';
 import { SectionMateriel } from '../../components/section-materiel/section-materiel';
 import { SectionNourriture } from '../../components/section-nourriture/section-nourriture';
+import { SectionProfil } from '../../components/section-profil/section-profil';
 import { SectionProgramme } from '../../components/section-programme/section-programme';
 import { SectionStats } from '../../components/section-stats/section-stats';
 import { SectionUtilisateurs } from '../../components/section-utilisateurs/section-utilisateurs';
@@ -19,6 +20,7 @@ import { ESPACES, Espace, PlannerStore, SECTIONS } from '../../state/planner-sto
 import { SessionStore } from '../../state/session';
 import { ThemeStore } from '../../state/theme';
 import { fmtEntier, fmtEuro } from '../../domain/format';
+import { joursAvant } from '../../domain/evenement';
 
 /**
  * Le hub de l'evenement : une sidebar par piece (bar, nourriture, invites,
@@ -40,6 +42,7 @@ import { fmtEntier, fmtEuro } from '../../domain/format';
     SectionFormulaire,
     SectionMateriel,
     SectionNourriture,
+    SectionProfil,
     SectionProgramme,
     SectionStats,
     SectionUtilisateurs,
@@ -72,6 +75,10 @@ export class Planner {
   /** Le petit chiffre a droite de chaque entree de la sidebar. */
   protected indicateurDe(espace: Espace): string {
     switch (espace) {
+      case 'profil': {
+        const avant = joursAvant(this.store.infos().debut, new Date());
+        return avant !== null && avant > 0 ? `J-${avant}` : '';
+      }
       case 'alcool':
         return fmtEuro(this.store.panier().coutTotal);
       case 'nourriture':

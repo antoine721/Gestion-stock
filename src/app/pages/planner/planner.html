@@ -4,7 +4,7 @@
   <div class="hub">
     <aside class="sidebar">
       <div class="marque">
-        <p class="app-nom muted">Combien acheter ?</p>
+        <p class="app-nom muted">Vialcrm</p>
         <h1>{{ store.partage().nom }}</h1>
         <p class="code-ligne muted">
           code
@@ -83,6 +83,9 @@
       @switch (store.espace()) {
         @case ('accueil') {
           <app-hub-accueil />
+        }
+        @case ('profil') {
+          <app-section-profil />
         }
         @case ('alcool') {
           <div class="entete-espace">

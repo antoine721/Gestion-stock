@@ -6,6 +6,10 @@ import { SessionStore } from './session';
 export interface InfosPubliques {
   nom: string;
   jours: number;
+  lieu?: string;
+  debut?: string;
+  fin?: string;
+  description?: string;
 }
 
 export interface ReponsePublique {
