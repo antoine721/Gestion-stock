@@ -4,7 +4,7 @@
   <div class="hub">
     <aside class="sidebar">
       <div class="marque">
-        <p class="app-nom muted">Combien acheter ?</p>
+        <p class="app-nom muted">Vialcrm</p>
         <h1>{{ store.partage().nom }}</h1>
         <p class="code-ligne muted">
           code
@@ -32,12 +32,21 @@
       </div>
 
       <nav class="espaces">
+        <button
+          type="button"
+          class="retour"
+          [disabled]="!store.peutRevenir()"
+          (click)="store.retour()"
+        >
+          <span class="emoji" aria-hidden="true">←</span>
+          <span class="lib">Retour</span>
+        </button>
         @for (espace of espaces; track espace.id) {
           <button
             type="button"
             [class]="'teinte-' + espace.teinte"
             [attr.aria-pressed]="store.espace() === espace.id"
-            (click)="store.espace.set(espace.id)"
+            (click)="store.allerA(espace.id)"
           >
             <span class="emoji" aria-hidden="true">{{ espace.emoji }}</span>
             <span class="lib">{{ espace.libelle }}</span>
@@ -58,6 +67,14 @@
             Enregistre
           }
         </span>
+        <button
+          type="button"
+          class="discret"
+          (click)="theme.basculer()"
+          [title]="theme.sombre() ? 'Repasser en clair' : 'Passer en sombre'"
+        >
+          {{ theme.sombre() ? '☀️' : '🌙' }}
+        </button>
         <button type="button" class="discret" (click)="quitter()">Quitter</button>
       </div>
     </aside>
@@ -66,6 +83,9 @@
       @switch (store.espace()) {
         @case ('accueil') {
           <app-hub-accueil />
+        }
+        @case ('profil') {
+          <app-section-profil />
         }
         @case ('alcool') {
           <div class="entete-espace">

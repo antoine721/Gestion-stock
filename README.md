@@ -1,8 +1,12 @@
-# Combien acheter ?
+# Vialcrm
 
-Calculateur d'achats pour un evenement : chaque co-organisateur declare les invites qu'il amene et
-ce qu'ils boivent, l'app additionne, sort la liste de courses, le budget, et dit si la prevision
-tient debout.
+Le hub qui organise un festival entre co-organisateurs : profil de l'evenement (lieu, dates,
+compte a rebours), base d'invites avec paiements, bar, cuisine, materiel, liste de courses
+unifiee, missions au planning, sets DJ et formulaire public d'inscription.
+
+Au coeur, le calculateur d'achats historique (l'app s'appelait « Combien acheter ? ») : chaque
+co-organisateur declare les invites qu'il amene et ce qu'ils boivent, l'app additionne, sort la
+liste de courses, le budget, et dit si la prevision tient debout.
 
 ## Comment ca marche
 
@@ -42,7 +46,7 @@ depart, pas une verite.
 ```bash
 npm install
 npm start          # front seul, sans API
-npm test           # 58 tests
+npm test           # les tests du domaine et du store
 npm run build
 ```
 

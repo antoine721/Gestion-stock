@@ -437,10 +437,20 @@ export interface VerresBoisson {
   verres: number;
 }
 
+/** La carte d'identite de l'evenement : ou, quand, et de quoi il s'agit. */
+export interface InfosEvenement {
+  lieu: string;
+  /** Dates ISO (AAAA-MM-JJ), vides tant qu'elles ne sont pas calees. */
+  debut: string;
+  fin: string;
+  description: string;
+}
+
 /** Ce qui est commun a l'evenement, quel que soit le participant. */
 export interface Partage {
   nom: string;
   jours: number;
+  infos: InfosEvenement;
   profil: Profil;
   cibles: Cibles;
   /** La bibliotheque de profils, utilisable par tous les co-organisateurs. */

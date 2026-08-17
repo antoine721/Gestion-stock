@@ -59,10 +59,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // GET : juste de quoi afficher la page publique, rien de sensible.
   if (req.method === 'GET') {
-    const partage = evenement.partage as { nom?: unknown; jours?: unknown } | null;
+    const partage = evenement.partage as {
+      nom?: unknown;
+      jours?: unknown;
+      infos?: { lieu?: unknown; debut?: unknown; fin?: unknown; description?: unknown };
+    } | null;
+    const texte = (valeur: unknown) => (typeof valeur === 'string' ? valeur.slice(0, 500) : '');
     return res.status(200).json({
       nom: typeof partage?.nom === 'string' ? partage.nom : 'Un evenement',
       jours: typeof partage?.jours === 'number' ? partage.jours : 1,
+      lieu: texte(partage?.infos?.lieu),
+      debut: texte(partage?.infos?.debut),
+      fin: texte(partage?.infos?.fin),
+      description: texte(partage?.infos?.description),
     });
   }
 

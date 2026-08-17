@@ -1,0 +1,106 @@
+<section class="card">
+  <div class="card-head">
+    <h2>🎪 La fiche de l'evenement</h2>
+    @if (libelleCompte()) {
+      <span class="tag accent num">{{ libelleCompte() }}</span>
+    }
+  </div>
+
+  <p class="intro muted">
+    Le nom, le lieu et les dates : ce que tout le monde doit savoir. Les dates datent le planning et
+    donnent le compte a rebours.
+  </p>
+
+  <div class="grid-champs">
+    <label class="champ">
+      <span>Nom de l'evenement</span>
+      <input
+        type="text"
+        placeholder="Festivial"
+        [value]="store.partage().nom"
+        (change)="store.majPartage({ nom: $any($event.target).value })"
+      />
+    </label>
+    <label class="champ">
+      <span>Lieu</span>
+      <input
+        type="text"
+        placeholder="Le champ derriere la grange"
+        [value]="store.infos().lieu"
+        (input)="store.majInfos({ lieu: $any($event.target).value })"
+      />
+    </label>
+    <label class="champ">
+      <span>Debut</span>
+      <input
+        type="date"
+        [value]="store.infos().debut"
+        (change)="store.majInfos({ debut: $any($event.target).value })"
+      />
+    </label>
+    <label class="champ">
+      <span>Fin</span>
+      <input
+        type="date"
+        [value]="store.infos().fin"
+        (change)="store.majInfos({ fin: $any($event.target).value })"
+      />
+    </label>
+  </div>
+
+  <label class="champ description">
+    <span>Description</span>
+    <textarea
+      rows="3"
+      placeholder="Le pitch, le theme, ce qu'il faut amener, ce qui rend ce festival special..."
+      [value]="store.infos().description"
+      (input)="store.majInfos({ description: $any($event.target).value })"
+    ></textarea>
+  </label>
+
+  @if (dureeDecalee()) {
+    <p class="avertissement">
+      Les dates couvrent <span class="num">{{ fmtEntier(duree()!) }}</span> jour(s) mais le calcul
+      des courses tourne sur <span class="num">{{ fmtEntier(store.partage().jours) }}</span
+      >.
+      <button type="button" class="discret" (click)="calerDuree()">
+        Caler le calcul sur les dates
+      </button>
+    </p>
+  }
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>📌 Les reperes</h2>
+  </div>
+
+  <div class="reperes">
+    <div class="repere">
+      <span class="valeur num">{{ fmtEntier(store.cadre().invites) }}</span>
+      <span class="legende muted">invites au total</span>
+    </div>
+    <div class="repere">
+      <span class="valeur num">{{ fmtEuro(store.budgetGlobal().total) }}</span>
+      <span class="legende muted">budget global</span>
+    </div>
+    <div class="repere">
+      <span class="valeur num">
+        {{ fmtEuro(store.encaissements().encaisse) }} / {{ fmtEuro(store.encaissements().attendu) }}
+      </span>
+      <span class="legende muted">encaisses</span>
+    </div>
+    <div class="repere">
+      <span class="valeur num">{{ fmtEntier(store.resumeProgramme().creneaux) }}</span>
+      <span class="legende muted">missions au planning</span>
+    </div>
+    <div class="repere">
+      <span class="valeur num">{{ fmtEntier(store.resumeDj().valides) }}</span>
+      <span class="legende muted">sets DJ valides</span>
+    </div>
+  </div>
+
+  <p class="hint">
+    Le detail vit dans Stats &amp; budget ; ici, juste les chiffres qu'on regarde tous les jours.
+  </p>
+</section>
