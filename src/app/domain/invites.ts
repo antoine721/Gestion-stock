@@ -1,9 +1,6 @@
-import { BOISSON_PAR_ID } from './catalogue';
 import {
   CategoriePaiement,
-  ConsommationType,
   Effectif,
-  Hebergement,
   Invite,
   Logistique,
   NiveauxParFamille,
@@ -33,17 +30,6 @@ export const LIBELLE_REGIME: Record<Regime, string> = Object.fromEntries(
   REGIMES.map((x) => [x.id, x.libelle]),
 ) as Record<Regime, string>;
 
-export const HEBERGEMENTS: readonly { id: Hebergement; libelle: string }[] = [
-  { id: 'a-definir', libelle: 'A definir' },
-  { id: 'sur-place', libelle: 'Dort sur place' },
-  { id: 'tente', libelle: 'Amene sa tente' },
-  { id: 'rentre', libelle: 'Rentre chez lui' },
-];
-
-export const LIBELLE_HEBERGEMENT: Record<Hebergement, string> = Object.fromEntries(
-  HEBERGEMENTS.map((x) => [x.id, x.libelle]),
-) as Record<Hebergement, string>;
-
 export function logistiqueVierge(): Logistique {
   return {
     permis: false,
@@ -52,7 +38,6 @@ export function logistiqueVierge(): Logistique {
     sejourComplet: true,
     placesVoiture: 0,
     chercheCovoiturage: false,
-    hebergement: 'a-definir',
     arrivee: '',
     depart: '',
     materielApporte: '',
@@ -74,8 +59,7 @@ export function inviteVierge(id: string, participantId: string): Invite {
     categoriePaiementId: '',
     paye: false,
     montantPaye: 0,
-    joursPresence: 0,
-    consommationDeclaree: [],
+    joursPresents: [],
     stylesMusicaux: '',
     logistique: logistiqueVierge(),
     surnom: '',
@@ -84,27 +68,14 @@ export function inviteVierge(id: string, participantId: string): Invite {
     autreAlcool: '',
     team: '',
     servicesPreferes: [],
+    goodies: [],
+    goodiesAutre: '',
   };
 }
 
 /** Personne ne boit rien tant qu'il ne l'a pas dit. */
 export function niveauxVierges(): NiveauxParFamille {
   return { biere: 'aucun', vin: 'aucun', spiritueux: 'aucun' };
-}
-
-/**
- * « Biere × 4 · Spritz × 2 » : la conso declaree en toutes lettres. Les
- * boissons inconnues du catalogue sont ignorees a l'affichage.
- */
-export function libelleConsommations(consommations: readonly ConsommationType[]): string {
-  return consommations
-    .filter((x) => x.verresParJour > 0)
-    .map((x) => {
-      const boisson = BOISSON_PAR_ID.get(x.boissonId);
-      return boisson ? `${boisson.nom} × ${x.verresParJour}` : '';
-    })
-    .filter((x) => x.length > 0)
-    .join(' · ');
 }
 
 /**
@@ -119,7 +90,73 @@ export function normaliserInvite(brut: Partial<Invite> & { id: string }): Invite
     boissonsAimees: brut.boissonsAimees ?? [],
     niveaux: { ...niveauxVierges(), ...brut.niveaux },
     servicesPreferes: brut.servicesPreferes ?? [],
+    joursPresents: brut.joursPresents ?? [],
+    goodies: brut.goodies ?? [],
+    goodiesAutre: brut.goodiesAutre ?? '',
   };
+}
+
+/**
+ * La personne a declare ne pas boire une goutte. Lui chercher un profil
+ * alcool n'a alors aucun sens : son profil reste vide, et ce vide-la est une
+ * reponse, pas un oubli.
+ */
+export function neBoitPas(invite: Pick<Invite, 'team'>): boolean {
+  return invite.team === 'chameau';
+}
+
+/**
+ * Les quatre choses a faire sur une fiche avant qu'elle soit prete. C'est la
+ * checklist de l'organisateur : tant qu'une case manque, il reste une
+ * decision a prendre sur cette personne.
+ */
+export const TACHES_INVITE = [
+  { id: 'tarif', libelle: 'Attribuer un tarif' },
+  { id: 'paiement', libelle: 'Encaisser le paiement' },
+  { id: 'profil', libelle: 'Definir un profil alcool' },
+  { id: 'presence', libelle: 'Preciser les jours sur place' },
+] as const;
+
+export type TacheInvite = (typeof TACHES_INVITE)[number]['id'];
+
+export interface EtatTachesInvite {
+  tarif: boolean;
+  paiement: boolean;
+  profil: boolean;
+  presence: boolean;
+  /** Combien de cases sur quatre sont faites. */
+  faites: number;
+}
+
+/**
+ * Ou en est une fiche, tache par tache. Deux raccourcis assumes : un tarif
+ * gratuit n'attend aucun paiement, et un non-buveur n'attend aucun profil
+ * alcool — sinon ces fiches resteraient eternellement incompletes.
+ */
+export function etatTaches(
+  invite: Invite,
+  categories: readonly CategoriePaiement[],
+): EtatTachesInvite {
+  const categorie = categories.find((x) => x.id === invite.categoriePaiementId);
+  const tarif = categorie !== undefined;
+  const paiement = invite.paye || (tarif && categorie.montant === 0);
+  const profil = invite.personneTypeId !== '' || neBoitPas(invite);
+  // « Tous les jours » se stocke comme la liste complete : une liste vide
+  // signifie qu'on n'a pas encore pose la question.
+  const presence = invite.joursPresents.length > 0;
+  const faites = [tarif, paiement, profil, presence].filter(Boolean).length;
+  return { tarif, paiement, profil, presence, faites };
+}
+
+/** Tous les jours de l'evenement, dans l'ordre : la presence par defaut. */
+export function tousLesJours(jours: number): number[] {
+  return Array.from({ length: Math.max(1, jours) }, (_, i) => i + 1);
+}
+
+/** La personne est la du premier au dernier jour, sans trou. */
+export function presenceComplete(invite: Invite, jours: number): boolean {
+  const presents = new Set(invite.joursPresents);
+  return tousLesJours(jours).every((jour) => presents.has(jour));
 }
 
 export interface ResumeLogistique {
@@ -127,8 +164,12 @@ export interface ResumeLogistique {
   placesOffertes: number;
   /** Invites qui cherchent une place. */
   chercheurs: number;
-  /** Invites qui dorment sur place (tente comprise). */
-  dormeurs: number;
+  /**
+   * Invites qui amenent leur tente. Tout le monde dort sur place : la seule
+   * question qui reste est de savoir combien de toiles arrivent d'elles-memes,
+   * et donc combien de places il faut trouver aux autres.
+   */
+  tentes: number;
   /** Invites qui apportent du materiel. */
   preteurs: number;
 }
@@ -137,16 +178,15 @@ export interface ResumeLogistique {
 export function resumerLogistique(invites: readonly Invite[]): ResumeLogistique {
   let placesOffertes = 0;
   let chercheurs = 0;
-  let dormeurs = 0;
+  let tentes = 0;
   let preteurs = 0;
   for (const invite of invites) {
     placesOffertes += Math.max(0, invite.logistique.placesVoiture);
     if (invite.logistique.chercheCovoiturage) chercheurs += 1;
-    if (invite.logistique.hebergement === 'sur-place' || invite.logistique.hebergement === 'tente')
-      dormeurs += 1;
+    if (invite.logistique.tente) tentes += 1;
     if (invite.logistique.materielApporte.trim().length > 0) preteurs += 1;
   }
-  return { placesOffertes, chercheurs, dormeurs, preteurs };
+  return { placesOffertes, chercheurs, tentes, preteurs };
 }
 
 /** Les invites nommes qu'un co-organisateur amene. */

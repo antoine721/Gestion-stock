@@ -125,38 +125,3 @@ td.part {
   border-radius: 4px;
   background: var(--accent);
 }
-
-/* -- Colonnes du bas ------------------------------------------------------- */
-
-.colonnes-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.colonnes-stats .card + .card {
-  margin-top: 0;
-}
-
-.chiffres,
-.taches {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 0.8125rem;
-}
-
-.chiffres li,
-.taches li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.5rem 0;
-}
-
-.chiffres li + li,
-.taches li + li {
-  border-top: 1px solid var(--bord);
-}

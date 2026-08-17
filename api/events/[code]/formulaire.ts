@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { randomBytes } from 'node:crypto';
-import { chargerEvenement, sql } from '../../_db';
+import { chargerEvenement, chargerParticipants, sql } from '../../_db';
 
 /**
  * Le formulaire invite, SANS mot de passe : c'est le seul endpoint public de
@@ -24,8 +24,6 @@ const REGIMES = new Set([
   'halal',
   'casher',
 ]);
-
-const HEBERGEMENTS = new Set(['a-definir', 'sur-place', 'tente', 'rentre']);
 
 function champ(valeur: unknown): string {
   return typeof valeur === 'string' ? valeur.trim().slice(0, MAX_CHAMP) : '';
@@ -83,33 +81,14 @@ function niveaux(valeur: unknown): Record<string, string> {
   return sortie;
 }
 
-/**
- * La conso declaree : des paires boisson / verres par jour, bornees. Purement
- * indicative cote produit — mais on la valide comme le reste, c'est la seule
- * entree publique de l'app.
- */
-function consommations(valeur: unknown): { boissonId: string; verresParJour: number }[] {
-  if (!Array.isArray(valeur)) return [];
-  return valeur
-    .slice(0, 40)
-    .map((x) => {
-      const brut = x as { boissonId?: unknown; verresParJour?: unknown };
-      const boissonId = champ(brut?.boissonId).slice(0, 60);
-      const verres = Number(brut?.verresParJour);
-      return {
-        boissonId,
-        verresParJour: Number.isFinite(verres) ? Math.min(30, Math.max(0, verres)) : 0,
-      };
-    })
-    .filter((x) => x.boissonId.length > 0 && x.verresParJour > 0);
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const code = String(req.query['code'] ?? '');
   const evenement = await chargerEvenement(code);
   if (!evenement) return res.status(404).json({ erreur: 'Evenement introuvable' });
 
-  // GET : juste de quoi afficher la page publique, rien de sensible.
+  // GET : juste de quoi afficher la page publique, rien de sensible. Les
+  // co-organisateurs en font partie : l'invite doit pouvoir designer celui qui
+  // l'invite, et un prenom n'est pas un secret.
   if (req.method === 'GET') {
     const partage = evenement.partage as {
       nom?: unknown;
@@ -117,6 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       infos?: { lieu?: unknown; debut?: unknown; fin?: unknown; description?: unknown };
     } | null;
     const texte = (valeur: unknown) => (typeof valeur === 'string' ? valeur.slice(0, 500) : '');
+    const participants = await chargerParticipants(code);
     return res.status(200).json({
       nom: typeof partage?.nom === 'string' ? partage.nom : 'Un evenement',
       jours: typeof partage?.jours === 'number' ? partage.jours : 1,
@@ -124,6 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       debut: texte(partage?.infos?.debut),
       fin: texte(partage?.infos?.fin),
       description: texte(partage?.infos?.description),
+      organisateurs: participants.map((x) => ({ id: x.id, nom: texte(x.nom) })),
     });
   }
 
@@ -141,27 +122,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(429).json({ erreur: 'Trop de reponses pour cet evenement' });
   }
 
-  const accompagnants = Number(corps['accompagnants']);
   const regime = champ(corps['regime']);
   const logistiqueBrute = (corps['logistique'] ?? {}) as Record<string, unknown>;
-  const hebergement = champ(logistiqueBrute['hebergement']);
   const placesVoiture = Number(logistiqueBrute['placesVoiture']);
   const team = champ(corps['team']);
+
+  // Le co-organisateur designe doit exister : sinon la fiche arriverait
+  // rattachee a un identifiant que personne ne reconnait.
+  const participants = await chargerParticipants(code);
+  const invitPar = participants.find((x) => x.id === champ(corps['invitParId']));
+
   const reponse = {
     id: randomBytes(12).toString('hex'),
     prenom,
     nom: champ(corps['nom']),
-    invitePar: champ(corps['invitePar']),
-    accompagnants: Number.isFinite(accompagnants)
-      ? Math.min(20, Math.max(0, Math.round(accompagnants)))
-      : 0,
+    invitParId: invitPar?.id ?? '',
+    invitePar: invitPar ? champ(invitPar.nom) : champ(corps['invitePar']),
     regime: REGIMES.has(regime) ? regime : 'omnivore',
     allergies: champ(corps['allergies']),
-    preferencesBoissons: champ(corps['preferencesBoissons']),
-    envies: champ(corps['envies']),
-    recommandations: champ(corps['recommandations']),
     commentaire: champ(corps['commentaire']),
-    consommations: consommations(corps['consommations']),
     stylesMusicaux: champ(corps['stylesMusicaux']),
     surnom: champ(corps['surnom']),
     boissonsAimees: gouts(corps['boissonsAimees']),
@@ -169,6 +148,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     autreAlcool: champ(corps['autreAlcool']),
     team: TEAMS.has(team) ? team : '',
     servicesPreferes: identifiants(corps['servicesPreferes'], 20),
+    goodies: identifiants(corps['goodies'], 40),
+    goodiesAutre: champ(corps['goodiesAutre']),
     logistique: {
       permis: logistiqueBrute['permis'] === true,
       vehicule: logistiqueBrute['vehicule'] === true,
@@ -178,7 +159,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ? Math.min(9, Math.max(0, Math.round(placesVoiture)))
         : 0,
       chercheCovoiturage: logistiqueBrute['chercheCovoiturage'] === true,
-      hebergement: HEBERGEMENTS.has(hebergement) ? hebergement : 'a-definir',
       arrivee: champ(logistiqueBrute['arrivee']),
       depart: champ(logistiqueBrute['depart']),
       materielApporte: champ(logistiqueBrute['materielApporte']),

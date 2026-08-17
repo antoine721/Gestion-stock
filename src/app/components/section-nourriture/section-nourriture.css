@@ -160,10 +160,6 @@ table input[type='text'] {
   min-width: 9rem;
 }
 
-.ajout {
-  margin-top: 1rem;
-}
-
 /* Sur petit ecran, la rangee d'ingredients defile au doigt, alignee sur ses
    entetes, plutot que de s'ecraser. */
 @media (max-width: 40rem) {
