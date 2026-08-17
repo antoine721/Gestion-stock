@@ -4,7 +4,6 @@ import { Modale } from '../modale/modale';
 import { Panneau } from '../panneau/panneau';
 import {
   CATEGORIES_ARTICLE,
-  IDEES_ARTICLES,
   MODES_ARTICLE,
   STATUTS_ARTICLE,
   coutArticle,
@@ -42,12 +41,6 @@ export class SectionMateriel {
   protected readonly categories = CATEGORIES_ARTICLE;
   protected readonly modes = MODES_ARTICLE;
   protected readonly statuts = STATUTS_ARTICLE;
-
-  /** Les idees pas encore dans la liste, pour ne proposer que du nouveau. */
-  protected readonly idees = computed(() => {
-    const dejaLa = new Set(this.store.articles().map((x) => x.nom.toLowerCase()));
-    return IDEES_ARTICLES.filter((x) => !dejaLa.has(x.nom.toLowerCase()));
-  });
 
   protected libelleCategorie(id: string): string {
     const categorie = CATEGORIES_ARTICLE.find((x) => x.id === id);
@@ -107,22 +100,6 @@ export class SectionMateriel {
     });
     this.creationOuverte.set(false);
     this.detailId.set(id);
-  }
-
-  /** Une idee du catalogue arrive pre-remplie dans la modale de creation. */
-  protected piocherIdee(evenement: Event): void {
-    const select = evenement.target as HTMLSelectElement;
-    const idee = IDEES_ARTICLES.find((x) => x.nom === select.value);
-    select.value = '';
-    if (!idee) return;
-    this.brouillon.set({
-      nom: idee.nom,
-      categorie: idee.categorie,
-      mode: idee.mode,
-      quantite: 1,
-      prixUnitaire: 0,
-    });
-    this.creationOuverte.set(true);
   }
 
   // -- Detail ----------------------------------------------------------------

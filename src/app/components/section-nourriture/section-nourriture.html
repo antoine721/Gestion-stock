@@ -250,20 +250,12 @@
                 Retirer
               </button>
             } @else {
-              <select (change)="choisirIdee(ligne.jour, case_.moment.id, $event)">
-                <option value="">Choisir un plat…</option>
-                @for (idee of ideesPour(case_.moment.id); track idee.nom) {
-                  <option [value]="idee.nom">
-                    {{ idee.nom }} — {{ fmtEuro(idee.coutParPersonne) }}/pers.
-                  </option>
-                }
-              </select>
               <button
                 type="button"
                 class="discret"
                 (click)="platLibre(ligne.jour, case_.moment.id)"
               >
-                + Plat libre
+                + Ajouter un plat
               </button>
             }
           </div>

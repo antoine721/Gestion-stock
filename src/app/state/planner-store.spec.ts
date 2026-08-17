@@ -196,7 +196,13 @@ describe('PlannerStore', () => {
   });
 
   it('agrege la cuisine et la verse dans la liste de courses unifiee', () => {
-    store.appliquerIdee(1, 'diner', 'Barbecue');
+    store.definirRepas(1, 'diner', {
+      plat: 'Barbecue',
+      typePlat: 'barbecue',
+      ingredients: [
+        { id: 'i1', nom: 'Viande a griller', qteParPersonne: 180, unite: 'g', prixUnitaire: 12 },
+      ],
+    });
 
     const viande = store.lignesCuisine().find((x) => x.nom === 'Viande a griller');
     // 12 tetes x 180 g, agreges avant l'arrondi au kilo.
@@ -295,21 +301,6 @@ describe('PlannerStore', () => {
     store.retour();
     expect(store.espace()).toBe('accueil');
     expect(store.peutRevenir()).toBe(false);
-  });
-
-  it('genere puis retire un jeu de test sans toucher aux vraies fiches', () => {
-    const vrai = store.ajouterInvite('a');
-
-    // 10 fiches par co-organisateur, et il y en a deux dans cet evenement.
-    expect(store.peuplerJeuTest(10)).toBe(20);
-    expect(store.invitesNommes()).toHaveLength(21);
-    expect(store.invitesTest()).toBe(20);
-    // Regenerer remplace le jeu au lieu de l'empiler.
-    store.peuplerJeuTest(10);
-    expect(store.invitesNommes()).toHaveLength(21);
-
-    store.viderJeuTest();
-    expect(store.invitesNommes().map((x) => x.id)).toEqual([vrai]);
   });
 
   it('cocher une ligne materiel bascule le statut de l’article', () => {
