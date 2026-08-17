@@ -19,6 +19,7 @@ import {
   inviteVierge,
   invitesNommesDe,
   logistiqueVierge,
+  niveauxVierges,
   normaliserInvite,
   resumerLogistique,
 } from '../domain/invites';
@@ -32,6 +33,7 @@ import {
   repasPour,
   repasVierge,
 } from '../domain/nourriture';
+import { JOURS_MENUS_FESTIVIAL, MENUS_FESTIVIAL } from '../domain/menus-festivial';
 import { estInviteTest, genererInvitesTest } from '../domain/donnees-test';
 import { infosVierges } from '../domain/evenement';
 import { articleVierge, budgetMateriel } from '../domain/materiel-liste';
@@ -422,8 +424,8 @@ export class PlannerStore {
         logistique: { ...logistiqueVierge(), ...x.logistique },
         surnom: x.surnom ?? '',
         boissonsAimees: x.boissonsAimees ?? [],
-        niveauBasiques: x.niveauBasiques ?? 'aucun',
-        niveauSpiritueux: x.niveauSpiritueux ?? 'aucun',
+        niveaux: { ...niveauxVierges(), ...x.niveaux },
+        autreAlcool: x.autreAlcool ?? '',
         team: x.team ?? '',
         servicesPreferes: x.servicesPreferes ?? [],
       })),
@@ -788,6 +790,42 @@ export class PlannerStore {
     });
   }
 
+  /**
+   * Pose le menu complet du Festivial sur le calendrier, en une fois. Les
+   * cases deja remplies a la main ne sont pas touchees : on complete, on
+   * n'ecrase pas le travail de quelqu'un d'autre.
+   */
+  chargerMenusFestivial(): number {
+    const nourriture = this.nourriture();
+    const repas = [...nourriture.repas];
+    let poses = 0;
+
+    for (const menu of MENUS_FESTIVIAL) {
+      const existant = repas.find((x) => x.jour === menu.jour && x.moment === menu.moment);
+      if (existant && existant.plat.trim().length > 0) continue;
+
+      const pose: Repas = {
+        ...repasVierge(existant?.id ?? identifiant(), menu.jour, menu.moment),
+        plat: menu.plat,
+        typePlat: menu.typePlat,
+        vegetarienPrevu: menu.vegetarienPrevu,
+        notes: menu.notes,
+        ingredients: menu.ingredients.map((x) => ({ ...x, id: identifiant() })),
+      };
+      const index = repas.findIndex((x) => x.id === pose.id);
+      if (index >= 0) repas[index] = pose;
+      else repas.push(pose);
+      poses += 1;
+    }
+
+    if (poses === 0) return 0;
+    // Le menu couvre trois jours : inutile de le poser si l'evenement est plus
+    // court, les repas hors duree ne seraient jamais comptes.
+    const jours = Math.max(this.partage().jours, JOURS_MENUS_FESTIVIAL);
+    this.majPartage({ jours, nourriture: { ...nourriture, repas } });
+    return poses;
+  }
+
   ajouterIngredient(repasId: string): string {
     const id = identifiant();
     this.majRepasParId(repasId, (repas) => ({
@@ -1009,8 +1047,8 @@ export class PlannerStore {
           // Les gouts declares suivent aussi : ils orientent le profil, sans
           // jamais le decider a la place de l'organisateur.
           boissonsAimees: [...reponse.boissonsAimees],
-          niveauBasiques: reponse.niveauBasiques,
-          niveauSpiritueux: reponse.niveauSpiritueux,
+          niveaux: { ...reponse.niveaux },
+          autreAlcool: reponse.autreAlcool,
           team: reponse.team,
           servicesPreferes: [...reponse.servicesPreferes],
         },

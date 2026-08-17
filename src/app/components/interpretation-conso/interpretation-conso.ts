@@ -3,7 +3,12 @@ import { PlannerStore } from '../../state/planner-store';
 import { Panneau } from '../panneau/panneau';
 import { BOISSON_PAR_ID } from '../../domain/catalogue';
 import { aDeclareQuelqueChose, interpreter } from '../../domain/interpretation';
-import { LIBELLE_NIVEAU, LIBELLE_TEAM, libelleBoissonsAimees } from '../../domain/preferences';
+import {
+  FAMILLES_ALCOOL,
+  LIBELLE_NIVEAU,
+  LIBELLE_TEAM,
+  libelleBoissonsAimees,
+} from '../../domain/preferences';
 import { fmtEntier, fmtNombre } from '../../domain/format';
 import { Invite } from '../../domain/models';
 
@@ -57,12 +62,16 @@ export class InterpretationConso {
     return invite.team ? (LIBELLE_TEAM.get(invite.team) ?? '') : '';
   }
 
-  /** « Basiques : moyen · Spiritueux : peu » — ce que la personne a declare. */
+  /** « Bieres moyen · vins peu » — le rythme declare, famille par famille. */
   protected rythme(invite: Invite): string {
-    return [
-      `Basiques ${LIBELLE_NIVEAU.get(invite.niveauBasiques)?.toLowerCase()}`,
-      `spiritueux ${LIBELLE_NIVEAU.get(invite.niveauSpiritueux)?.toLowerCase()}`,
-    ].join(' · ');
+    const dit = FAMILLES_ALCOOL.filter((x) => invite.niveaux[x.id] !== 'aucun');
+    if (dit.length === 0) return 'Aucun rythme declare';
+    return dit
+      .map(
+        (x) =>
+          `${x.libelle.replace('Les ', '')} ${LIBELLE_NIVEAU.get(invite.niveaux[x.id])?.toLowerCase()}`,
+      )
+      .join(' · ');
   }
 
   protected nomBoisson(boissonId: string): string {
