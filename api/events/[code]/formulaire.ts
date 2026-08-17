@@ -35,7 +35,12 @@ const NIVEAUX = new Set(['aucun', 'peu', 'moyen', 'beaucoup', 'abuse']);
 
 const TEAMS = new Set(['chameau', 'degustation', 'croisiere', 'bateau-ivre']);
 
-/** Les gouts et les coups de main : des listes d'identifiants courts, bornees. */
+const FAMILLES = ['biere', 'vin', 'spiritueux'] as const;
+
+/** L'echelle du curseur de gout : 0 « j'en bois pas » a 4 « je bois que ca ». */
+const INTENSITE_MAX = 4;
+
+/** Les coups de main : une liste d'identifiants courts, bornee. */
 function identifiants(valeur: unknown, max: number): string[] {
   if (!Array.isArray(valeur)) return [];
   const vus = new Set<string>();
@@ -44,6 +49,38 @@ function identifiants(valeur: unknown, max: number): string[] {
     if (id) vus.add(id);
   }
   return [...vus];
+}
+
+/**
+ * Les gouts : une boisson et l'intensite du curseur. Un gout a zero ne dit
+ * rien — c'est le defaut du formulaire — donc on ne le stocke pas.
+ */
+function gouts(valeur: unknown): { boissonId: string; intensite: number }[] {
+  if (!Array.isArray(valeur)) return [];
+  const vus = new Set<string>();
+  const retenus: { boissonId: string; intensite: number }[] = [];
+  for (const x of valeur.slice(0, 40)) {
+    const brut = x as { boissonId?: unknown; intensite?: unknown };
+    const boissonId = champ(brut?.boissonId).slice(0, 40);
+    const intensite = Number(brut?.intensite);
+    if (!boissonId || vus.has(boissonId) || !Number.isFinite(intensite)) continue;
+    const cran = Math.min(INTENSITE_MAX, Math.max(0, Math.round(intensite)));
+    if (cran === 0) continue;
+    vus.add(boissonId);
+    retenus.push({ boissonId, intensite: cran });
+  }
+  return retenus;
+}
+
+/** Le rythme declare, famille par famille : biere, vin, spiritueux. */
+function niveaux(valeur: unknown): Record<string, string> {
+  const brut = (valeur ?? {}) as Record<string, unknown>;
+  const sortie: Record<string, string> = {};
+  for (const famille of FAMILLES) {
+    const niveau = champ(brut[famille]);
+    sortie[famille] = NIVEAUX.has(niveau) ? niveau : 'aucun';
+  }
+  return sortie;
 }
 
 /**
@@ -109,8 +146,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const logistiqueBrute = (corps['logistique'] ?? {}) as Record<string, unknown>;
   const hebergement = champ(logistiqueBrute['hebergement']);
   const placesVoiture = Number(logistiqueBrute['placesVoiture']);
-  const niveauBasiques = champ(corps['niveauBasiques']);
-  const niveauSpiritueux = champ(corps['niveauSpiritueux']);
   const team = champ(corps['team']);
   const reponse = {
     id: randomBytes(12).toString('hex'),
@@ -129,9 +164,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     consommations: consommations(corps['consommations']),
     stylesMusicaux: champ(corps['stylesMusicaux']),
     surnom: champ(corps['surnom']),
-    boissonsAimees: identifiants(corps['boissonsAimees'], 30),
-    niveauBasiques: NIVEAUX.has(niveauBasiques) ? niveauBasiques : 'aucun',
-    niveauSpiritueux: NIVEAUX.has(niveauSpiritueux) ? niveauSpiritueux : 'aucun',
+    boissonsAimees: gouts(corps['boissonsAimees']),
+    niveaux: niveaux(corps['niveaux']),
+    autreAlcool: champ(corps['autreAlcool']),
     team: TEAMS.has(team) ? team : '',
     servicesPreferes: identifiants(corps['servicesPreferes'], 20),
     logistique: {

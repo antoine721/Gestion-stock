@@ -6,6 +6,7 @@ import {
   Hebergement,
   Invite,
   Logistique,
+  NiveauxParFamille,
   Regime,
 } from './models';
 
@@ -79,11 +80,16 @@ export function inviteVierge(id: string, participantId: string): Invite {
     logistique: logistiqueVierge(),
     surnom: '',
     boissonsAimees: [],
-    niveauBasiques: 'aucun',
-    niveauSpiritueux: 'aucun',
+    niveaux: niveauxVierges(),
+    autreAlcool: '',
     team: '',
     servicesPreferes: [],
   };
+}
+
+/** Personne ne boit rien tant qu'il ne l'a pas dit. */
+export function niveauxVierges(): NiveauxParFamille {
+  return { biere: 'aucun', vin: 'aucun', spiritueux: 'aucun' };
 }
 
 /**
@@ -111,6 +117,7 @@ export function normaliserInvite(brut: Partial<Invite> & { id: string }): Invite
     ...brut,
     logistique: { ...logistiqueVierge(), ...brut.logistique },
     boissonsAimees: brut.boissonsAimees ?? [],
+    niveaux: { ...niveauxVierges(), ...brut.niveaux },
     servicesPreferes: brut.servicesPreferes ?? [],
   };
 }

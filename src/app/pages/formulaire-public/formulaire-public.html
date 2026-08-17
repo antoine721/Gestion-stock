@@ -75,42 +75,6 @@
                 (input)="invitePar.set($any($event.target).value)"
               />
             </label>
-
-            <div class="question">
-              <span class="intitule">Viens-tu accompagne(e) ? *</span>
-              <div class="choix">
-                <button
-                  type="button"
-                  class="option"
-                  [attr.aria-pressed]="accompagne() === 'non'"
-                  (click)="accompagne.set('non')"
-                >
-                  Non, je viens seul(e)
-                </button>
-                <button
-                  type="button"
-                  class="option"
-                  [attr.aria-pressed]="accompagne() === 'oui'"
-                  (click)="accompagne.set('oui')"
-                >
-                  Oui, accompagne(e)
-                </button>
-              </div>
-              @if (accompagne() === 'oui') {
-                <label class="champ sous-question">
-                  <span>De combien de personnes ? *</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max="20"
-                    step="1"
-                    inputmode="numeric"
-                    [value]="accompagnants()"
-                    (input)="majAccompagnants($any($event.target).value)"
-                  />
-                </label>
-              }
-            </div>
           </div>
 
           <div class="actions">
@@ -176,7 +140,7 @@
             </div>
 
             <div class="question">
-              <span class="intitule">Tu viens en voiture ? *</span>
+              <span class="intitule">Tu possedes une voiture ? *</span>
               <div class="choix">
                 <button
                   type="button"
@@ -262,18 +226,6 @@
                   Non
                 </button>
               </div>
-              @if (tente() === 'non') {
-                <label class="champ sous-question">
-                  <span>Tu dors ou, alors ?</span>
-                  <select (change)="hebergement.set($any($event.target).value)">
-                    @for (option of hebergements; track option.id) {
-                      <option [value]="option.id" [selected]="option.id === hebergement()">
-                        {{ option.libelle }}
-                      </option>
-                    }
-                  </select>
-                </label>
-              }
             </div>
           </div>
 
@@ -297,7 +249,7 @@
           <h2>A table</h2>
           <div class="champs">
             <label class="champ">
-              <span>Regime alimentaire particulier ? *</span>
+              <span>Tu es vegetarien, vegan, ou autre regime ? *</span>
               <select (change)="regime.set($any($event.target).value)">
                 @for (option of regimes; track option.id) {
                   <option [value]="option.id" [selected]="option.id === regime()">
@@ -361,6 +313,7 @@
                     <span class="team-texte">
                       <b>{{ option.libelle }}</b>
                       <span class="muted">{{ option.description }}</span>
+                      <span class="team-verres">Consommation en soiree : {{ option.verres }}</span>
                     </span>
                   </button>
                 }
@@ -373,101 +326,64 @@
               </p>
             } @else if (team() !== '') {
               <p class="intro muted">
-                Coche ce qui te fait plaisir, puis dis a quel point avec le curseur. C'est indicatif
-                : ca aide juste les organisateurs a savoir quoi acheter.
+                Pour chaque alcool, pousse le curseur selon ce que tu en penses — laisse a zero ce
+                que tu ne bois pas. C'est indicatif : ca aide juste les organisateurs a savoir quoi
+                acheter.
               </p>
 
-              <div class="question">
-                <span class="intitule">Les basiques</span>
-                <div class="gouts">
-                  @for (boisson of basiques; track boisson.id) {
-                    <div class="gout" [class.choisi]="aimeBoisson(boisson.id)">
-                      <button
-                        type="button"
-                        class="jeton"
-                        [attr.aria-pressed]="aimeBoisson(boisson.id)"
-                        (click)="basculerBoisson(boisson.id)"
-                      >
-                        {{ boisson.libelle }}
-                      </button>
-                      @if (aimeBoisson(boisson.id)) {
-                        <label class="curseur">
-                          <input
-                            type="range"
-                            min="1"
-                            max="5"
-                            step="1"
-                            [value]="intensiteDe(boisson.id)"
-                            [attr.aria-label]="'A quel point tu aimes ' + boisson.libelle"
-                            (input)="majIntensite(boisson.id, $any($event.target).value)"
-                          />
-                          <span class="curseur-valeur">{{ intensiteDe(boisson.id) }}/5</span>
-                        </label>
-                      }
-                    </div>
-                  }
-                </div>
-                <span class="intitule sous-question">Sur une soiree, tu en bois combien ?</span>
-                <div class="paliers">
-                  @for (palier of paliers; track palier.id) {
-                    <button
-                      type="button"
-                      class="palier"
-                      [attr.aria-pressed]="niveauBasiques() === palier.id"
-                      (click)="niveauBasiques.set(palier.id)"
-                    >
-                      <span class="palier-nom">{{ palier.libelle }}</span>
-                      <span class="palier-repere">{{ palier.reperesBasiques }}</span>
-                    </button>
-                  }
-                </div>
-              </div>
+              @for (famille of familles; track famille.id) {
+                <!-- Une famille = une couleur, ses boissons, et SA question de
+                     rythme : on doit voir d'un coup d'oeil de quel alcool on
+                     parle quand on repond « beaucoup ». -->
+                <div class="famille" [attr.data-famille]="famille.id">
+                  <span class="famille-titre">
+                    <span aria-hidden="true">{{ famille.emoji }}</span> {{ famille.libelle }}
+                  </span>
 
-              <div class="question">
-                <span class="intitule">Les spiritueux</span>
-                <div class="gouts">
-                  @for (boisson of spiritueux; track boisson.id) {
-                    <div class="gout" [class.choisi]="aimeBoisson(boisson.id)">
+                  <div class="gouts">
+                    @for (boisson of famille.boissons; track boisson.id) {
+                      <label class="gout" [class.choisi]="intensiteDe(boisson.id) > 0">
+                        <span class="gout-nom">{{ boisson.libelle }}</span>
+                        <input
+                          type="range"
+                          min="0"
+                          [attr.max]="intensiteMax"
+                          step="1"
+                          [value]="intensiteDe(boisson.id)"
+                          [attr.aria-label]="'A quel point tu aimes ' + boisson.libelle"
+                          (input)="majIntensite(boisson.id, famille.id, $any($event.target).value)"
+                        />
+                        <span class="gout-avis">{{ libelleIntensiteDe(boisson.id) }}</span>
+                      </label>
+                    }
+                  </div>
+
+                  <span class="intitule famille-question">{{ famille.question }}</span>
+                  <div class="paliers">
+                    @for (palier of paliers; track palier.id) {
                       <button
                         type="button"
-                        class="jeton"
-                        [attr.aria-pressed]="aimeBoisson(boisson.id)"
-                        (click)="basculerBoisson(boisson.id)"
+                        class="palier"
+                        [attr.aria-pressed]="niveauDe(famille.id) === palier.id"
+                        (click)="majNiveau(famille.id, palier.id)"
                       >
-                        {{ boisson.libelle }}
+                        <span class="palier-nom">{{ palier.libelle }}</span>
+                        <span class="palier-repere">{{ palier.reperes[famille.id] }}</span>
                       </button>
-                      @if (aimeBoisson(boisson.id)) {
-                        <label class="curseur">
-                          <input
-                            type="range"
-                            min="1"
-                            max="5"
-                            step="1"
-                            [value]="intensiteDe(boisson.id)"
-                            [attr.aria-label]="'A quel point tu aimes ' + boisson.libelle"
-                            (input)="majIntensite(boisson.id, $any($event.target).value)"
-                          />
-                          <span class="curseur-valeur">{{ intensiteDe(boisson.id) }}/5</span>
-                        </label>
-                      }
-                    </div>
-                  }
+                    }
+                  </div>
                 </div>
-                <span class="intitule sous-question">Sur une soiree, tu en bois combien ?</span>
-                <div class="paliers">
-                  @for (palier of paliers; track palier.id) {
-                    <button
-                      type="button"
-                      class="palier"
-                      [attr.aria-pressed]="niveauSpiritueux() === palier.id"
-                      (click)="niveauSpiritueux.set(palier.id)"
-                    >
-                      <span class="palier-nom">{{ palier.libelle }}</span>
-                      <span class="palier-repere">{{ palier.reperesSpiritueux }}</span>
-                    </button>
-                  }
-                </div>
-              </div>
+              }
+
+              <label class="champ">
+                <span>Un alcool qu'on a oublie ?</span>
+                <input
+                  type="text"
+                  placeholder="Limoncello, biere sans alcool, cidre brut..."
+                  [value]="autreAlcool()"
+                  (input)="autreAlcool.set($any($event.target).value)"
+                />
+              </label>
             }
           </div>
         </section>
