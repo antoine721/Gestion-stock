@@ -1,0 +1,82 @@
+.visite {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+/* Le spotlight : un cadre transparent dont l'ombre geante fait le voile. */
+.halo {
+  position: fixed;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 100vmax rgba(10, 10, 9, 0.55),
+    0 0 0 2px var(--surface);
+  transition:
+    top 0.25s ease,
+    left 0.25s ease,
+    width 0.25s ease,
+    height 0.25s ease;
+  pointer-events: none;
+}
+
+.voile-plein {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 9, 0.55);
+}
+
+.bulle {
+  position: fixed;
+  width: min(320px, calc(100vw - 24px));
+  background: var(--surface);
+  border: 1px solid var(--bord-verre);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-haute);
+  padding: 1rem 1.125rem;
+  transition:
+    top 0.25s ease,
+    left 0.25s ease;
+}
+
+.pas {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.bulle h3 {
+  margin-top: 0.25rem;
+  font-size: 0.9375rem;
+}
+
+.texte {
+  margin-top: 0.375rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--texte-doux);
+}
+
+.boutons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+}
+
+.points {
+  display: flex;
+  gap: 4px;
+  margin: 0 auto;
+}
+
+.points i {
+  width: 5px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--bord-fort);
+}
+
+.points i.actif {
+  background: var(--texte);
+}

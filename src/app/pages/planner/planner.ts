@@ -16,15 +16,19 @@ import { SectionProgramme } from '../../components/section-programme/section-pro
 import { SectionStats } from '../../components/section-stats/section-stats';
 import { SectionUtilisateurs } from '../../components/section-utilisateurs/section-utilisateurs';
 import { ValidationPanel } from '../../components/validation-panel/validation-panel';
+import { VisiteGuidee } from '../../components/visite-guidee/visite-guidee';
 import { ESPACES, Espace, PlannerStore, SECTIONS } from '../../state/planner-store';
 import { SessionStore } from '../../state/session';
 import { ThemeStore } from '../../state/theme';
 import { fmtEntier, fmtEuro } from '../../domain/format';
 import { joursAvant } from '../../domain/evenement';
 
+/** Le tuto ne se montre qu'a la premiere connexion sur l'appareil. */
+const CLE_VISITE = 'vialcrm.visite';
+
 /**
  * Le hub de l'evenement : une sidebar par piece (bar, nourriture, invites,
- * materiel, courses, stats, formulaire) et un accueil en cards qui resume
+ * materiel, courses, stats, formulaire) et un accueil-dashboard qui resume
  * tout. Les invites se declarent dans la base d'invites — il n'y a plus de
  * saisie par co-organisateur dans l'espace bar.
  */
@@ -47,6 +51,7 @@ import { joursAvant } from '../../domain/evenement';
     SectionStats,
     SectionUtilisateurs,
     ValidationPanel,
+    VisiteGuidee,
   ],
   templateUrl: './planner.html',
   styleUrl: './planner.css',
@@ -64,12 +69,30 @@ export class Planner {
   protected readonly fmtEntier = fmtEntier;
   protected readonly fmtEuro = fmtEuro;
 
+  /** La sidebar en trois familles, comme un outil de travail. */
+  protected readonly groupes: { titre: string; ids: Espace[] }[] = [
+    { titre: 'Menu', ids: ['accueil', 'profil'] },
+    { titre: 'Espaces', ids: ['alcool', 'nourriture', 'utilisateurs', 'materiel', 'courses'] },
+    { titre: 'Festival', ids: ['programme', 'dj', 'stats', 'formulaire'] },
+  ];
+  protected readonly espaceParId = new Map(ESPACES.map((x) => [x.id, x]));
+
   protected readonly lienCopie = signal(false);
+  protected readonly visiteOuverte = signal(false);
 
   protected readonly code = computed(() => this.route.snapshot.paramMap.get('code') ?? '');
 
+  protected readonly prenom = computed(() => this.session.session()?.prenom ?? '');
+  protected readonly initiales = computed(() => this.prenom().slice(0, 2).toUpperCase() || '·');
+
   constructor() {
     void this.demarrer();
+  }
+
+  /** Fin (ou passage) du tuto : on ne le remontre plus a cette personne. */
+  protected fermerVisite(): void {
+    localStorage.setItem(CLE_VISITE, 'vue');
+    this.visiteOuverte.set(false);
   }
 
   /** Le petit chiffre a droite de chaque entree de la sidebar. */
@@ -117,6 +140,10 @@ export class Planner {
     try {
       await this.store.rejoindre(this.code(), prenom);
       await this.store.ouvrir(this.code());
+      // Premiere visite sur cet appareil : le tuto se lance une fois la page posee.
+      if (!localStorage.getItem(CLE_VISITE)) {
+        setTimeout(() => this.visiteOuverte.set(true), 600);
+      }
     } catch {
       // Le store expose deja l'erreur ; rien a ajouter ici.
     }
