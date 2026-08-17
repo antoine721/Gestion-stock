@@ -386,6 +386,28 @@ h2 {
   accent-color: var(--accent);
 }
 
+/* -- Les hotes : trois cases a cocher, une seule reste allumee -------------- */
+
+.hotes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.hote {
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--bord);
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.hote.choisi {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--fond);
+  font-weight: 620;
+}
+
 /* -- Pied de carte ----------------------------------------------------------- */
 
 .actions {

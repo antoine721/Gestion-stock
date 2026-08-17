@@ -91,7 +91,7 @@
       @for (invite of store.volontaires(); track invite.id) {
         <li>
           <strong>{{ invite.prenom }} {{ invite.nom }}</strong>
-          <span class="muted">{{ invite.envies }}</span>
+          <span class="muted">{{ libelleVolontariat(invite) }}</span>
         </li>
       }
     </ul>

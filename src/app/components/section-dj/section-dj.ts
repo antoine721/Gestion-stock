@@ -2,7 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { PlannerStore } from '../../state/planner-store';
 import { Modale } from '../modale/modale';
 import { Panneau } from '../panneau/panneau';
-import { STATUTS_DJ_SET, nomDeRef, trierDjSets, volontaires } from '../../domain/programme';
+import {
+  STATUTS_DJ_SET,
+  libelleVolontariat,
+  nomDeRef,
+  trierDjSets,
+  volontairesDj,
+} from '../../domain/programme';
 import { fmtEntier } from '../../domain/format';
 import { DjSet, StatutDjSet } from '../../domain/models';
 
@@ -32,6 +38,7 @@ export class SectionDj {
   protected readonly store = inject(PlannerStore);
   protected readonly fmtEntier = fmtEntier;
   protected readonly statuts = STATUTS_DJ_SET;
+  protected readonly libelleVolontariat = libelleVolontariat;
 
   protected readonly sets = computed(() => trierDjSets(this.store.djSets()));
 
@@ -40,9 +47,7 @@ export class SectionDj {
   );
 
   /** Les invites qui se sont proposes comme DJ, d'apres leurs fiches. */
-  protected readonly volontairesDj = computed(() =>
-    volontaires(this.store.invitesNommes()).filter((x) => /dj|mix|platine/i.test(x.envies)),
-  );
+  protected readonly volontairesDj = computed(() => volontairesDj(this.store.invitesNommes()));
 
   protected nomDe(ref: string): string {
     return nomDeRef(ref, this.store.participants(), this.store.invitesNommes()) || ref;

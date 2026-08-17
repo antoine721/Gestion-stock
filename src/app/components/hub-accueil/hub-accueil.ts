@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
 import { dateDuJour, joursAvant } from '../../domain/evenement';
+import { neBoitPas } from '../../domain/invites';
 import { nomDeRef, planningDuJour } from '../../domain/programme';
 import { fmtEntier, fmtEuro } from '../../domain/format';
 
@@ -67,9 +68,11 @@ export class HubAccueil {
   /** Fiches -> profil -> tarif -> payes : ou en est la base d'invites. */
   protected readonly parcours = computed<SegmentParcours[]>(() => {
     const invites = this.store.invitesNommes();
+    // Un non-buveur a franchi la marche « profil » : son profil vide est une
+    // reponse, pas une case restee a cocher.
     const valeurs = [
       invites.length,
-      invites.filter((x) => x.personneTypeId !== '').length,
+      invites.filter((x) => x.personneTypeId !== '' || neBoitPas(x)).length,
       invites.filter((x) => x.categoriePaiementId !== '').length,
       invites.filter((x) => x.paye).length,
     ];
@@ -105,7 +108,9 @@ export class HubAccueil {
         texte: `${fmtEuro(encaissements.reste)} restent a encaisser aupres de ${fmtEntier(encaissements.enAttente)} personne(s). Un rappel du tarif dans le groupe suffit souvent.`,
       };
     }
-    const sansProfil = this.store.invitesNommes().filter((x) => !x.personneTypeId).length;
+    const sansProfil = this.store
+      .invitesNommes()
+      .filter((x) => !x.personneTypeId && !neBoitPas(x)).length;
     if (sansProfil > 0) {
       return {
         titre: 'Des fiches sans profil de consommation',
@@ -120,7 +125,9 @@ export class HubAccueil {
     const ratios: number[] = [];
     const invites = this.store.invitesNommes();
     if (invites.length > 0) {
-      ratios.push(invites.filter((x) => x.personneTypeId !== '').length / invites.length);
+      ratios.push(
+        invites.filter((x) => x.personneTypeId !== '' || neBoitPas(x)).length / invites.length,
+      );
     }
     const encaissements = this.store.encaissements();
     if (encaissements.attendu > 0) {

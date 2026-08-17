@@ -1,5 +1,5 @@
-import { BOISSONS } from './catalogue';
-import { HEBERGEMENTS, inviteVierge } from './invites';
+import { inviteVierge, tousLesJours } from './invites';
+import { GOODIES, SERVICES } from './preferences';
 import { CategoriePaiement, Invite, Participant, PersonneType, Regime } from './models';
 
 /**
@@ -172,17 +172,19 @@ export function genererInvitesTest(
           invite.montantPaye = alea() < 0.2 ? Math.round(categorie.montant / 2) : categorie.montant;
         }
       }
-      invite.joursPresence = 1 + Math.floor(alea() * Math.max(1, jours));
+      // Deux tiers restent tout le sejour ; les autres arrivent en cours de
+      // route, ce qui donne des presences a trous a afficher.
+      invite.joursPresents =
+        alea() < 0.66
+          ? tousLesJours(jours)
+          : tousLesJours(jours).slice(Math.floor(alea() * Math.max(1, jours)));
 
-      const nbBoissons = Math.floor(alea() * 4);
-      const declarees = new Set<string>();
-      for (let b = 0; b < nbBoissons; b += 1) {
-        const boisson = parmi(alea, BOISSONS);
-        if (declarees.has(boisson.id)) continue;
-        declarees.add(boisson.id);
-        invite.consommationDeclaree = [
-          ...invite.consommationDeclaree,
-          { boissonId: boisson.id, verresParJour: 1 + Math.floor(alea() * 5) },
+      if (alea() < 0.5) {
+        invite.goodies = [...new Set([parmi(alea, GOODIES).id, parmi(alea, GOODIES).id])];
+      }
+      if (alea() < 0.4) {
+        invite.servicesPreferes = [
+          ...new Set([parmi(alea, SERVICES).id, parmi(alea, SERVICES).id]),
         ];
       }
 
@@ -191,7 +193,7 @@ export function genererInvitesTest(
       logistique.vehicule = logistique.permis && alea() < 0.55;
       logistique.placesVoiture = logistique.vehicule ? 1 + Math.floor(alea() * 4) : 0;
       logistique.chercheCovoiturage = !logistique.vehicule && alea() < 0.3;
-      logistique.hebergement = parmi(alea, HEBERGEMENTS).id;
+      logistique.tente = alea() < 0.6;
       logistique.arrivee = parmi(alea, ARRIVEES);
       logistique.depart = parmi(alea, DEPARTS);
       if (alea() < 0.25) logistique.materielApporte = parmi(alea, MATERIEL_PRETE);

@@ -3,12 +3,17 @@ import { PlannerStore } from '../../state/planner-store';
 import { Modale } from '../modale/modale';
 import { Panneau } from '../panneau/panneau';
 import {
-  HEBERGEMENTS,
-  LIBELLE_HEBERGEMENT,
   LIBELLE_REGIME,
   REGIMES,
-  libelleConsommations,
+  TACHES_INVITE,
+  TacheInvite,
+  etatTaches,
+  neBoitPas,
+  presenceComplete,
+  tousLesJours,
 } from '../../domain/invites';
+import { libelleGoodies, libelleServices } from '../../domain/preferences';
+import { dateDuJour } from '../../domain/evenement';
 import { fmtEntier, fmtEuro } from '../../domain/format';
 import {
   CategoriePaiement,
@@ -18,7 +23,8 @@ import {
   ReponseFormulaire,
 } from '../../domain/models';
 
-type FiltrePaiement = 'tous' | 'paye' | 'non-paye';
+/** Le filtre « il me reste quoi a faire sur cette personne ? ». */
+type FiltreTache = 'tous' | 'incomplet' | 'complet' | TacheInvite;
 
 /** La saisie minimale d'une nouvelle fiche, avant de detailler. */
 interface BrouillonInvite {
@@ -48,9 +54,10 @@ export class SectionUtilisateurs {
   protected readonly fmtEuro = fmtEuro;
   protected readonly regimes = REGIMES;
   protected readonly libelleRegime = LIBELLE_REGIME;
-  protected readonly libelleConsommations = libelleConsommations;
-  protected readonly hebergements = HEBERGEMENTS;
-  protected readonly libelleHebergement = LIBELLE_HEBERGEMENT;
+  protected readonly libelleServices = libelleServices;
+  protected readonly libelleGoodies = libelleGoodies;
+  protected readonly taches = TACHES_INVITE;
+  protected readonly neBoitPas = neBoitPas;
 
   /** « Permis · Voiture (3 places) · Cherche covoiturage » en une ligne. */
   protected resumeVoiture(logistique: Logistique): string {
@@ -71,38 +78,76 @@ export class SectionUtilisateurs {
 
   protected readonly filtreParticipant = signal('');
   protected readonly filtreProfil = signal('');
-  protected readonly filtrePaiement = signal<FiltrePaiement>('tous');
+  protected readonly filtreTache = signal<FiltreTache>('tous');
 
   protected readonly filtresActifs = computed(
     () =>
       this.filtreParticipant() !== '' ||
       this.filtreProfil() !== '' ||
-      this.filtrePaiement() !== 'tous',
+      this.filtreTache() !== 'tous',
   );
+
+  /** Ou en est chaque fiche : calcule une fois, lu par le tableau et les filtres. */
+  protected readonly etatDe = computed(() => {
+    const categories = this.store.categoriesPaiement();
+    return new Map(this.store.invitesNommes().map((x) => [x.id, etatTaches(x, categories)]));
+  });
 
   protected readonly invitesFiltres = computed(() => {
     const participant = this.filtreParticipant();
     const profil = this.filtreProfil();
-    const paiement = this.filtrePaiement();
+    const tache = this.filtreTache();
+    const etats = this.etatDe();
 
     return this.store.invitesNommes().filter((invite) => {
       if (participant && invite.participantId !== participant) return false;
       if (profil === 'sans' && invite.personneTypeId) return false;
       if (profil && profil !== 'sans' && invite.personneTypeId !== profil) return false;
-      if (paiement === 'paye' && !invite.paye) return false;
-      if (paiement === 'non-paye' && invite.paye) return false;
-      return true;
+
+      const etat = etats.get(invite.id);
+      if (!etat || tache === 'tous') return true;
+      if (tache === 'incomplet') return etat.faites < TACHES_INVITE.length;
+      if (tache === 'complet') return etat.faites === TACHES_INVITE.length;
+      // Un filtre par tache montre celles qui restent a faire, pas les faites.
+      return !etat[tache];
     });
   });
 
   protected reinitialiserFiltres(): void {
     this.filtreParticipant.set('');
     this.filtreProfil.set('');
-    this.filtrePaiement.set('tous');
+    this.filtreTache.set('tous');
   }
 
+  /** Combien de fiches attendent encore chaque tache : le compteur du filtre. */
+  protected readonly restantParTache = computed(() => {
+    const restants: Record<string, number> = { incomplet: 0, complet: 0 };
+    for (const etat of this.etatDe().values()) {
+      for (const tache of TACHES_INVITE) {
+        if (!etat[tache.id]) restants[tache.id] = (restants[tache.id] ?? 0) + 1;
+      }
+      if (etat.faites === TACHES_INVITE.length) restants['complet'] += 1;
+      else restants['incomplet'] += 1;
+    }
+    return restants;
+  });
+
+  protected tachesFaites(invite: Invite): number {
+    return this.etatDe().get(invite.id)?.faites ?? 0;
+  }
+
+  protected tacheFaite(invite: Invite, tache: TacheInvite): boolean {
+    return this.etatDe().get(invite.id)?.[tache] ?? false;
+  }
+
+  protected readonly totalTaches = TACHES_INVITE.length;
+
+  /**
+   * Les fiches qui attendent encore un profil alcool. Les non-buveurs n'en
+   * font pas partie : leur profil vide est une reponse.
+   */
   protected readonly sansProfil = computed(
-    () => this.store.invitesNommes().filter((x) => !x.personneTypeId).length,
+    () => this.store.invitesNommes().filter((x) => !x.personneTypeId && !neBoitPas(x)).length,
   );
 
   /** Le porteur de la fiche par defaut : moi, sinon le premier venu. */
@@ -136,12 +181,20 @@ export class SectionUtilisateurs {
     this.porteursChoisis.set(new Map(this.porteursChoisis()).set(reponseId, participantId));
   }
 
-  protected porteurDe(reponseId: string): string {
-    return this.porteursChoisis().get(reponseId) ?? this.porteurParDefaut();
+  /**
+   * Le co-organisateur coche par l'invite au formulaire fait foi : c'est lui
+   * qui sait qui il a invite. On ne retombe sur un choix manuel que pour les
+   * vieilles reponses, saisies avant que la question existe.
+   */
+  protected porteurDe(reponse: ReponseFormulaire): string {
+    const choisi = this.porteursChoisis().get(reponse.id);
+    if (choisi) return choisi;
+    const declare = this.store.participants().find((x) => x.id === reponse.invitParId);
+    return declare?.id ?? this.porteurParDefaut();
   }
 
   protected valider(reponse: ReponseFormulaire): void {
-    const porteur = this.porteurDe(reponse.id);
+    const porteur = this.porteurDe(reponse);
     if (porteur) this.store.importerReponse(reponse.id, porteur);
   }
 
@@ -215,13 +268,50 @@ export class SectionUtilisateurs {
     this.store.majInvite(invite.id, patch);
   }
 
-  protected majNombre(
-    invite: Invite,
-    champ: 'montantPaye' | 'joursPresence',
-    valeur: string,
-  ): void {
-    const nombre = Number(valeur);
-    if (Number.isFinite(nombre)) this.store.majInvite(invite.id, { [champ]: Math.max(0, nombre) });
+  protected majMontantPaye(invite: Invite, valeur: string): void {
+    const montant = Number(valeur);
+    if (Number.isFinite(montant)) {
+      this.store.majInvite(invite.id, { montantPaye: Math.max(0, montant) });
+    }
+  }
+
+  // -- Jours sur place : tous les jours, ou des dates precises --------------
+
+  /** Les jours de l'evenement, avec leur date reelle quand elle est calee. */
+  protected readonly joursEvenement = computed(() => {
+    const debut = this.store.infos().debut;
+    const format = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric' });
+    return tousLesJours(this.store.partage().jours).map((jour) => {
+      const date = dateDuJour(debut, jour);
+      return { jour, libelle: date ? format.format(date) : `Jour ${jour}` };
+    });
+  });
+
+  protected presentLe(invite: Invite, jour: number): boolean {
+    return invite.joursPresents.includes(jour);
+  }
+
+  protected estLaTousLesJours(invite: Invite): boolean {
+    return presenceComplete(invite, this.store.partage().jours);
+  }
+
+  protected marquerTousLesJours(invite: Invite): void {
+    this.store.majInvite(invite.id, { joursPresents: tousLesJours(this.store.partage().jours) });
+  }
+
+  protected basculerJour(invite: Invite, jour: number): void {
+    const presents = new Set(invite.joursPresents);
+    if (presents.has(jour)) presents.delete(jour);
+    else presents.add(jour);
+    this.store.majInvite(invite.id, { joursPresents: [...presents].sort((a, b) => a - b) });
+  }
+
+  /** « Tous les jours », « ven. 21, sam. 22 » ou « — » : la presence en clair. */
+  protected libellePresence(invite: Invite): string {
+    if (invite.joursPresents.length === 0) return '';
+    if (this.estLaTousLesJours(invite)) return 'Tous les jours';
+    const parJour = new Map(this.joursEvenement().map((x) => [x.jour, x.libelle]));
+    return invite.joursPresents.map((jour) => parJour.get(jour) ?? `J${jour}`).join(', ');
   }
 
   protected majLogistique(invite: Invite, patch: Partial<Logistique>): void {
