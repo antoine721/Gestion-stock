@@ -536,6 +536,147 @@ td.droite {
   text-align: right;
 }
 
+/**
+ * Le tableau de donnees : une ligne = un objet, cliquable pour ouvrir son
+ * panneau de detail. L'en-tete est une bande grise, les separateurs sont des
+ * filets, et la colonne d'actions ne se montre qu'au survol de la ligne.
+ */
+.tableau {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.8125rem;
+}
+
+.tableau thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-2);
+  padding: 0.4375rem 0.75rem;
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texte-doux);
+  border-top: 1px solid var(--bord);
+  border-bottom: 1px solid var(--bord);
+  white-space: nowrap;
+}
+
+.tableau thead th:first-child {
+  border-top-left-radius: var(--rayon-petit);
+  border-bottom-left-radius: var(--rayon-petit);
+}
+
+.tableau thead th:last-child {
+  border-top-right-radius: var(--rayon-petit);
+  border-bottom-right-radius: var(--rayon-petit);
+}
+
+.tableau tbody td {
+  padding: 0.625rem 0.75rem;
+  border-top: 0;
+  border-bottom: 1px solid var(--bord);
+  vertical-align: middle;
+}
+
+.tableau tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Une ligne d'objet s'ouvre au clic : tout le rang est la cible. */
+.tableau tbody tr.cliquable {
+  cursor: pointer;
+}
+
+.tableau tbody tr.cliquable:hover td {
+  background: var(--surface-2);
+}
+
+.tableau tbody tr.active td {
+  background: var(--surface-2);
+}
+
+/* Le nom de l'objet : la colonne qu'on lit en premier. */
+.tableau .principal {
+  font-weight: 620;
+  color: var(--texte);
+}
+
+.tableau .secondaire {
+  display: block;
+  font-size: 0.71875rem;
+  color: var(--texte-doux);
+  margin-top: 0.0625rem;
+}
+
+.tableau .actions-ligne {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.tableau tbody tr:hover .actions-ligne,
+.tableau tbody tr:focus-within .actions-ligne {
+  opacity: 1;
+}
+
+/* Le chevron qui dit « ca s'ouvre ». */
+.tableau .chevron {
+  color: var(--texte-3, var(--texte-doux));
+  font-weight: 650;
+  opacity: 0.5;
+}
+
+/* La barre au-dessus d'un tableau : titre a gauche, filtres et action a droite. */
+.barre-tableau {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin-bottom: 0.875rem;
+}
+
+.barre-tableau .pousse {
+  margin-left: auto;
+}
+
+/* Les pilules d'etat des tableaux, declinees par intention. */
+.pill {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  white-space: nowrap;
+  background: var(--surface-2);
+  color: var(--texte-doux);
+}
+
+.pill.ok {
+  background: var(--ok-doux);
+  color: var(--ok);
+}
+
+.pill.warn {
+  background: var(--warn-doux);
+  color: var(--warn);
+}
+
+.pill.ko {
+  background: var(--ko-doux);
+  color: var(--ko);
+}
+
+/* Un tableau large defile dans sa boite, en gardant l'en-tete lisible. */
+.boite-tableau {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* -- Divers --------------------------------------------------------------- */
 
 .vide {

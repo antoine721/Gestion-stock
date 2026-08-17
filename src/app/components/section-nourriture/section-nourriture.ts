@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
+import { Modale } from '../modale/modale';
 import {
   IDEES_PLATS,
   MOMENTS,
@@ -23,6 +24,7 @@ interface CaseRepas {
  */
 @Component({
   selector: 'app-section-nourriture',
+  imports: [Modale],
   templateUrl: './section-nourriture.html',
   styleUrl: './section-nourriture.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -128,5 +130,35 @@ export class SectionNourriture {
     if (Number.isFinite(nombre)) {
       this.store.majExtraNourriture(extraId, { [champ]: Math.max(0, nombre) });
     }
+  }
+
+  // -- Grignotage : creation en modale ---------------------------------------
+
+  protected readonly extraCreationOuvert = signal(false);
+  protected readonly brouillonExtra = signal({ nom: '', quantite: 1, prixUnitaire: 0 });
+
+  protected readonly extraInvalide = computed(() => this.brouillonExtra().nom.trim() === '');
+
+  protected ouvrirCreationExtra(): void {
+    this.brouillonExtra.set({ nom: '', quantite: 1, prixUnitaire: 0 });
+    this.extraCreationOuvert.set(true);
+  }
+
+  protected majBrouillonExtra(
+    patch: Partial<{ nom: string; quantite: number; prixUnitaire: number }>,
+  ): void {
+    this.brouillonExtra.set({ ...this.brouillonExtra(), ...patch });
+  }
+
+  protected creerExtra(): void {
+    const brouillon = this.brouillonExtra();
+    if (!brouillon.nom.trim()) return;
+    const id = this.store.ajouterExtraNourriture();
+    this.store.majExtraNourriture(id, {
+      nom: brouillon.nom.trim(),
+      quantite: Math.max(0, brouillon.quantite),
+      prixUnitaire: Math.max(0, brouillon.prixUnitaire),
+    });
+    this.extraCreationOuvert.set(false);
   }
 }

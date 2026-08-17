@@ -237,9 +237,12 @@
 }
 
 <section class="card">
-  <div class="card-head">
+  <div class="barre-tableau">
     <h2>Grignotage &amp; divers</h2>
     <span class="muted num">{{ fmtEuro(store.budgetNourriture().coutExtras) }}</span>
+    <button type="button" class="primaire pousse" (click)="ouvrirCreationExtra()">
+      + Nouvel extra
+    </button>
   </div>
 
   <p class="intro muted">
@@ -249,65 +252,111 @@
   @if (store.nourriture().extras.length === 0) {
     <p class="vide">Rien pour l'instant.</p>
   } @else {
-    <table>
-      <thead>
-        <tr>
-          <th>Quoi</th>
-          <th class="droite">Quantite</th>
-          <th class="droite">Prix unitaire</th>
-          <th class="droite">Total</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (extra of store.nourriture().extras; track extra.id) {
+    <div class="boite-tableau">
+      <table class="tableau">
+        <thead>
           <tr>
-            <td>
-              <input
-                type="text"
-                placeholder="Chips, baguettes..."
-                [value]="extra.nom"
-                (input)="majExtra(extra.id, { nom: $any($event.target).value })"
-              />
-            </td>
-            <td class="droite">
-              <input
-                class="etroit"
-                type="number"
-                min="0"
-                step="1"
-                [value]="extra.quantite"
-                (input)="majExtraNombre(extra.id, 'quantite', $any($event.target).value)"
-              />
-            </td>
-            <td class="droite">
-              <input
-                class="etroit"
-                type="number"
-                min="0"
-                step="0.1"
-                [value]="extra.prixUnitaire"
-                (input)="majExtraNombre(extra.id, 'prixUnitaire', $any($event.target).value)"
-              />
-            </td>
-            <td class="droite num">{{ fmtEuro(extra.quantite * extra.prixUnitaire) }}</td>
-            <td class="droite">
-              <button
-                type="button"
-                class="discret"
-                title="Retirer"
-                (click)="store.supprimerExtraNourriture(extra.id)"
-              >
-                ×
-              </button>
-            </td>
+            <th>Quoi</th>
+            <th class="droite">Quantite</th>
+            <th class="droite">Prix unitaire</th>
+            <th class="droite">Total</th>
+            <th></th>
           </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (extra of store.nourriture().extras; track extra.id) {
+            <tr>
+              <td>
+                <input
+                  type="text"
+                  placeholder="Chips, baguettes..."
+                  [value]="extra.nom"
+                  (input)="majExtra(extra.id, { nom: $any($event.target).value })"
+                />
+              </td>
+              <td class="droite">
+                <input
+                  class="etroit"
+                  type="number"
+                  min="0"
+                  step="1"
+                  [value]="extra.quantite"
+                  (input)="majExtraNombre(extra.id, 'quantite', $any($event.target).value)"
+                />
+              </td>
+              <td class="droite">
+                <input
+                  class="etroit"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  [value]="extra.prixUnitaire"
+                  (input)="majExtraNombre(extra.id, 'prixUnitaire', $any($event.target).value)"
+                />
+              </td>
+              <td class="droite num principal">
+                {{ fmtEuro(extra.quantite * extra.prixUnitaire) }}
+              </td>
+              <td class="actions-ligne">
+                <button
+                  type="button"
+                  class="discret"
+                  title="Retirer"
+                  (click)="store.supprimerExtraNourriture(extra.id)"
+                >
+                  ×
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
-
-  <div class="ajout">
-    <button type="button" (click)="store.ajouterExtraNourriture()">+ Ajouter</button>
-  </div>
 </section>
+
+@if (extraCreationOuvert()) {
+  <app-modale
+    titre="Nouvel extra"
+    sousTitre="Une quantite fixe, independante du nombre d'invites."
+    libelleValider="Ajouter"
+    [valideDesactive]="extraInvalide()"
+    (fermee)="extraCreationOuvert.set(false)"
+    (validee)="creerExtra()"
+  >
+    <label class="champ">
+      <span>Quoi *</span>
+      <input
+        type="text"
+        placeholder="Chips, baguettes, glace..."
+        autocomplete="off"
+        [value]="brouillonExtra().nom"
+        (input)="majBrouillonExtra({ nom: $any($event.target).value })"
+        (keyup.enter)="creerExtra()"
+      />
+    </label>
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Quantite</span>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          [value]="brouillonExtra().quantite"
+          (input)="majBrouillonExtra({ quantite: +$any($event.target).value })"
+        />
+      </label>
+      <label class="champ">
+        <span>Prix unitaire (€)</span>
+        <input
+          type="number"
+          min="0"
+          step="0.1"
+          [value]="brouillonExtra().prixUnitaire"
+          (input)="majBrouillonExtra({ prixUnitaire: +$any($event.target).value })"
+          (keyup.enter)="creerExtra()"
+        />
+      </label>
+    </div>
+  </app-modale>
+}
