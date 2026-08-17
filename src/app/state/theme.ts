@@ -26,6 +26,6 @@ export class ThemeStore {
     // La barre systeme du navigateur suit le fond, comme dans une app native.
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute('content', sombre ? '#0b0f13' : '#eef1f6');
+      ?.setAttribute('content', sombre ? '#131311' : '#f7f7f5');
   }
 }
