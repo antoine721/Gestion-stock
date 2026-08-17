@@ -1,32 +1,257 @@
-<header class="bienvenue">
+<header class="entete">
   <h2>{{ store.partage().nom }}</h2>
-  <p class="muted">
-    <span class="num">{{ fmtEntier(store.cadre().invites) }}</span> invites ·
-    <span class="num">{{ fmtEntier(store.partage().jours) }}</span> jour(s) · budget
-    <span class="num">{{ fmtEuro(store.budgetGlobal().total) }}</span>
-  </p>
-</header>
-
-<div class="cartes">
-  @for (carte of cartes(); track carte.espace) {
-    <button
-      type="button"
-      class="carte"
-      [class]="'teinte-' + carte.teinte"
-      (click)="store.allerA(carte.espace)"
-    >
-      <span class="haut">
-        <span class="emoji" aria-hidden="true">{{ carte.emoji }}</span>
-        @if (carte.etat) {
-          <span class="badge" [class.attention]="carte.etat === 'attention'">
-            {{ carte.etatTexte }}
-          </span>
-        }
-      </span>
-      <span class="libelle">{{ carte.libelle }}</span>
-      <span class="valeur num">{{ carte.valeur }}</span>
-      <span class="sous">{{ carte.sous }}</span>
-      <span class="aller" aria-hidden="true">Ouvrir →</span>
+  @if (entete().jChip) {
+    <span class="puce-j">{{ entete().jChip }}</span>
+  }
+  @if (entete().dates || entete().lieu) {
+    <span class="muted">
+      {{ [entete().dates, entete().lieu].join(entete().dates && entete().lieu ? ' · ' : '') }}
+    </span>
+  } @else {
+    <button type="button" class="discret" (click)="store.allerA('profil')">
+      Cale le lieu et les dates →
     </button>
   }
+</header>
+
+<!-- La ligne de KPIs : une carte, quatre cellules. -->
+<section class="card kpis">
+  <button type="button" class="kpi" (click)="store.allerA('stats')">
+    <span class="etiquette">Budget global</span>
+    <span class="valeur num">{{ fmtEuro(store.budgetGlobal().total) }}</span>
+    <span class="note muted num">{{ fmtEuro(store.budgetGlobal().parPersonne) }} par personne</span>
+  </button>
+  <button type="button" class="kpi" (click)="store.allerA('utilisateurs')">
+    <span class="etiquette">Encaisse</span>
+    <span class="valeur num">{{ fmtEuro(store.encaissements().encaisse) }}</span>
+    <span class="note muted num">
+      @if (store.encaissements().enAttente > 0) {
+        <span class="delta warn">{{ fmtEntier(store.encaissements().enAttente) }} en attente</span>
+      }
+      sur {{ fmtEuro(store.encaissements().attendu) }} attendus
+    </span>
+  </button>
+  <button type="button" class="kpi" (click)="store.allerA('utilisateurs')">
+    <span class="etiquette">Invites</span>
+    <span class="valeur num">{{ fmtEntier(store.cadre().invites) }}</span>
+    <span class="note muted num">
+      {{ fmtEntier(store.invitesNommes().length) }} fiche(s) ·
+      {{ fmtEntier(store.resumeLogistique().placesOffertes) }} place(s) covoit
+    </span>
+  </button>
+  <button type="button" class="kpi" (click)="store.allerA('programme')">
+    <span class="etiquette">Missions pourvues</span>
+    <span class="valeur num">
+      {{ fmtEntier(missions().pourvues) }}/{{ fmtEntier(missions().total) }}
+    </span>
+    <span class="note muted">
+      @if (missions().vacantes > 0) {
+        <span class="delta ko">{{ fmtEntier(missions().vacantes) }} vacante(s)</span>
+      } @else if (missions().total > 0) {
+        <span class="delta ok">complet</span>
+      } @else {
+        planning a construire
+      }
+    </span>
+  </button>
+</section>
+
+<div class="grille">
+  <div class="colonne-principale">
+    <section class="card parcours-carte">
+      <div class="card-head">
+        <h2>Parcours des invites</h2>
+        <button type="button" class="discret" (click)="store.allerA('utilisateurs')">
+          Ouvrir →
+        </button>
+      </div>
+      <div class="etapes">
+        @for (segment of parcours(); track segment.nom) {
+          <div class="etape">
+            <span class="nom muted">
+              <i class="point" [style.background]="segment.couleur"></i>
+              {{ segment.nom }}
+            </span>
+            <span class="val num">{{ fmtEntier(segment.valeur) }}</span>
+          </div>
+        }
+      </div>
+      <svg
+        class="ruban"
+        viewBox="0 0 800 150"
+        aria-label="Parcours des invites, de la fiche au paiement"
+      >
+        @for (segment of parcours(); track segment.nom) {
+          <path [attr.d]="segment.aire" [attr.fill]="segment.couleur" opacity="0.3" />
+          <path
+            [attr.d]="segment.crete"
+            [attr.stroke]="segment.couleur"
+            stroke-width="3"
+            fill="none"
+            stroke-linecap="round"
+          />
+        }
+      </svg>
+      @if (conseil(); as c) {
+        <div class="encart">
+          <b>{{ c.titre }}</b>
+          <span class="muted">{{ c.texte }}</span>
+        </div>
+      }
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>{{ journee().titre }}</h2>
+        <div class="segments">
+          @for (j of jours(); track j) {
+            <button type="button" [attr.aria-pressed]="jour() === j" (click)="jour.set(j)">
+              J{{ j }}
+            </button>
+          }
+        </div>
+      </div>
+      @if (journee().creneaux.length === 0) {
+        <p class="vide">
+          Rien de prevu ce jour-la.
+          <button type="button" class="discret" (click)="store.allerA('programme')">
+            Ouvrir le planning →
+          </button>
+        </p>
+      }
+      @for (creneau of journee().creneaux; track creneau.id) {
+        <div class="ligne-mission">
+          <span class="heure muted num">
+            {{ creneau.debut || '—' }}
+            @if (creneau.fin) {
+              –{{ creneau.fin }}
+            }
+          </span>
+          <span class="txt">
+            <b>{{ creneau.titre || 'Sans titre' }}</b>
+            <span class="muted">
+              {{ [creneau.lieu, creneau.equipe].join(creneau.lieu && creneau.equipe ? ' · ' : '') }}
+            </span>
+          </span>
+          @if (creneau.assignes.length > 0) {
+            <span class="etat-pill ok">Equipe OK</span>
+          } @else {
+            <span class="etat-pill warn">A pourvoir</span>
+          }
+        </div>
+      }
+    </section>
+  </div>
+
+  <div class="colonne-droite">
+    <section class="card sante">
+      <div class="card-head">
+        <h2>Sante de la preparation</h2>
+      </div>
+      <div class="jauge-bloc">
+        <svg
+          width="86"
+          height="86"
+          viewBox="0 0 86 86"
+          [attr.aria-label]="sante().score + ' % pret'"
+        >
+          <circle cx="43" cy="43" r="35" fill="none" stroke="var(--surface-2)" stroke-width="9" />
+          <circle
+            cx="43"
+            cy="43"
+            r="35"
+            fill="none"
+            [attr.stroke]="
+              sante().etat === 'ok'
+                ? 'var(--ok)'
+                : sante().etat === 'warn'
+                  ? 'var(--warn)'
+                  : 'var(--ko)'
+            "
+            stroke-width="9"
+            stroke-linecap="round"
+            [attr.stroke-dasharray]="sante().arc"
+            transform="rotate(-90 43 43)"
+          />
+          <text
+            x="43"
+            y="48"
+            text-anchor="middle"
+            font-size="16"
+            font-weight="650"
+            fill="var(--texte)"
+          >
+            {{ sante().score }}%
+          </text>
+        </svg>
+        <div class="jauge-texte">
+          <b [class]="'etat-' + sante().etat">{{ sante().libelle }}</b>
+          <span class="muted">
+            La moyenne de tes fronts : profils, encaissements, missions, repas et courses.
+          </span>
+        </div>
+      </div>
+      @if (fronts().length > 0) {
+        <div class="chips">
+          @for (front of fronts(); track front.texte) {
+            <button type="button" class="chip" (click)="store.allerA(front.espace)">
+              {{ front.texte }}
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Budget par poste</h2>
+        <span class="muted num">{{ fmtEuro(store.budgetGlobal().total) }}</span>
+      </div>
+      @if (postes().length > 0) {
+        <div class="empile" role="img" aria-label="Repartition du budget par poste">
+          @for (poste of postes(); track poste.id) {
+            <i [style.width.%]="poste.part" [style.background]="poste.couleur"></i>
+          }
+        </div>
+        @for (poste of postes(); track poste.id) {
+          <div class="ligne-poste">
+            <i class="point" [style.background]="poste.couleur"></i>
+            <span class="nom">{{ poste.libelle }}</span>
+            <span class="part muted num">{{ fmtEntier(poste.part) }} %</span>
+            <span class="montant num">{{ fmtEuro(poste.montant) }}</span>
+          </div>
+        }
+      } @else {
+        <p class="vide">Le budget se remplira tout seul avec tes saisies.</p>
+      }
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Formulaire</h2>
+        <button type="button" class="discret" (click)="store.allerA('formulaire')">Ouvrir →</button>
+      </div>
+      @if (store.reponsesFormulaire().length > 0) {
+        @for (reponse of store.reponsesFormulaire().slice(0, 3); track reponse.id) {
+          <div class="ligne-mission">
+            <span class="txt">
+              <b>{{ reponse.prenom }} {{ reponse.nom }}</b>
+              <span class="muted">
+                @if (reponse.invitePar) {
+                  invite(e) par {{ reponse.invitePar }}
+                } @else {
+                  reponse recue
+                }
+              </span>
+            </span>
+            <button type="button" class="etat-pill warn" (click)="store.allerA('utilisateurs')">
+              A valider
+            </button>
+          </div>
+        }
+      } @else {
+        <p class="vide">Aucune reponse en attente : partage le lien du formulaire a tes invites.</p>
+      }
+    </section>
+  </div>
 </div>

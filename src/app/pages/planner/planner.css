@@ -20,6 +20,55 @@
   box-shadow: var(--ombre);
 }
 
+/* La carte de la personne connectee, comme dans un outil de travail. */
+.profil-carte {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--surface);
+  border: 1px solid var(--bord-verre);
+  border-radius: var(--rayon-petit);
+  box-shadow: var(--ombre);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  flex: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--teinte-violet), var(--teinte-bleu));
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.qui {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.qui strong {
+  font-size: 0.8125rem;
+}
+
+.qui .muted {
+  font-size: 0.6875rem;
+}
+
+/* Les familles de la sidebar, en petites capitales grises. */
+.groupe-titre {
+  padding: 0.75rem 0.6875rem 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .app-nom {
   font-size: 0.6875rem;
   font-weight: 600;
@@ -250,7 +299,9 @@
     border-radius: 12px;
   }
 
-  .app-nom {
+  .app-nom,
+  .profil-carte,
+  .groupe-titre {
     display: none;
   }
 

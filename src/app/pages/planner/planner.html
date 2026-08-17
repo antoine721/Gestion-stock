@@ -3,6 +3,14 @@
 } @else {
   <div class="hub">
     <aside class="sidebar">
+      <div class="profil-carte">
+        <span class="avatar" aria-hidden="true">{{ initiales() }}</span>
+        <span class="qui">
+          <strong>{{ prenom() || 'Invite' }}</strong>
+          <span class="muted">Organisateur</span>
+        </span>
+      </div>
+
       <div class="marque">
         <p class="app-nom muted">Vialcrm</p>
         <h1>{{ store.partage().nom }}</h1>
@@ -41,19 +49,24 @@
           <span class="emoji" aria-hidden="true">←</span>
           <span class="lib">Retour</span>
         </button>
-        @for (espace of espaces; track espace.id) {
-          <button
-            type="button"
-            [class]="'teinte-' + espace.teinte"
-            [attr.aria-pressed]="store.espace() === espace.id"
-            (click)="store.allerA(espace.id)"
-          >
-            <span class="emoji" aria-hidden="true">{{ espace.emoji }}</span>
-            <span class="lib">{{ espace.libelle }}</span>
-            @if (indicateurDe(espace.id); as valeur) {
-              <span class="valeur num">{{ valeur }}</span>
+        @for (groupe of groupes; track groupe.titre) {
+          <span class="groupe-titre muted">{{ groupe.titre }}</span>
+          @for (id of groupe.ids; track id) {
+            @if (espaceParId.get(id); as espace) {
+              <button
+                type="button"
+                [class]="'teinte-' + espace.teinte"
+                [attr.aria-pressed]="store.espace() === espace.id"
+                (click)="store.allerA(espace.id)"
+              >
+                <span class="emoji" aria-hidden="true">{{ espace.emoji }}</span>
+                <span class="lib">{{ espace.libelle }}</span>
+                @if (indicateurDe(espace.id); as valeur) {
+                  <span class="valeur num">{{ valeur }}</span>
+                }
+              </button>
             }
-          </button>
+          }
         }
       </nav>
 
@@ -74,6 +87,14 @@
           [title]="theme.sombre() ? 'Repasser en clair' : 'Passer en sombre'"
         >
           {{ theme.sombre() ? '☀️' : '🌙' }}
+        </button>
+        <button
+          type="button"
+          class="discret"
+          title="Revoir la visite guidee"
+          (click)="visiteOuverte.set(true)"
+        >
+          ?
         </button>
         <button type="button" class="discret" (click)="quitter()">Quitter</button>
       </div>
@@ -153,4 +174,8 @@
       }
     </main>
   </div>
+
+  @if (visiteOuverte()) {
+    <app-visite-guidee (fermee)="fermerVisite()" />
+  }
 }
