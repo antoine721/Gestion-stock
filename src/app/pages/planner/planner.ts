@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { ActivatedRoute, Router } from '@angular/router';
 import { Extras } from '../../components/extras/extras';
 import { HubAccueil } from '../../components/hub-accueil/hub-accueil';
+import { InterpretationConso } from '../../components/interpretation-conso/interpretation-conso';
 import { ListeCourses } from '../../components/liste-courses/liste-courses';
 import { PersonnesTypes } from '../../components/personnes-types/personnes-types';
 import { ReglagesForm } from '../../components/reglages-form/reglages-form';
@@ -38,6 +39,7 @@ const CLE_VISITE = 'vialcrm.visite';
   imports: [
     Extras,
     HubAccueil,
+    InterpretationConso,
     ListeCourses,
     PersonnesTypes,
     ReglagesForm,
