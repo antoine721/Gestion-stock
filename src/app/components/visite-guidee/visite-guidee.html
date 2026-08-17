@@ -1,0 +1,33 @@
+<div class="visite" role="dialog" aria-modal="true" [attr.aria-label]="etape().titre">
+  @if (cadre(); as c) {
+    <div
+      class="halo"
+      [style.top.px]="c.haut"
+      [style.left.px]="c.gauche"
+      [style.width.px]="c.largeur"
+      [style.height.px]="c.hauteur"
+    ></div>
+  } @else {
+    <div class="voile-plein"></div>
+  }
+
+  <div class="bulle" [style.top]="bulle().haut" [style.left]="bulle().gauche">
+    <p class="pas muted">Etape {{ index() + 1 }} / {{ etapes.length }}</p>
+    <h3>{{ etape().titre }}</h3>
+    <p class="texte">{{ etape().texte }}</p>
+    <div class="boutons">
+      <button type="button" class="discret" (click)="terminer()">Passer</button>
+      <span class="points" aria-hidden="true">
+        @for (e of etapes; track $index) {
+          <i [class.actif]="$index === index()"></i>
+        }
+      </span>
+      @if (index() > 0) {
+        <button type="button" (click)="aller(index(), -1)">Precedent</button>
+      }
+      <button type="button" class="primaire" (click)="derniere() ? terminer() : aller(index(), 1)">
+        {{ derniere() ? 'Terminer' : 'Suivant' }}
+      </button>
+    </div>
+  </div>
+</div>
