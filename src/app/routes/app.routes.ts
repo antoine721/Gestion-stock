@@ -13,7 +13,7 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('../pages/connexion/connexion').then((m) => m.Connexion),
-    title: 'Combien acheter ?',
+    title: 'Vialcrm',
   },
   {
     path: 'evenements',
@@ -25,7 +25,7 @@ export const routes: Routes = [
     path: 'e/:code',
     canActivate: [connecte],
     loadComponent: () => import('../pages/planner/planner').then((m) => m.Planner),
-    title: 'Combien acheter ?',
+    title: 'Vialcrm',
   },
   {
     // La seule page publique : la fiche que remplissent les invites eux-memes.

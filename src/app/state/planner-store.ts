@@ -32,6 +32,8 @@ import {
   repasPour,
   repasVierge,
 } from '../domain/nourriture';
+import { estInviteTest, genererInvitesTest } from '../domain/donnees-test';
+import { infosVierges } from '../domain/evenement';
 import { articleVierge, budgetMateriel } from '../domain/materiel-liste';
 import { budgetGlobal, repartitionGlobale } from '../domain/stats';
 import { listeCoursesUnifiee, resumerCourses } from '../domain/courses';
@@ -81,6 +83,7 @@ export const SECTIONS: readonly { id: Section; libelle: string }[] = [
 /** Les grandes pieces du hub, servies par la sidebar. */
 export type Espace =
   | 'accueil'
+  | 'profil'
   | 'alcool'
   | 'nourriture'
   | 'utilisateurs'
@@ -99,6 +102,7 @@ export const ESPACES: readonly {
   teinte: string;
 }[] = [
   { id: 'accueil', libelle: 'Accueil', emoji: '🏠', teinte: 'ardoise' },
+  { id: 'profil', libelle: 'Profil', emoji: '🎪', teinte: 'ardoise' },
   { id: 'alcool', libelle: 'Bar & boissons', emoji: '🍹', teinte: 'petrole' },
   { id: 'nourriture', libelle: 'Nourriture', emoji: '🍽️', teinte: 'orange' },
   { id: 'utilisateurs', libelle: 'Invites', emoji: '🧑‍🤝‍🧑', teinte: 'bleu' },
@@ -128,6 +132,7 @@ export const PARTAGE_INITIAL: Partage = {
   coursesCochees: [],
   programme: { creneaux: [], tracklist: [] },
   djSets: [],
+  infos: infosVierges(),
 };
 
 /** Bibliotheque de depart, posee a la creation de l'evenement. */
@@ -158,6 +163,10 @@ export class PlannerStore {
   readonly participants = signal<readonly Participant[]>([]);
   readonly section = signal<Section>('courses');
   readonly espace = signal<Espace>('accueil');
+
+  /** Le fil d'Ariane du hub : d'ou l'on vient, pour le bouton retour du menu. */
+  private readonly historique = signal<readonly Espace[]>([]);
+  readonly peutRevenir = computed(() => this.historique().length > 0);
 
   readonly chargement = signal(false);
   readonly erreur = signal('');
@@ -367,9 +376,24 @@ export class PlannerStore {
     }
   }
 
+  /** Toute navigation entre espaces passe par ici : le retour sait d'ou l'on vient. */
+  allerA(espace: Espace): void {
+    if (espace === this.espace()) return;
+    this.historique.update((x) => [...x.slice(-19), this.espace()]);
+    this.espace.set(espace);
+  }
+
+  retour(): void {
+    const precedent = this.historique().at(-1);
+    if (precedent === undefined) return;
+    this.historique.update((x) => x.slice(0, -1));
+    this.espace.set(precedent);
+  }
+
   fermer(): void {
     if (this.rafraichissement) clearInterval(this.rafraichissement);
     this.rafraichissement = undefined;
+    this.historique.set([]);
   }
 
   private appliquer(distant: EvenementDistant): void {
@@ -389,6 +413,7 @@ export class PlannerStore {
         tracklist: partage.programme.tracklist ?? [],
       },
       djSets: partage.djSets ?? [],
+      infos: { ...infosVierges(), ...partage.infos },
       reponsesFormulaire: partage.reponsesFormulaire.map((x) => ({
         ...x,
         consommations: x.consommations ?? [],
@@ -444,6 +469,14 @@ export class PlannerStore {
 
   majCadre(patch: { jours?: number }): void {
     if (patch.jours !== undefined) this.majPartage({ jours: Math.max(1, patch.jours) });
+  }
+
+  // -- Profil de l'evenement -----------------------------------------------
+
+  readonly infos = computed(() => this.partage().infos);
+
+  majInfos(patch: Partial<Partage['infos']>): void {
+    this.majPartage({ infos: { ...this.infos(), ...patch } });
   }
 
   // -- Participants --------------------------------------------------------
@@ -666,6 +699,34 @@ export class PlannerStore {
 
   supprimerInvite(inviteId: string): void {
     this.majPartage({ invites: this.invitesNommes().filter((x) => x.id !== inviteId) });
+  }
+
+  // -- Jeu de test : des invites de demonstration pour essayer l'app --------
+
+  readonly invitesTest = computed(() => this.invitesNommes().filter(estInviteTest).length);
+
+  /**
+   * Peuple l'evenement d'invites credibles, `parParticipant` par
+   * co-organisateur. Rejouable : l'ancien jeu de test est remplace, les
+   * vraies fiches ne bougent pas.
+   */
+  peuplerJeuTest(parParticipant = 50): number {
+    const generes = genererInvitesTest(
+      this.participants(),
+      this.personnesTypes(),
+      this.categoriesPaiement(),
+      this.partage().jours,
+      parParticipant,
+    );
+    this.majPartage({
+      invites: [...this.invitesNommes().filter((x) => !estInviteTest(x)), ...generes],
+    });
+    return generes.length;
+  }
+
+  /** Retire toutes les fiches de test, sans toucher aux vraies. */
+  viderJeuTest(): void {
+    this.majPartage({ invites: this.invitesNommes().filter((x) => !estInviteTest(x)) });
   }
 
   // -- Paiement des invites ------------------------------------------------

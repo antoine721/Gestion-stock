@@ -50,6 +50,7 @@ const PARTAGE_TEST = {
   coursesCochees: [],
   programme: { creneaux: [], tracklist: [] },
   djSets: [],
+  infos: { lieu: '', debut: '', fin: '', description: '' },
 };
 
 describe('resoudre', () => {

@@ -610,6 +610,18 @@
     <button type="button" class="primaire" (click)="ajouter()" [disabled]="!porteurParDefaut()">
       + Ajouter un invite
     </button>
+    <button
+      type="button"
+      title="50 fiches par co-organisateur, avec profils, paiements et logistique"
+      (click)="store.peuplerJeuTest()"
+    >
+      🧪 Generer un jeu de test
+    </button>
+    @if (store.invitesTest() > 0) {
+      <button type="button" class="discret" (click)="store.viderJeuTest()">
+        Retirer les {{ fmtEntier(store.invitesTest()) }} invites de test
+      </button>
+    }
   </div>
 
   <p class="hint">

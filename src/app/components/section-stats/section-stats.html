@@ -172,7 +172,7 @@
         @for (tache of resteAFaire(); track tache.texte) {
           <li>
             <span>{{ tache.texte }}</span>
-            <button type="button" class="discret" (click)="store.espace.set(tache.espace)">
+            <button type="button" class="discret" (click)="store.allerA(tache.espace)">
               Voir →
             </button>
           </li>
