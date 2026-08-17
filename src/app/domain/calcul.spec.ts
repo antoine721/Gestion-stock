@@ -49,6 +49,7 @@ const PARTAGE_TEST = {
   categoriesPaiement: [],
   coursesCochees: [],
   programme: { creneaux: [], tracklist: [] },
+  djSets: [],
 };
 
 describe('resoudre', () => {

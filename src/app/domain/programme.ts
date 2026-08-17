@@ -1,4 +1,14 @@
-import { Creneau, Invite, Morceau, Programme, ReponseFormulaire, TypeCreneau } from './models';
+import {
+  Creneau,
+  DjSet,
+  Invite,
+  Morceau,
+  Participant,
+  Programme,
+  ReponseFormulaire,
+  StatutDjSet,
+  TypeCreneau,
+} from './models';
 
 /**
  * Programme.
@@ -33,6 +43,101 @@ export function creneauVierge(id: string, jour: number): Creneau {
     responsable: '',
     lieu: '',
     notes: '',
+    assignes: [],
+  };
+}
+
+/** Complete un creneau d'avant les missions : les assignes par defaut. */
+export function normaliserCreneau(brut: Partial<Creneau> & { id: string }): Creneau {
+  return { ...creneauVierge(brut.id, brut.jour ?? 1), ...brut, assignes: brut.assignes ?? [] };
+}
+
+// ---------------------------------------------------------------------------
+// Missions : qui fait quoi, creneau par creneau
+// ---------------------------------------------------------------------------
+
+export interface PersonneAssignable {
+  /** 'inv:<id>' pour un invite nomme, 'org:<id>' pour un co-organisateur. */
+  ref: string;
+  nom: string;
+}
+
+/** Tout le monde participe : co-organisateurs d'abord, puis les invites. */
+export function personnesAssignables(
+  participants: readonly Participant[],
+  invites: readonly Invite[],
+): PersonneAssignable[] {
+  return [
+    ...participants.map((x) => ({ ref: `org:${x.id}`, nom: x.nom })),
+    ...invites.map((x) => ({
+      ref: `inv:${x.id}`,
+      nom: `${x.prenom} ${x.nom}`.trim() || 'Invite sans nom',
+    })),
+  ];
+}
+
+/** Le nom derriere une reference d'assignation ; '' si la personne a disparu. */
+export function nomDeRef(
+  ref: string,
+  participants: readonly Participant[],
+  invites: readonly Invite[],
+): string {
+  if (ref.startsWith('org:')) {
+    return participants.find((x) => x.id === ref.slice(4))?.nom ?? '';
+  }
+  if (ref.startsWith('inv:')) {
+    const invite = invites.find((x) => x.id === ref.slice(4));
+    return invite ? `${invite.prenom} ${invite.nom}`.trim() || 'Invite sans nom' : '';
+  }
+  return ref;
+}
+
+/** Les missions d'une personne, pour verifier qu'elle n'est pas surchargee. */
+export function missionsDe(programme: Programme, ref: string): Creneau[] {
+  return programme.creneaux.filter((x) => x.assignes.includes(ref));
+}
+
+// ---------------------------------------------------------------------------
+// DJ : le tableau horaire des sets et son workflow
+// ---------------------------------------------------------------------------
+
+export const STATUTS_DJ_SET: readonly { id: StatutDjSet; libelle: string }[] = [
+  { id: 'demande', libelle: 'Demande' },
+  { id: 'valide', libelle: 'Valide' },
+  { id: 'refuse', libelle: 'Refuse' },
+  { id: 'joue', libelle: 'Joue' },
+];
+
+export const LIBELLE_STATUT_DJ: Record<StatutDjSet, string> = Object.fromEntries(
+  STATUTS_DJ_SET.map((x) => [x.id, x.libelle]),
+) as Record<StatutDjSet, string>;
+
+export function djSetVierge(id: string, jour: number): DjSet {
+  return { id, jour, debut: '', fin: '', dj: '', style: '', statut: 'demande', notes: '' };
+}
+
+/** Les sets en ordre chronologique, les sans-heure a la fin de leur jour. */
+export function trierDjSets(djSets: readonly DjSet[]): DjSet[] {
+  return [...djSets].sort((a, b) => {
+    if (a.jour !== b.jour) return a.jour - b.jour;
+    if (!a.debut && !b.debut) return 0;
+    if (!a.debut) return 1;
+    if (!b.debut) return -1;
+    return a.debut.localeCompare(b.debut);
+  });
+}
+
+export interface ResumeDj {
+  total: number;
+  demandes: number;
+  valides: number;
+}
+
+export function resumerDj(djSets: readonly DjSet[]): ResumeDj {
+  return {
+    total: djSets.length,
+    demandes: djSets.filter((x) => x.statut === 'demande').length,
+    valides: djSets.filter((x) => x.statut === 'valide' || x.statut === 'joue').length,
   };
 }
 
@@ -59,7 +164,8 @@ export interface ResumeProgramme {
   creneaux: number;
   /** Jours de l'evenement sans aucun creneau : le programme a des trous. */
   joursVides: number;
-  morceaux: number;
+  /** Creneaux sans personne dessus : des missions a pourvoir. */
+  sansAssigne: number;
 }
 
 export function resumerProgramme(programme: Programme, jours: number): ResumeProgramme {
@@ -68,7 +174,11 @@ export function resumerProgramme(programme: Programme, jours: number): ResumePro
   for (let jour = 1; jour <= duree; jour += 1) {
     if (!programme.creneaux.some((x) => x.jour === jour)) joursVides += 1;
   }
-  return { creneaux: programme.creneaux.length, joursVides, morceaux: programme.tracklist.length };
+  return {
+    creneaux: programme.creneaux.length,
+    joursVides,
+    sansAssigne: programme.creneaux.filter((x) => x.assignes.length === 0).length,
+  };
 }
 
 export interface DemandeMusicale {
