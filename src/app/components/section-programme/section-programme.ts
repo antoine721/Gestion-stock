@@ -1,18 +1,31 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
+import { Modale } from '../modale/modale';
+import { Panneau } from '../panneau/panneau';
 import { TYPES_CRENEAU, nomDeRef, planningDuJour } from '../../domain/programme';
 import { dateDuJour } from '../../domain/evenement';
 import { fmtEntier } from '../../domain/format';
 import { Creneau, TypeCreneau } from '../../domain/models';
 
+/** La saisie minimale d'une mission. */
+interface BrouillonCreneau {
+  jour: number;
+  titre: string;
+  debut: string;
+  fin: string;
+  type: TypeCreneau;
+  lieu: string;
+}
+
 /**
  * Le programme du festival, en calendrier : une colonne par jour, les
  * creneaux-missions en ordre chronologique. Tout le monde participe — chaque
- * creneau porte ses assignes, visibles d'un coup d'oeil, et l'edition s'ouvre
- * au clic sur la carte.
+ * creneau porte ses assignes, visibles d'un coup d'oeil. La creation ouvre
+ * une modale, le detail complet le panneau lateral.
  */
 @Component({
   selector: 'app-section-programme',
+  imports: [Modale, Panneau],
   templateUrl: './section-programme.html',
   styleUrl: './section-programme.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,9 +34,6 @@ export class SectionProgramme {
   protected readonly store = inject(PlannerStore);
   protected readonly fmtEntier = fmtEntier;
   protected readonly types = TYPES_CRENEAU;
-
-  /** Le creneau ouvert en edition, un seul a la fois. */
-  protected readonly ouvert = signal('');
 
   protected readonly journees = computed(() => {
     const programme = this.store.programme();
@@ -44,6 +54,10 @@ export class SectionProgramme {
     });
   });
 
+  protected readonly jours = computed(() =>
+    Array.from({ length: Math.max(1, this.store.partage().jours) }, (_, i) => i + 1),
+  );
+
   protected emojiDe(type: TypeCreneau): string {
     return TYPES_CRENEAU.find((x) => x.id === type)?.emoji ?? '📌';
   }
@@ -52,17 +66,60 @@ export class SectionProgramme {
     return nomDeRef(ref, this.store.participants(), this.store.invitesNommes());
   }
 
-  protected basculer(creneauId: string): void {
-    this.ouvert.set(this.ouvert() === creneauId ? '' : creneauId);
+  // -- Creation --------------------------------------------------------------
+
+  protected readonly creationOuverte = signal(false);
+  protected readonly brouillon = signal<BrouillonCreneau>({
+    jour: 1,
+    titre: '',
+    debut: '',
+    fin: '',
+    type: 'activite',
+    lieu: '',
+  });
+
+  protected readonly creationInvalide = computed(() => this.brouillon().titre.trim() === '');
+
+  protected ouvrirCreation(jour: number): void {
+    this.brouillon.set({ jour, titre: '', debut: '', fin: '', type: 'activite', lieu: '' });
+    this.creationOuverte.set(true);
   }
 
-  protected ajouter(jour: number): void {
-    // Un creneau neuf s'ouvre en edition : il y a tout a remplir.
-    this.ouvert.set(this.store.ajouterCreneau(jour));
+  protected majBrouillon(patch: Partial<BrouillonCreneau>): void {
+    this.brouillon.set({ ...this.brouillon(), ...patch });
   }
+
+  protected creer(): void {
+    const brouillon = this.brouillon();
+    if (!brouillon.titre.trim()) return;
+    const id = this.store.ajouterCreneau(brouillon.jour);
+    this.store.majCreneau(id, {
+      titre: brouillon.titre.trim(),
+      debut: brouillon.debut.trim(),
+      fin: brouillon.fin.trim(),
+      type: brouillon.type,
+      lieu: brouillon.lieu.trim(),
+    });
+    this.creationOuverte.set(false);
+    // La mission neuve s'ouvre dans le panneau : il reste l'equipe a poser.
+    this.detailId.set(id);
+  }
+
+  // -- Detail ----------------------------------------------------------------
+
+  protected readonly detailId = signal('');
+
+  protected readonly detail = computed(() =>
+    this.store.programme().creneaux.find((x) => x.id === this.detailId()),
+  );
 
   protected maj(creneau: Creneau, patch: Partial<Omit<Creneau, 'id'>>): void {
     this.store.majCreneau(creneau.id, patch);
+  }
+
+  protected majJour(creneau: Creneau, valeur: string): void {
+    const jour = Number(valeur);
+    if (Number.isFinite(jour)) this.maj(creneau, { jour: Math.max(1, Math.round(jour)) });
   }
 
   protected assigner(creneau: Creneau, evenement: Event): void {
@@ -74,6 +131,7 @@ export class SectionProgramme {
   protected supprimer(creneau: Creneau): void {
     if (confirm(`Retirer « ${creneau.titre || 'ce creneau'} » du planning ?`)) {
       this.store.supprimerCreneau(creneau.id);
+      if (this.detailId() === creneau.id) this.detailId.set('');
     }
   }
 }

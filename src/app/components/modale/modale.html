@@ -1,0 +1,24 @@
+<div class="voile" (click)="fermee.emit()"></div>
+
+<div class="modale" role="dialog" aria-modal="true" [attr.aria-label]="titre()">
+  <header>
+    <div>
+      <h2>{{ titre() }}</h2>
+      @if (sousTitre()) {
+        <p class="muted">{{ sousTitre() }}</p>
+      }
+    </div>
+    <button type="button" class="discret fermer" title="Fermer" (click)="fermee.emit()">×</button>
+  </header>
+
+  <div class="corps">
+    <ng-content />
+  </div>
+
+  <footer>
+    <button type="button" class="discret" (click)="fermee.emit()">Annuler</button>
+    <button type="button" class="primaire" [disabled]="valideDesactive()" (click)="validee.emit()">
+      {{ libelleValider() }}
+    </button>
+  </footer>
+</div>

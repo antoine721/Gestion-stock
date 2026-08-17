@@ -163,86 +163,96 @@
   </div>
 </section>
 
+<!-- Les tarifs : un tableau, creation en modale, detail en panneau. -->
 <section class="card">
-  <div class="card-head">
+  <div class="barre-tableau">
     <h2>Les tarifs</h2>
     <span class="muted num">
       {{ fmtEuro(store.encaissements().encaisse) }} /
       {{ fmtEuro(store.encaissements().attendu) }} encaisses
     </span>
-  </div>
-
-  <p class="intro muted">
-    Les categories de paiement : week-end complet, une journee, gratuit… Le paiement se fait hors de
-    l'app ; ici tu attribues un tarif a chaque invite et tu coches quand c'est regle.
-  </p>
-
-  @if (store.categoriesPaiement().length > 0) {
-    <table class="tarifs">
-      <thead>
-        <tr>
-          <th>Categorie</th>
-          <th class="droite">Tarif</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (categorie of store.categoriesPaiement(); track categorie.id) {
-          <tr>
-            <td>
-              <input
-                type="text"
-                placeholder="Week-end complet, une journee..."
-                [value]="categorie.nom"
-                (input)="majCategorieNom(categorie, $any($event.target).value)"
-              />
-            </td>
-            <td class="droite">
-              <input
-                class="etroit"
-                type="number"
-                min="0"
-                step="1"
-                [value]="categorie.montant"
-                (input)="majCategorieMontant(categorie, $any($event.target).value)"
-              />
-            </td>
-            <td class="droite">
-              <button
-                type="button"
-                class="discret"
-                title="Supprimer"
-                (click)="supprimerCategorie(categorie)"
-              >
-                ×
-              </button>
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  }
-
-  <div class="ajout">
-    <button type="button" (click)="store.ajouterCategoriePaiement()">
-      + Ajouter une categorie
-    </button>
     @if (store.encaissements().enAttente > 0) {
-      <span class="tag warn">
-        {{ store.encaissements().enAttente }} paiement(s) en attente ·
-        <span class="num">{{ fmtEuro(store.encaissements().reste) }}</span>
+      <span class="pill warn">
+        {{ store.encaissements().enAttente }} en attente ·
+        {{ fmtEuro(store.encaissements().reste) }}
       </span>
     }
+    <button type="button" class="primaire pousse" (click)="ouvrirCreationTarif()">
+      + Nouveau tarif
+    </button>
   </div>
+
+  @if (store.categoriesPaiement().length === 0) {
+    <p class="vide">
+      Aucun tarif. Cree « Week-end complet », « Une journee »… puis attribue-les aux invites.
+    </p>
+  } @else {
+    <div class="boite-tableau">
+      <table class="tableau">
+        <thead>
+          <tr>
+            <th>Categorie</th>
+            <th class="droite">Tarif</th>
+            <th class="droite">Invites</th>
+            <th class="droite">Regles</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (categorie of store.categoriesPaiement(); track categorie.id) {
+            <tr
+              class="cliquable"
+              [class.active]="tarifDetailId() === categorie.id"
+              (click)="tarifDetailId.set(categorie.id)"
+            >
+              <td class="principal">{{ categorie.nom || 'Sans nom' }}</td>
+              <td class="droite num">{{ fmtEuro(categorie.montant) }}</td>
+              <td class="droite num">{{ fmtEntier(usageTarif(categorie.id).total) }}</td>
+              <td class="droite">
+                @if (usageTarif(categorie.id).total > 0) {
+                  <span
+                    class="pill"
+                    [class.ok]="usageTarif(categorie.id).payes === usageTarif(categorie.id).total"
+                    [class.warn]="usageTarif(categorie.id).payes < usageTarif(categorie.id).total"
+                  >
+                    {{ fmtEntier(usageTarif(categorie.id).payes) }}/{{
+                      fmtEntier(usageTarif(categorie.id).total)
+                    }}
+                  </span>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td class="chevron droite">›</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <p class="hint">
+    Le paiement se fait hors de l'app : ici tu attribues un tarif a chaque invite, et tu coches
+    quand c'est regle.
+  </p>
 </section>
 
+<!-- Les invites : le tableau principal de l'espace. -->
 <section class="card">
-  <div class="card-head">
+  <div class="barre-tableau">
     <h2>Les invites</h2>
     <span class="muted num">
       {{ fmtEntier(invitesFiltres().length) }}/{{ fmtEntier(store.invitesNommes().length) }}
       fiche(s)
     </span>
+    <button
+      type="button"
+      class="primaire pousse"
+      [disabled]="!porteurParDefaut()"
+      (click)="ouvrirCreation()"
+    >
+      + Nouvel invite
+    </button>
   </div>
 
   @if (store.invitesNommes().length > 0) {
@@ -327,289 +337,78 @@
 
   @if (store.invitesNommes().length === 0) {
     <p class="vide">
-      Personne pour l'instant. Ajoute une fiche, ou partage le formulaire (espace Formulaire) : les
+      Personne pour l'instant. Cree une fiche, ou partage le formulaire (espace Formulaire) : les
       reponses arriveront ici, a valider.
     </p>
   } @else if (invitesFiltres().length === 0) {
     <p class="vide">Aucune fiche ne passe ces filtres.</p>
-  }
-
-  @for (invite of invitesFiltres(); track invite.id) {
-    <article class="fiche" [class.ouverte]="estOuverte(invite.id)">
-      <div class="compacte">
-        <input
-          class="ligne-prenom"
-          type="text"
-          placeholder="Prenom"
-          [value]="invite.prenom"
-          (input)="maj(invite, { prenom: $any($event.target).value })"
-        />
-        <input
-          class="ligne-nom"
-          type="text"
-          placeholder="Nom"
-          [value]="invite.nom"
-          (input)="maj(invite, { nom: $any($event.target).value })"
-        />
-        <select
-          class="ligne-profil"
-          title="Profil alcool"
-          (change)="maj(invite, { personneTypeId: $any($event.target).value })"
-        >
-          <option value="" [selected]="!invite.personneTypeId">— Sans profil</option>
-          @for (type of store.personnesTypes(); track type.id) {
-            <option [value]="type.id" [selected]="type.id === invite.personneTypeId">
-              {{ type.emoji }} {{ type.nom }}
-            </option>
-          }
-        </select>
-        <label class="paye-mini" [class.regle]="invite.paye" title="A paye sa part">
-          <input type="checkbox" [checked]="invite.paye" (change)="basculerPaye(invite)" />
-          <span>Paye</span>
-        </label>
-        <button
-          type="button"
-          class="discret deplier"
-          [attr.aria-expanded]="estOuverte(invite.id)"
-          (click)="basculerDetails(invite.id)"
-        >
-          Details {{ estOuverte(invite.id) ? '▴' : '▾' }}
-        </button>
-        <button
-          type="button"
-          class="discret"
-          title="Retirer cet invite"
-          (click)="supprimer(invite)"
-        >
-          ×
-        </button>
-      </div>
-
-      @if (estOuverte(invite.id)) {
-        <div class="deplie">
-          <div class="ligne">
-            <label class="champ">
-              <span>Amene par</span>
-              <select (change)="maj(invite, { participantId: $any($event.target).value })">
-                @for (participant of store.participants(); track participant.id) {
-                  <option
-                    [value]="participant.id"
-                    [selected]="participant.id === invite.participantId"
-                  >
-                    {{ participant.nom }}
-                  </option>
-                }
-              </select>
-            </label>
-            <label class="champ">
-              <span>Regime</span>
-              <select (change)="maj(invite, { regime: $any($event.target).value })">
-                @for (regime of regimes; track regime.id) {
-                  <option [value]="regime.id" [selected]="regime.id === invite.regime">
-                    {{ regime.libelle }}
-                  </option>
-                }
-              </select>
-            </label>
-            <label class="champ">
-              <span>Allergies</span>
-              <input
-                type="text"
-                placeholder="Arachide, lactose..."
-                [value]="invite.allergies"
-                (input)="maj(invite, { allergies: $any($event.target).value })"
-              />
-            </label>
-          </div>
-          <div class="ligne">
-            <label class="champ">
-              <span>Envies</span>
-              <input
-                type="text"
-                placeholder="DJ, jeux, karaoke..."
-                [value]="invite.envies"
-                (input)="maj(invite, { envies: $any($event.target).value })"
-              />
-            </label>
-            <label class="champ">
-              <span>Remarques</span>
-              <input
-                type="text"
-                placeholder="Arrive samedi, dort sur place..."
-                [value]="invite.remarques"
-                (input)="maj(invite, { remarques: $any($event.target).value })"
-              />
-            </label>
-          </div>
-          <div class="ligne">
-            <label class="champ">
-              <span>Tarif</span>
-              <select (change)="maj(invite, { categoriePaiementId: $any($event.target).value })">
-                <option value="" [selected]="!invite.categoriePaiementId">— A definir</option>
-                @for (categorie of store.categoriesPaiement(); track categorie.id) {
-                  <option
-                    [value]="categorie.id"
-                    [selected]="categorie.id === invite.categoriePaiementId"
-                  >
-                    {{ categorie.nom || 'Sans nom' }} — {{ fmtEuro(categorie.montant) }}
-                  </option>
-                }
-              </select>
-            </label>
-            <label class="champ">
-              <span>Jours sur place</span>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                placeholder="tous"
-                [value]="invite.joursPresence || ''"
-                (input)="majNombre(invite, 'joursPresence', $any($event.target).value)"
-              />
-            </label>
-            <label class="champ">
-              <span>Montant verse</span>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                [value]="invite.montantPaye"
-                (input)="majNombre(invite, 'montantPaye', $any($event.target).value)"
-              />
-            </label>
-            @if (tarifDe(invite); as tarif) {
-              @if (invite.paye && invite.montantPaye < tarif.montant) {
-                <span class="tag warn num">
-                  manque {{ fmtEuro(tarif.montant - invite.montantPaye) }}
+  } @else {
+    <div class="boite-tableau">
+      <table class="tableau">
+        <thead>
+          <tr>
+            <th>Invite</th>
+            <th>Profil alcool</th>
+            <th>Tarif</th>
+            <th class="droite">Paiement</th>
+            <th class="droite">Jours</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (invite of invitesFiltres(); track invite.id) {
+            <tr
+              class="cliquable"
+              [class.active]="detailId() === invite.id"
+              (click)="ouvrirDetail(invite)"
+            >
+              <td>
+                <span class="principal">
+                  {{ invite.prenom || 'Sans prenom' }} {{ invite.nom }}
                 </span>
-              } @else if (invite.paye) {
-                <span class="tag ok">Regle</span>
-              }
-            }
-          </div>
-          <span class="sous-titre">Logistique</span>
-          <div class="ligne">
-            <label class="champ">
-              <span>Arrivee</span>
-              <input
-                type="text"
-                placeholder="Samedi 14h..."
-                [value]="invite.logistique.arrivee"
-                (input)="majLogistique(invite, { arrivee: $any($event.target).value })"
-              />
-            </label>
-            <label class="champ">
-              <span>Depart</span>
-              <input
-                type="text"
-                placeholder="Dimanche matin..."
-                [value]="invite.logistique.depart"
-                (input)="majLogistique(invite, { depart: $any($event.target).value })"
-              />
-            </label>
-            <label class="champ">
-              <span>Hebergement</span>
-              <select (change)="majLogistique(invite, { hebergement: $any($event.target).value })">
-                @for (option of hebergements; track option.id) {
-                  <option
-                    [value]="option.id"
-                    [selected]="option.id === invite.logistique.hebergement"
-                  >
-                    {{ option.libelle }}
-                  </option>
+                <span class="secondaire">
+                  {{ nomDuParticipant(invite.participantId) }}
+                  @if (invite.allergies) {
+                    · allergies : {{ invite.allergies }}
+                  }
+                </span>
+              </td>
+              <td>
+                @if (nomDuProfil(invite.personneTypeId); as profil) {
+                  {{ profil }}
+                } @else {
+                  <span class="pill warn">Sans profil</span>
                 }
-              </select>
-            </label>
-          </div>
-          <div class="ligne logistique-cases">
-            <label class="paye-mini">
-              <input
-                type="checkbox"
-                [checked]="invite.logistique.permis"
-                (change)="majLogistique(invite, { permis: !invite.logistique.permis })"
-              />
-              <span>Permis</span>
-            </label>
-            <label class="paye-mini">
-              <input
-                type="checkbox"
-                [checked]="invite.logistique.vehicule"
-                (change)="majLogistique(invite, { vehicule: !invite.logistique.vehicule })"
-              />
-              <span>Voiture</span>
-            </label>
-            <label class="paye-mini">
-              <input
-                type="checkbox"
-                [checked]="invite.logistique.chercheCovoiturage"
-                (change)="
-                  majLogistique(invite, {
-                    chercheCovoiturage: !invite.logistique.chercheCovoiturage,
-                  })
-                "
-              />
-              <span>Cherche covoit</span>
-            </label>
-            @if (invite.logistique.vehicule) {
-              <label class="champ places">
-                <span>Places libres</span>
-                <input
-                  type="number"
-                  min="0"
-                  max="9"
-                  step="1"
-                  [value]="invite.logistique.placesVoiture"
-                  (input)="majPlacesVoiture(invite, $any($event.target).value)"
-                />
-              </label>
-            }
-          </div>
-          <div class="ligne">
-            <label class="champ">
-              <span>Apporte / prete</span>
-              <input
-                type="text"
-                placeholder="Enceinte, glaciere, barnum..."
-                [value]="invite.logistique.materielApporte"
-                (input)="majLogistique(invite, { materielApporte: $any($event.target).value })"
-              />
-            </label>
-            <label class="champ">
-              <span>Besoins particuliers</span>
-              <input
-                type="text"
-                placeholder="Sante, accessibilite..."
-                [value]="invite.logistique.besoins"
-                (input)="majLogistique(invite, { besoins: $any($event.target).value })"
-              />
-            </label>
-            <label class="champ">
-              <span>Styles musicaux</span>
-              <input
-                type="text"
-                placeholder="Techno, rap FR, rock..."
-                [value]="invite.stylesMusicaux"
-                (input)="maj(invite, { stylesMusicaux: $any($event.target).value })"
-              />
-            </label>
-          </div>
-          @if (libelleConsommations(invite.consommationDeclaree); as conso) {
-            @if (conso) {
-              <p class="conso-declaree muted">
-                Dit boire sur une journee : <strong>{{ conso }}</strong> — indicatif, le calcul suit
-                le profil que tu choisis.
-              </p>
-            }
+              </td>
+              <td>
+                @if (tarifDe(invite); as tarif) {
+                  {{ tarif.nom || 'Sans nom' }}
+                  <span class="secondaire num">{{ fmtEuro(tarif.montant) }}</span>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td class="droite">
+                @if (invite.paye) {
+                  <span class="pill ok">Paye</span>
+                } @else if (tarifDe(invite)) {
+                  <span class="pill warn">En attente</span>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td class="droite num">
+                {{ invite.joursPresence > 0 ? invite.joursPresence : '—' }}
+              </td>
+              <td class="chevron droite">›</td>
+            </tr>
           }
-        </div>
-      }
-    </article>
+        </tbody>
+      </table>
+    </div>
   }
 
   <div class="ajout">
-    <button type="button" class="primaire" (click)="ajouter()" [disabled]="!porteurParDefaut()">
-      + Ajouter un invite
-    </button>
     <button
       type="button"
       title="50 fiches par co-organisateur, avec profils, paiements et logistique"
@@ -629,3 +428,415 @@
     Les profils ». Ici, tu les attaches a des personnes.
   </p>
 </section>
+
+<!-- Creation d'un invite : la saisie minimale, le reste va dans le panneau. -->
+@if (creationOuverte()) {
+  <app-modale
+    titre="Nouvel invite"
+    sousTitre="Le minimum pour poser la fiche — tu completeras le detail juste apres."
+    libelleValider="Creer la fiche"
+    [valideDesactive]="creationInvalide()"
+    (fermee)="creationOuverte.set(false)"
+    (validee)="creer()"
+  >
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Prenom *</span>
+        <input
+          type="text"
+          placeholder="Paul"
+          autocomplete="off"
+          [value]="brouillon().prenom"
+          (input)="majBrouillon({ prenom: $any($event.target).value })"
+          (keyup.enter)="creer()"
+        />
+      </label>
+      <label class="champ">
+        <span>Nom</span>
+        <input
+          type="text"
+          placeholder="Durand"
+          autocomplete="off"
+          [value]="brouillon().nom"
+          (input)="majBrouillon({ nom: $any($event.target).value })"
+          (keyup.enter)="creer()"
+        />
+      </label>
+    </div>
+    <label class="champ">
+      <span>Amene par</span>
+      <select (change)="majBrouillon({ participantId: $any($event.target).value })">
+        @for (participant of store.participants(); track participant.id) {
+          <option
+            [value]="participant.id"
+            [selected]="participant.id === brouillon().participantId"
+          >
+            {{ participant.nom }}
+          </option>
+        }
+      </select>
+    </label>
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Profil alcool</span>
+        <select (change)="majBrouillon({ personneTypeId: $any($event.target).value })">
+          <option value="" [selected]="!brouillon().personneTypeId">— Sans profil</option>
+          @for (type of store.personnesTypes(); track type.id) {
+            <option [value]="type.id" [selected]="type.id === brouillon().personneTypeId">
+              {{ type.emoji }} {{ type.nom }}
+            </option>
+          }
+        </select>
+      </label>
+      <label class="champ">
+        <span>Tarif</span>
+        <select (change)="majBrouillon({ categoriePaiementId: $any($event.target).value })">
+          <option value="" [selected]="!brouillon().categoriePaiementId">— A definir</option>
+          @for (categorie of store.categoriesPaiement(); track categorie.id) {
+            <option
+              [value]="categorie.id"
+              [selected]="categorie.id === brouillon().categoriePaiementId"
+            >
+              {{ categorie.nom || 'Sans nom' }} — {{ fmtEuro(categorie.montant) }}
+            </option>
+          }
+        </select>
+      </label>
+    </div>
+  </app-modale>
+}
+
+<!-- Detail d'un invite : tout le reste, dans le panneau de droite. -->
+@if (detail(); as invite) {
+  <app-panneau
+    [titre]="(invite.prenom || 'Sans prenom') + ' ' + invite.nom"
+    [sousTitre]="'Amene par ' + nomDuParticipant(invite.participantId)"
+    libelleSupprimer="Retirer cet invite"
+    (fermee)="detailId.set('')"
+    (supprimee)="supprimer(invite)"
+  >
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Prenom</span>
+        <input
+          type="text"
+          [value]="invite.prenom"
+          (input)="maj(invite, { prenom: $any($event.target).value })"
+        />
+      </label>
+      <label class="champ">
+        <span>Nom</span>
+        <input
+          type="text"
+          [value]="invite.nom"
+          (input)="maj(invite, { nom: $any($event.target).value })"
+        />
+      </label>
+    </div>
+
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Amene par</span>
+        <select (change)="maj(invite, { participantId: $any($event.target).value })">
+          @for (participant of store.participants(); track participant.id) {
+            <option [value]="participant.id" [selected]="participant.id === invite.participantId">
+              {{ participant.nom }}
+            </option>
+          }
+        </select>
+      </label>
+      <label class="champ">
+        <span>Profil alcool</span>
+        <select (change)="maj(invite, { personneTypeId: $any($event.target).value })">
+          <option value="" [selected]="!invite.personneTypeId">— Sans profil</option>
+          @for (type of store.personnesTypes(); track type.id) {
+            <option [value]="type.id" [selected]="type.id === invite.personneTypeId">
+              {{ type.emoji }} {{ type.nom }}
+            </option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <span class="sous-titre">Paiement</span>
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Tarif</span>
+        <select (change)="maj(invite, { categoriePaiementId: $any($event.target).value })">
+          <option value="" [selected]="!invite.categoriePaiementId">— A definir</option>
+          @for (categorie of store.categoriesPaiement(); track categorie.id) {
+            <option [value]="categorie.id" [selected]="categorie.id === invite.categoriePaiementId">
+              {{ categorie.nom || 'Sans nom' }} — {{ fmtEuro(categorie.montant) }}
+            </option>
+          }
+        </select>
+      </label>
+      <label class="champ">
+        <span>Montant verse</span>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          [value]="invite.montantPaye"
+          (input)="majNombre(invite, 'montantPaye', $any($event.target).value)"
+        />
+      </label>
+    </div>
+    <div class="ligne-paye">
+      <label class="paye-mini" [class.regle]="invite.paye">
+        <input type="checkbox" [checked]="invite.paye" (change)="basculerPaye(invite)" />
+        <span>A paye sa part</span>
+      </label>
+      @if (tarifDe(invite); as tarif) {
+        @if (invite.paye && invite.montantPaye < tarif.montant) {
+          <span class="pill warn num"
+            >manque {{ fmtEuro(tarif.montant - invite.montantPaye) }}</span
+          >
+        } @else if (invite.paye) {
+          <span class="pill ok">Regle</span>
+        }
+      }
+      <label class="champ places">
+        <span>Jours sur place</span>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          placeholder="tous"
+          [value]="invite.joursPresence || ''"
+          (input)="majNombre(invite, 'joursPresence', $any($event.target).value)"
+        />
+      </label>
+    </div>
+
+    <span class="sous-titre">A table</span>
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Regime</span>
+        <select (change)="maj(invite, { regime: $any($event.target).value })">
+          @for (regime of regimes; track regime.id) {
+            <option [value]="regime.id" [selected]="regime.id === invite.regime">
+              {{ regime.libelle }}
+            </option>
+          }
+        </select>
+      </label>
+      <label class="champ">
+        <span>Allergies</span>
+        <input
+          type="text"
+          placeholder="Arachide, lactose..."
+          [value]="invite.allergies"
+          (input)="maj(invite, { allergies: $any($event.target).value })"
+        />
+      </label>
+    </div>
+
+    <span class="sous-titre">Logistique</span>
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Arrivee</span>
+        <input
+          type="text"
+          placeholder="Samedi 14h..."
+          [value]="invite.logistique.arrivee"
+          (input)="majLogistique(invite, { arrivee: $any($event.target).value })"
+        />
+      </label>
+      <label class="champ">
+        <span>Depart</span>
+        <input
+          type="text"
+          placeholder="Dimanche matin..."
+          [value]="invite.logistique.depart"
+          (input)="majLogistique(invite, { depart: $any($event.target).value })"
+        />
+      </label>
+    </div>
+    <label class="champ">
+      <span>Hebergement</span>
+      <select (change)="majLogistique(invite, { hebergement: $any($event.target).value })">
+        @for (option of hebergements; track option.id) {
+          <option [value]="option.id" [selected]="option.id === invite.logistique.hebergement">
+            {{ option.libelle }}
+          </option>
+        }
+      </select>
+    </label>
+    <div class="logistique-cases">
+      <label class="paye-mini">
+        <input
+          type="checkbox"
+          [checked]="invite.logistique.permis"
+          (change)="majLogistique(invite, { permis: !invite.logistique.permis })"
+        />
+        <span>Permis</span>
+      </label>
+      <label class="paye-mini">
+        <input
+          type="checkbox"
+          [checked]="invite.logistique.vehicule"
+          (change)="majLogistique(invite, { vehicule: !invite.logistique.vehicule })"
+        />
+        <span>Voiture</span>
+      </label>
+      <label class="paye-mini">
+        <input
+          type="checkbox"
+          [checked]="invite.logistique.chercheCovoiturage"
+          (change)="
+            majLogistique(invite, { chercheCovoiturage: !invite.logistique.chercheCovoiturage })
+          "
+        />
+        <span>Cherche covoit</span>
+      </label>
+      @if (invite.logistique.vehicule) {
+        <label class="champ places">
+          <span>Places libres</span>
+          <input
+            type="number"
+            min="0"
+            max="9"
+            step="1"
+            [value]="invite.logistique.placesVoiture"
+            (input)="majPlacesVoiture(invite, $any($event.target).value)"
+          />
+        </label>
+      }
+    </div>
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Apporte / prete</span>
+        <input
+          type="text"
+          placeholder="Enceinte, glaciere, barnum..."
+          [value]="invite.logistique.materielApporte"
+          (input)="majLogistique(invite, { materielApporte: $any($event.target).value })"
+        />
+      </label>
+      <label class="champ">
+        <span>Besoins particuliers</span>
+        <input
+          type="text"
+          placeholder="Sante, accessibilite..."
+          [value]="invite.logistique.besoins"
+          (input)="majLogistique(invite, { besoins: $any($event.target).value })"
+        />
+      </label>
+    </div>
+
+    <span class="sous-titre">Envies</span>
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Envies</span>
+        <input
+          type="text"
+          placeholder="DJ, jeux, karaoke..."
+          [value]="invite.envies"
+          (input)="maj(invite, { envies: $any($event.target).value })"
+        />
+      </label>
+      <label class="champ">
+        <span>Styles musicaux</span>
+        <input
+          type="text"
+          placeholder="Techno, rap FR, rock..."
+          [value]="invite.stylesMusicaux"
+          (input)="maj(invite, { stylesMusicaux: $any($event.target).value })"
+        />
+      </label>
+    </div>
+    <label class="champ">
+      <span>Remarques</span>
+      <input
+        type="text"
+        placeholder="Arrive samedi, dort sur place..."
+        [value]="invite.remarques"
+        (input)="maj(invite, { remarques: $any($event.target).value })"
+      />
+    </label>
+
+    @if (libelleConsommations(invite.consommationDeclaree); as conso) {
+      @if (conso) {
+        <p class="conso-declaree muted">
+          Dit boire sur une journee : <strong>{{ conso }}</strong> — indicatif, le calcul suit le
+          profil que tu choisis.
+        </p>
+      }
+    }
+  </app-panneau>
+}
+
+<!-- Creation d'un tarif. -->
+@if (tarifCreationOuverte()) {
+  <app-modale
+    titre="Nouveau tarif"
+    sousTitre="Une categorie de participation : week-end complet, une journee, gratuit…"
+    libelleValider="Creer le tarif"
+    [valideDesactive]="tarifInvalide()"
+    (fermee)="tarifCreationOuverte.set(false)"
+    (validee)="creerTarif()"
+  >
+    <label class="champ">
+      <span>Nom *</span>
+      <input
+        type="text"
+        placeholder="Week-end complet"
+        autocomplete="off"
+        [value]="brouillonTarif().nom"
+        (input)="majBrouillonTarif({ nom: $any($event.target).value })"
+        (keyup.enter)="creerTarif()"
+      />
+    </label>
+    <label class="champ">
+      <span>Montant demande (€)</span>
+      <input
+        type="number"
+        min="0"
+        step="1"
+        [value]="brouillonTarif().montant"
+        (input)="majBrouillonTarif({ montant: +$any($event.target).value })"
+        (keyup.enter)="creerTarif()"
+      />
+    </label>
+  </app-modale>
+}
+
+<!-- Detail d'un tarif. -->
+@if (tarifDetail(); as categorie) {
+  <app-panneau
+    [titre]="categorie.nom || 'Sans nom'"
+    [sousTitre]="
+      fmtEntier(usageTarif(categorie.id).total) +
+      ' invite(s) · ' +
+      fmtEntier(usageTarif(categorie.id).payes) +
+      ' regle(s)'
+    "
+    libelleSupprimer="Supprimer ce tarif"
+    (fermee)="tarifDetailId.set('')"
+    (supprimee)="supprimerCategorie(categorie)"
+  >
+    <label class="champ">
+      <span>Nom de la categorie</span>
+      <input
+        type="text"
+        [value]="categorie.nom"
+        (input)="majCategorieNom(categorie, $any($event.target).value)"
+      />
+    </label>
+    <label class="champ">
+      <span>Montant demande (€)</span>
+      <input
+        type="number"
+        min="0"
+        step="1"
+        [value]="categorie.montant"
+        (input)="majCategorieMontant(categorie, $any($event.target).value)"
+      />
+    </label>
+    <p class="hint">
+      Supprimer ce tarif ne supprime aucun invite : les fiches concernees repassent simplement en «
+      tarif a definir ».
+    </p>
+  </app-panneau>
+}

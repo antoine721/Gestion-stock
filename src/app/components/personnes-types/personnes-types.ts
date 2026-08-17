@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
+import { Modale } from '../modale/modale';
+import { Panneau } from '../panneau/panneau';
 import { BOISSONS, BOISSON_PAR_ID, LIBELLE_FAMILLE, ORDRE_FAMILLE } from '../../domain/catalogue';
 import { EMOJIS_PROFIL } from '../../domain/personnes-types';
 import { fmtNombre } from '../../domain/format';
@@ -16,12 +18,14 @@ interface OptionBoisson {
 }
 
 /**
- * La bibliotheque de profils, en grille de vignettes. Commune a l'evenement :
- * chacun peut reprendre, ajuster ou dupliquer ceux des autres plutot que de
- * redecrire les memes personnes.
+ * La bibliotheque de profils, en tableau. Commune a l'evenement : chacun peut
+ * reprendre, ajuster ou dupliquer ceux des autres plutot que de redecrire les
+ * memes personnes. La creation passe par une modale, le reglage boisson par
+ * boisson par le panneau lateral.
  */
 @Component({
   selector: 'app-personnes-types',
+  imports: [Modale, Panneau],
   templateUrl: './personnes-types.html',
   styleUrl: './personnes-types.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,18 +35,11 @@ export class PersonnesTypes {
   protected readonly fmtNombre = fmtNombre;
   protected readonly emojis = EMOJIS_PROFIL;
 
-  /** Le profil ouvert en edition, un seul a la fois. */
-  protected readonly ouvert = signal('');
-
   protected readonly groupes = computed<OptionBoisson[]>(() =>
     ORDRE_FAMILLE.map((famille) => ({
       famille: LIBELLE_FAMILLE[famille],
       boissons: BOISSONS.filter((x) => x.famille === famille),
     })).filter((x) => x.boissons.length > 0),
-  );
-
-  protected readonly enEdition = computed(() =>
-    this.store.resumePersonnesTypes().find((x) => x.personneType.id === this.ouvert()),
   );
 
   protected consommation(personneType: PersonneType): LigneConso[] {
@@ -52,7 +49,7 @@ export class PersonnesTypes {
       .sort((a, b) => b.verresParJour - a.verresParJour);
   }
 
-  /** Resume lisible sur la vignette : « biere 6 · spritz 3 ». */
+  /** Resume lisible sur la ligne : « biere 6 · spritz 3 ». */
   protected apercu(personneType: PersonneType): string {
     const lignes = this.consommation(personneType);
     if (lignes.length === 0) return 'Ne boit rien';
@@ -64,21 +61,49 @@ export class PersonnesTypes {
     );
   }
 
-  protected ouvrir(personneTypeId: string): void {
-    this.ouvert.set(personneTypeId);
+  // -- Creation --------------------------------------------------------------
+
+  protected readonly creationOuverte = signal(false);
+  protected readonly brouillon = signal({ nom: '', emoji: EMOJIS_PROFIL[0], description: '' });
+
+  protected readonly creationInvalide = computed(() => this.brouillon().nom.trim() === '');
+
+  protected ouvrirCreation(): void {
+    this.brouillon.set({ nom: '', emoji: EMOJIS_PROFIL[0], description: '' });
+    this.creationOuverte.set(true);
   }
 
-  protected fermer(): void {
-    this.ouvert.set('');
+  protected majBrouillon(
+    patch: Partial<{ nom: string; emoji: string; description: string }>,
+  ): void {
+    this.brouillon.set({ ...this.brouillon(), ...patch });
   }
 
   protected creer(): void {
-    this.ouvert.set(this.store.creerPersonneType());
+    const brouillon = this.brouillon();
+    if (!brouillon.nom.trim()) return;
+    const id = this.store.creerPersonneType();
+    this.store.majPersonneType(id, {
+      nom: brouillon.nom.trim(),
+      emoji: brouillon.emoji,
+      description: brouillon.description.trim(),
+    });
+    this.creationOuverte.set(false);
+    // Le profil neuf s'ouvre : il reste a dire ce qu'il boit.
+    this.detailId.set(id);
   }
+
+  // -- Detail ----------------------------------------------------------------
+
+  protected readonly detailId = signal('');
+
+  protected readonly detail = computed(() =>
+    this.store.resumePersonnesTypes().find((x) => x.personneType.id === this.detailId()),
+  );
 
   protected dupliquer(personneTypeId: string): void {
     const id = this.store.dupliquerPersonneType(personneTypeId);
-    if (id) this.ouvert.set(id);
+    if (id) this.detailId.set(id);
   }
 
   protected supprimer(resume: ResumePersonneType): void {
@@ -88,7 +113,7 @@ export class PersonnesTypes {
         : '';
     if (confirm(`Supprimer le profil « ${resume.personneType.nom} » ?${suite}`)) {
       this.store.supprimerPersonneType(resume.personneType.id);
-      this.fermer();
+      this.detailId.set('');
     }
   }
 
