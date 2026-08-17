@@ -1,81 +1,74 @@
 /* ---------------------------------------------------------------------------
-   DA « visionOS » : le hub comme des fenetres de verre qui flottent.
+   DA « SaaS moderne » : le hub comme un outil de travail contemporain.
 
-   Tout est materiaux : un environnement en degrades doux, des panneaux de
-   verre depoli (flou profond + saturation) qui flottent dessus — coins tres
-   genereux, reflet speculaire sur l'arete haute, ombres larges et diffuses
-   qui donnent la profondeur. Le survol souleve ce qui est interactif. La
-   typo est la police systeme — SF sur les appareils Apple — et chaque
-   chiffre passe par .num, en mono tabulaire, comme une addition.
-
-   Deux niveaux de matiere, pas plus : les panneaux (.card, sidebar, barre
-   d'onglets) portent le flou ; les surfaces interieures (--surface-2) sont
-   de simples voiles translucides, sans flou — le verre dans le verre devient
-   de la buee.
+   Un fond papier neutre et chaud, des cartes blanches opaques a bord fin et
+   ombre a peine perceptible, une typo sobre et dense, des chiffres tabulaires.
+   La couleur ne decore pas : elle dit un etat (vert/orange/rouge) ou identifie
+   une donnee (la palette --donnee-*, validee daltonisme). L'action principale
+   est un bouton encre pleine ; tout le reste est calme.
 --------------------------------------------------------------------------- */
 
 :root {
-  /* Le verre : des voiles blancs sur un fond colore. */
-  --fond: #eef1f6;
-  --surface: rgba(255, 255, 255, 0.66);
-  --surface-2: rgba(94, 110, 125, 0.08);
-  --bord: rgba(94, 110, 125, 0.17);
-  --bord-verre: rgba(255, 255, 255, 0.65);
-  --bord-champ: rgba(94, 110, 125, 0.28);
-  --bord-fort: rgba(94, 110, 125, 0.34);
-  --texte: #0e151a;
-  --texte-doux: #5b6771;
+  --fond: #f7f7f5;
+  --surface: #ffffff;
+  --surface-2: #efeeeb;
+  --bord: #ebeae6;
+  --bord-verre: #e8e7e3;
+  --bord-champ: #dcdbd5;
+  --bord-fort: #c8c7c1;
+  --texte: #1a1a18;
+  --texte-doux: #6b6a66;
 
-  /* Petrole : la couleur des choix et de la selection. */
-  --accent: #0b6577;
-  --accent-doux: rgba(11, 101, 119, 0.12);
-  --accent-fort: #084853;
+  /* L'encre est l'accent : les actions principales sont noires, pas colorees. */
+  --accent: #1a1a18;
+  --accent-doux: rgba(26, 26, 24, 0.08);
+  --accent-fort: #000000;
 
-  --ok: #247a48;
-  --ok-doux: rgba(36, 122, 72, 0.13);
-  --warn: #a26404;
-  --warn-doux: rgba(162, 100, 4, 0.13);
-  --ko: #b3392c;
-  --ko-doux: rgba(179, 57, 44, 0.12);
+  --ok: #17845c;
+  --ok-doux: #e4f5ec;
+  --warn: #b3721c;
+  --warn-doux: #fdf2e0;
+  --ko: #c23c2e;
+  --ko-doux: #fbe9e6;
 
-  /* Couleurs de donnees des stats, validees daltonisme (voir section-stats). */
-  --donnee-alcool: #0891b2;
-  --donnee-nourriture: #b45309;
-  --donnee-materiel: #6d28d9;
+  /* Couleurs de donnees des graphiques, validees daltonisme + contraste. */
+  --donnee-alcool: #5fa8e0;
+  --donnee-nourriture: #e0813f;
+  --donnee-materiel: #6f56cc;
 
-  /* Les teintes des pieces du hub : une couleur par espace, cards et sidebar. */
-  --teinte-ardoise: #5a666b;
-  --teinte-ardoise-doux: rgba(90, 102, 107, 0.14);
-  --teinte-petrole: #0891b2;
-  --teinte-petrole-doux: rgba(8, 145, 178, 0.14);
-  --teinte-orange: #b45309;
-  --teinte-orange-doux: rgba(180, 83, 9, 0.13);
-  --teinte-violet: #6d28d9;
-  --teinte-violet-doux: rgba(109, 40, 217, 0.12);
-  --teinte-bleu: #1d4ed8;
-  --teinte-bleu-doux: rgba(29, 78, 216, 0.12);
-  --teinte-vert: #2c7a4b;
-  --teinte-vert-doux: rgba(44, 122, 75, 0.13);
-  --teinte-rose: #be185d;
-  --teinte-rose-doux: rgba(190, 24, 93, 0.11);
-  --teinte-olive: #64751b;
-  --teinte-olive-doux: rgba(100, 117, 27, 0.14);
-  --teinte-indigo: #4338ca;
-  --teinte-indigo-doux: rgba(67, 56, 202, 0.12);
-  --teinte-fuchsia: #a21caf;
-  --teinte-fuchsia-doux: rgba(162, 28, 175, 0.11);
+  /* Les teintes des pieces du hub : des points de couleur, pas des fonds. */
+  --teinte-ardoise: #6b6a66;
+  --teinte-ardoise-doux: rgba(107, 106, 102, 0.12);
+  --teinte-petrole: #17847c;
+  --teinte-petrole-doux: rgba(23, 132, 124, 0.12);
+  --teinte-orange: #e0813f;
+  --teinte-orange-doux: rgba(224, 129, 63, 0.13);
+  --teinte-violet: #6f56cc;
+  --teinte-violet-doux: rgba(111, 86, 204, 0.12);
+  --teinte-bleu: #3f7fc4;
+  --teinte-bleu-doux: rgba(63, 127, 196, 0.12);
+  --teinte-vert: #1f8a63;
+  --teinte-vert-doux: rgba(31, 138, 99, 0.12);
+  --teinte-rose: #c2527e;
+  --teinte-rose-doux: rgba(194, 82, 126, 0.12);
+  --teinte-olive: #7a8a2e;
+  --teinte-olive-doux: rgba(122, 138, 46, 0.13);
+  --teinte-indigo: #5a55c9;
+  --teinte-indigo-doux: rgba(90, 85, 201, 0.12);
+  --teinte-fuchsia: #a84ec2;
+  --teinte-fuchsia-doux: rgba(168, 78, 194, 0.12);
 
-  /* La geometrie du verre : coins tres continus, profondeur par l'ombre. */
-  --rayon: 28px;
-  --rayon-petit: 14px;
-  --flou: saturate(1.8) blur(34px);
-  --lueur: inset 0 1.5px 0 rgba(255, 255, 255, 0.85);
-  --ombre: 0 2px 5px rgba(14, 21, 26, 0.04), 0 18px 46px rgba(14, 21, 26, 0.1);
-  --ombre-haute: 0 34px 80px rgba(14, 21, 26, 0.22);
+  /* Geometrie : des coins moderes, une profondeur discrete. */
+  --rayon: 14px;
+  --rayon-petit: 9px;
+  --flou: none;
+  --lueur: 0 0 0 0 rgba(0, 0, 0, 0);
+  --ombre: 0 1px 2px rgba(20, 20, 18, 0.04), 0 4px 16px rgba(20, 20, 18, 0.04);
+  --ombre-haute: 0 10px 30px rgba(20, 20, 18, 0.12);
 
-  --titre: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-  --corps: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
-  --chiffres: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+  --titre: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --corps: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --chiffres: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   color-scheme: light;
   font-family: var(--corps);
@@ -92,85 +85,66 @@
  */
 :root[data-theme='sombre'] {
   color-scheme: dark;
-  --fond: #0b0f13;
-  --surface: rgba(28, 34, 41, 0.62);
-  --surface-2: rgba(255, 255, 255, 0.055);
-  --bord: rgba(255, 255, 255, 0.1);
-  --bord-verre: rgba(255, 255, 255, 0.14);
-  --bord-champ: rgba(255, 255, 255, 0.16);
-  --bord-fort: rgba(255, 255, 255, 0.22);
-  --texte: #eaeff2;
-  --texte-doux: #96a1aa;
+  --fond: #131311;
+  --surface: #1d1d1b;
+  --surface-2: #282826;
+  --bord: #2c2c29;
+  --bord-verre: #2c2c29;
+  --bord-champ: #3a3a36;
+  --bord-fort: #4a4a45;
+  --texte: #f0efec;
+  --texte-doux: #a3a29d;
 
-  --accent: #5fd3e0;
-  --accent-doux: rgba(95, 211, 224, 0.14);
-  --accent-fort: #8ee3ed;
+  --accent: #f0efec;
+  --accent-doux: rgba(240, 239, 236, 0.1);
+  --accent-fort: #ffffff;
 
-  --ok: #6fce97;
-  --ok-doux: rgba(111, 206, 151, 0.14);
-  --warn: #e0ad55;
-  --warn-doux: rgba(224, 173, 85, 0.14);
-  --ko: #ef948a;
-  --ko-doux: rgba(239, 148, 138, 0.13);
+  --ok: #4fc08d;
+  --ok-doux: #1b3128;
+  --warn: #d9a44a;
+  --warn-doux: #362b18;
+  --ko: #e0705f;
+  --ko-doux: #3a2320;
 
-  --lueur: inset 0 1.5px 0 rgba(255, 255, 255, 0.12);
-  --ombre: 0 2px 5px rgba(0, 0, 0, 0.25), 0 20px 50px rgba(0, 0, 0, 0.4);
-  --ombre-haute: 0 34px 90px rgba(0, 0, 0, 0.6);
+  --ombre: 0 0 0 0.5px rgba(255, 255, 255, 0.05);
+  --ombre-haute: 0 0 0 0.5px rgba(255, 255, 255, 0.07), 0 12px 32px rgba(0, 0, 0, 0.5);
 
-  --donnee-alcool: #0a97ad;
-  --donnee-nourriture: #b57b2e;
-  --donnee-materiel: #8b68e0;
+  --donnee-alcool: #3a90d6;
+  --donnee-nourriture: #cc763a;
+  --donnee-materiel: #8558d6;
 
-  --teinte-ardoise: #96a1aa;
-  --teinte-ardoise-doux: rgba(150, 161, 170, 0.13);
-  --teinte-petrole: #5fd3e0;
-  --teinte-petrole-doux: rgba(95, 211, 224, 0.13);
-  --teinte-orange: #e0ad55;
-  --teinte-orange-doux: rgba(224, 173, 85, 0.13);
-  --teinte-violet: #b79df5;
-  --teinte-violet-doux: rgba(183, 157, 245, 0.13);
-  --teinte-bleu: #93b4f5;
-  --teinte-bleu-doux: rgba(147, 180, 245, 0.13);
-  --teinte-vert: #6fce97;
-  --teinte-vert-doux: rgba(111, 206, 151, 0.13);
-  --teinte-rose: #f191bd;
-  --teinte-rose-doux: rgba(241, 145, 189, 0.12);
-  --teinte-olive: #bccf6d;
-  --teinte-olive-doux: rgba(188, 207, 109, 0.13);
-  --teinte-indigo: #a7a4f7;
-  --teinte-indigo-doux: rgba(167, 164, 247, 0.13);
-  --teinte-fuchsia: #eb8bf5;
-  --teinte-fuchsia-doux: rgba(235, 139, 245, 0.12);
+  --teinte-ardoise: #a3a29d;
+  --teinte-ardoise-doux: rgba(163, 162, 157, 0.14);
+  --teinte-petrole: #3fb0a6;
+  --teinte-petrole-doux: rgba(63, 176, 166, 0.14);
+  --teinte-orange: #cc763a;
+  --teinte-orange-doux: rgba(204, 118, 58, 0.16);
+  --teinte-violet: #8558d6;
+  --teinte-violet-doux: rgba(133, 88, 214, 0.16);
+  --teinte-bleu: #3a90d6;
+  --teinte-bleu-doux: rgba(58, 144, 214, 0.16);
+  --teinte-vert: #33a05e;
+  --teinte-vert-doux: rgba(51, 160, 94, 0.16);
+  --teinte-rose: #d06f97;
+  --teinte-rose-doux: rgba(208, 111, 151, 0.15);
+  --teinte-olive: #9aab4a;
+  --teinte-olive-doux: rgba(154, 171, 74, 0.15);
+  --teinte-indigo: #7f7ae0;
+  --teinte-indigo-doux: rgba(127, 122, 224, 0.16);
+  --teinte-fuchsia: #bd72d4;
+  --teinte-fuchsia-doux: rgba(189, 114, 212, 0.15);
 }
 
 * {
   box-sizing: border-box;
 }
 
-/**
- * Le fond qui fait vivre le verre : des halos de couleur fixes, que le flou
- * des panneaux revele au defilement. Sans eux, le depoli serait invisible.
- */
+/* Le fond est un papier plat : la hierarchie vient des cartes, pas du decor. */
 body {
   margin: 0;
   min-height: 100vh;
   color: var(--texte);
-  background-color: var(--fond);
-  background-image:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, transparent 22rem),
-    radial-gradient(38rem 30rem at 12% -6%, rgba(8, 145, 178, 0.2), transparent 60%),
-    radial-gradient(34rem 26rem at 96% 4%, rgba(109, 40, 217, 0.13), transparent 62%),
-    radial-gradient(40rem 32rem at 84% 92%, rgba(180, 83, 9, 0.13), transparent 60%),
-    radial-gradient(30rem 26rem at 4% 78%, rgba(29, 78, 216, 0.12), transparent 60%);
-  background-attachment: fixed;
-}
-
-[data-theme='sombre'] body {
-  background-image:
-    radial-gradient(38rem 30rem at 12% -6%, rgba(10, 151, 173, 0.24), transparent 60%),
-    radial-gradient(34rem 26rem at 96% 4%, rgba(139, 104, 224, 0.17), transparent 62%),
-    radial-gradient(40rem 32rem at 84% 92%, rgba(181, 123, 46, 0.15), transparent 60%),
-    radial-gradient(30rem 26rem at 4% 78%, rgba(29, 78, 216, 0.15), transparent 60%);
+  background: var(--fond);
 }
 
 /* -- Typographie ---------------------------------------------------------- */
@@ -201,14 +175,13 @@ p {
 }
 
 /**
- * La signature : chaque chiffre de l'app est en mono tabulaire. Les colonnes
+ * La signature : chaque chiffre de l'app est tabulaire. Les colonnes
  * s'alignent, et les prix se lisent comme sur une addition.
  */
 .num {
   font-family: var(--chiffres);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';
-  letter-spacing: -0.01em;
 }
 
 .muted {
@@ -225,16 +198,14 @@ p {
   border-top: 1px solid var(--surface-2);
 }
 
-/* -- Panneaux de verre ----------------------------------------------------- */
+/* -- Cartes ---------------------------------------------------------------- */
 
 .card {
   background: var(--surface);
-  -webkit-backdrop-filter: var(--flou);
-  backdrop-filter: var(--flou);
   border: 1px solid var(--bord-verre);
   border-radius: var(--rayon);
-  box-shadow: var(--ombre), var(--lueur);
-  padding: 1.5rem;
+  box-shadow: var(--ombre);
+  padding: 1.25rem 1.375rem;
 }
 
 .card + .card {
@@ -282,7 +253,7 @@ select {
   font-family: var(--corps);
   font-size: 0.875rem;
   color: var(--texte);
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--surface);
   border: 1px solid var(--bord-champ);
   border-radius: var(--rayon-petit);
   transition:
@@ -297,7 +268,7 @@ select {
 [data-theme='sombre'] input[type='date'],
 [data-theme='sombre'] textarea,
 [data-theme='sombre'] select {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-2);
 }
 
 /* Le texte long se redimensionne a la verticale seulement. */
@@ -306,9 +277,8 @@ textarea {
   min-height: 4.5rem;
 }
 
-/* Toute saisie chiffree adopte la face des chiffres. */
+/* Toute saisie chiffree s'aligne en colonnes. */
 input[type='number'] {
-  font-family: var(--chiffres);
   font-variant-numeric: tabular-nums;
 }
 
@@ -341,7 +311,7 @@ input[type='range'] {
   accent-color: var(--accent);
 }
 
-/* -- Boutons : des pilules ------------------------------------------------- */
+/* -- Boutons : sobres, l'action principale en encre pleine ------------------ */
 
 button {
   font-family: var(--corps);
@@ -350,44 +320,35 @@ button {
   color: var(--texte);
   background: var(--surface);
   border: 1px solid var(--bord-champ);
-  border-radius: 999px;
-  padding: 0.4375rem 0.9375rem;
+  border-radius: var(--rayon-petit);
+  padding: 0.4375rem 0.875rem;
   cursor: pointer;
-  box-shadow: var(--lueur);
+  box-shadow: var(--ombre);
   transition:
     border-color 0.15s ease,
     background 0.15s ease,
-    color 0.15s ease,
-    transform 0.12s ease;
+    color 0.15s ease;
 }
 
-/* Le survol souleve le bouton : le verre repond a la main, facon visionOS. */
 button:hover {
   border-color: var(--bord-fort);
-  transform: translateY(-1px);
+  background: var(--surface-2);
 }
 
 button:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 button.primaire {
-  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-fort) 130%);
-  border-color: transparent;
-  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--fond);
   font-weight: 620;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 6px 16px var(--accent-doux);
 }
 
 button.primaire:hover {
-  filter: brightness(1.08);
-}
-
-[data-theme='sombre'] button.primaire {
-  color: #0d1416;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  background: var(--accent-fort);
+  border-color: var(--accent-fort);
 }
 
 button.discret {
@@ -419,17 +380,17 @@ button:disabled {
 
 .segments {
   display: inline-flex;
-  padding: 3px;
+  padding: 2.5px;
   background: var(--surface-2);
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: 10px;
 }
 
 .segments button {
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
   box-shadow: none;
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 0.28125rem 0.75rem;
   color: var(--texte-doux);
 }
@@ -443,7 +404,8 @@ button:disabled {
   background: var(--surface);
   color: var(--texte);
   font-weight: 620;
-  box-shadow: var(--ombre), var(--lueur);
+  border-color: var(--bord-verre);
+  box-shadow: var(--ombre);
 }
 
 /* -- Etats ---------------------------------------------------------------- */
@@ -485,7 +447,7 @@ button:disabled {
 .tag {
   display: inline-block;
   padding: 0.1875rem 0.5625rem;
-  border-radius: 999px;
+  border-radius: 7px;
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -610,17 +572,6 @@ summary::-webkit-details-marker {
   }
 }
 
-/* Sans support du flou, le verre devient simplement plus opaque. */
-@supports not (backdrop-filter: blur(1px)) {
-  .card {
-    background: color-mix(in srgb, var(--fond) 30%, rgb(255 255 255 / 0.92));
-  }
-
-  [data-theme='sombre'] .card {
-    background: rgba(28, 34, 41, 0.96);
-  }
-}
-
 /* -- Petits ecrans : confort tactile --------------------------------------- */
 
 @media (max-width: 48rem) {
@@ -656,7 +607,7 @@ summary::-webkit-details-marker {
   }
 
   .card {
-    padding: 1.0625rem;
-    border-radius: 18px;
+    padding: 1rem;
+    border-radius: 12px;
   }
 }

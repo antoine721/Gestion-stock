@@ -1,93 +1,63 @@
+/* Un seul panneau de verre, centre dans l'environnement : l'ecran d'accueil
+   d'une app visionOS, pas une page marketing. */
 .connexion {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 21rem);
-  gap: 3.5rem;
-  align-items: center;
-  /* Occupe la fenetre : pas de grand vide sous le formulaire. */
-  min-height: calc(100vh - 6rem);
+  place-items: center;
+  min-height: calc(100vh - 5rem);
+  padding: 1.5rem 0;
 }
 
-/* -- La promesse ---------------------------------------------------------- */
+.panneau {
+  width: 100%;
+  max-width: 23.5rem;
+  padding: 2.25rem 2rem 1.75rem;
+}
 
-.eyebrow {
+/* -- La marque ------------------------------------------------------------- */
+
+.marque {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+/* L'icone de l'app, posee comme sur un ecran d'accueil. */
+.logo {
+  display: inline-grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  font-size: 2rem;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, var(--teinte-violet-doux), var(--teinte-bleu-doux)), var(--surface);
+  border: 1px solid var(--bord);
+  box-shadow: var(--ombre);
+  margin-bottom: 1rem;
+}
+
+.app-nom {
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--accent);
-  margin-bottom: 1rem;
 }
 
 h1 {
-  font-size: clamp(2.75rem, 7vw, 4.25rem);
-  line-height: 0.95;
-  letter-spacing: -0.04em;
-  font-weight: 700;
-}
-
-/* Le second mot bascule en petrole : la question et sa reponse. */
-h1 em {
-  display: block;
-  font-style: normal;
-  color: var(--accent);
+  margin-top: 0.375rem;
+  font-size: 1.75rem;
+  letter-spacing: -0.03em;
 }
 
 .chapo {
-  max-width: 26rem;
-  margin-top: 1.25rem;
-  font-size: 1rem;
+  max-width: 18rem;
+  margin: 0.5rem auto 0;
+  font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--texte-doux);
 }
 
-/* -- La chaine de raisonnement -------------------------------------------- */
-
-.chaine {
-  list-style: none;
-  margin: 2.5rem 0 0;
-  padding: 0;
-  max-width: 28rem;
-}
-
-.chaine li {
-  display: flex;
-  gap: 1rem;
-  padding: 0.875rem 0;
-  border-top: 1px solid var(--bord);
-}
-
-.rang {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--accent);
-  padding-top: 0.125rem;
-  flex: none;
-}
-
-.etape {
-  font-size: 0.8125rem;
-  line-height: 1.5;
-  color: var(--texte-doux);
-}
-
-.etape strong {
-  display: block;
-  color: var(--texte);
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-/* -- Le formulaire -------------------------------------------------------- */
-
-.formulaire {
-  padding: 1.5rem;
-}
-
-.formulaire h2 {
-  font-family: var(--titre);
-  font-size: 1.25rem;
-  margin-bottom: 1.25rem;
-}
+/* -- Le formulaire --------------------------------------------------------- */
 
 .champs {
   display: flex;
@@ -102,24 +72,21 @@ h1 em {
 .valider {
   width: 100%;
   margin-top: 1.5rem;
-  padding: 0.625rem;
-  font-size: 0.875rem;
+  padding: 0.6875rem;
+  font-size: 0.9375rem;
 }
 
 .valider:disabled {
   opacity: 0.6;
 }
 
-@media (max-width: 60rem) {
+@media (max-width: 32rem) {
   .connexion {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2rem;
     min-height: 0;
-    padding-top: 1.5rem;
-    align-items: start;
+    padding-top: 2.5rem;
   }
 
-  .chaine {
-    display: none;
+  .panneau {
+    padding: 1.75rem 1.25rem 1.5rem;
   }
 }

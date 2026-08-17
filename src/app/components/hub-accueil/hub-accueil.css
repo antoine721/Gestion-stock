@@ -17,22 +17,20 @@
 }
 
 /**
- * Une card par piece : du verre teinte par sa couleur d'espace. Le voile de
- * teinte reste leger — le chiffre est le heros, pas le fond.
+ * Une card par piece : blanche, calme, le chiffre en heros. La couleur de
+ * l'espace ne vit que dans un point discret a cote du libelle.
  */
 .carte {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 0.25rem;
-  padding: 1.1875rem 1.3125rem 1.0625rem;
+  padding: 1.0625rem 1.1875rem 1rem;
   text-align: left;
   border: 1px solid var(--bord-verre);
   border-radius: var(--rayon);
-  background: linear-gradient(150deg, var(--douce) 0%, transparent 65%), var(--surface);
-  -webkit-backdrop-filter: var(--flou);
-  backdrop-filter: var(--flou);
-  box-shadow: var(--ombre), var(--lueur);
+  background: var(--surface);
+  box-shadow: var(--ombre);
   cursor: pointer;
   transition:
     transform 0.16s ease,
@@ -41,13 +39,13 @@
 }
 
 .carte:hover {
-  transform: translateY(-3px) scale(1.005);
-  border-color: var(--vive);
-  box-shadow: var(--ombre-haute), var(--lueur);
+  transform: translateY(-2px);
+  border-color: var(--bord-fort);
+  box-shadow: var(--ombre-haute);
 }
 
 .carte:active {
-  transform: translateY(-1px) scale(0.995);
+  transform: translateY(0);
 }
 
 .haut {
@@ -59,7 +57,7 @@
 }
 
 .emoji {
-  font-size: 1.375rem;
+  font-size: 1.1875rem;
   line-height: 1;
 }
 
@@ -85,10 +83,11 @@
 }
 
 .valeur {
-  font-size: 1.625rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
   line-height: 1.15;
-  color: var(--vive);
+  color: var(--texte);
 }
 
 .sous {

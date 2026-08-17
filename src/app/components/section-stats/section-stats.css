@@ -13,11 +13,9 @@
   gap: 0.25rem;
   padding: 1rem 1.125rem;
   background: var(--surface);
-  -webkit-backdrop-filter: var(--flou);
-  backdrop-filter: var(--flou);
   border: 1px solid var(--bord-verre);
   border-radius: var(--rayon);
-  box-shadow: var(--ombre), var(--lueur);
+  box-shadow: var(--ombre);
 }
 
 .etiquette {
