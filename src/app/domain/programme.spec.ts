@@ -50,6 +50,7 @@ describe('musique', () => {
     envies: '',
     recommandations: 'Daft Punk',
     commentaire: '',
+    consommations: [],
     creeLe: '',
   };
 

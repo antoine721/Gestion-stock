@@ -368,6 +368,10 @@ export class PlannerStore {
         creneaux: partage.programme.creneaux ?? [],
         tracklist: partage.programme.tracklist ?? [],
       },
+      reponsesFormulaire: partage.reponsesFormulaire.map((x) => ({
+        ...x,
+        consommations: x.consommations ?? [],
+      })),
     });
     this.participants.set(
       distant.participants.map((x) => ({
@@ -903,6 +907,9 @@ export class PlannerStore {
           allergies: reponse.allergies,
           envies: reponse.envies,
           remarques,
+          // La conso declaree suit la fiche : une aide pour choisir le
+          // profil, jamais un bareme.
+          consommationDeclaree: reponse.consommations.map((x) => ({ ...x })),
         },
       ],
       reponsesFormulaire: this.reponsesFormulaire().filter((x) => x.id !== reponseId),

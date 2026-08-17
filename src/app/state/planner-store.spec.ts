@@ -208,6 +208,39 @@ describe('PlannerStore', () => {
     expect(store.listeCourses().find((x) => x.id === ligne!.id)?.cochee).toBe(true);
   });
 
+  it('valider une reponse du formulaire en fait une fiche, conso comprise', () => {
+    store.majPartage({
+      reponsesFormulaire: [
+        {
+          id: 'f1',
+          prenom: 'Chloe',
+          nom: 'Petit',
+          invitePar: 'Antoine',
+          accompagnants: 0,
+          regime: 'vegan',
+          allergies: 'arachide',
+          preferencesBoissons: '',
+          envies: 'karaoke',
+          recommandations: '',
+          commentaire: '',
+          consommations: [{ boissonId: 'biere', verresParJour: 3 }],
+          creeLe: '2026-08-10T10:00:00.000Z',
+        },
+      ],
+    });
+
+    store.importerReponse('f1', 'a');
+
+    const fiche = store.invitesNommes().find((x) => x.prenom === 'Chloe');
+    expect(fiche?.participantId).toBe('a');
+    expect(fiche?.regime).toBe('vegan');
+    // La conso suit la fiche, mais ne cree AUCUN profil : le calcul ne bouge
+    // pas tant que l'organisateur n'a pas attache un profil.
+    expect(fiche?.consommationDeclaree).toEqual([{ boissonId: 'biere', verresParJour: 3 }]);
+    expect(fiche?.personneTypeId).toBe('');
+    expect(store.reponsesFormulaire()).toHaveLength(0);
+  });
+
   it('cocher une ligne materiel bascule le statut de l’article', () => {
     const id = store.ajouterArticle({ nom: 'Guirlandes' });
     store.basculerCourse(`materiel:${id}`);

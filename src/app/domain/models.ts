@@ -193,6 +193,12 @@ export interface Invite {
   montantPaye: number;
   /** Combien de jours il reste sur place. 0 = toute la duree de l'evenement. */
   joursPresence: number;
+  /**
+   * Ce que la personne DIT boire sur une journee, via le formulaire. Purement
+   * indicatif : ca aide l'organisateur a choisir un profil, ca n'entre jamais
+   * tout seul dans le calcul — les baremes restent aux mains des profils.
+   */
+  consommationDeclaree: ConsommationType[];
 }
 
 // ---------------------------------------------------------------------------
@@ -347,6 +353,11 @@ export interface ReponseFormulaire {
   /** Morceaux ou artistes a passer pendant la soiree. */
   recommandations: string;
   commentaire: string;
+  /**
+   * Ce que l'invite declare boire sur une journee, boisson par boisson.
+   * Indicatif : l'organisateur s'en inspire pour les profils, sans plus.
+   */
+  consommations: ConsommationType[];
   /** Date ISO de la reponse. */
   creeLe: string;
 }
