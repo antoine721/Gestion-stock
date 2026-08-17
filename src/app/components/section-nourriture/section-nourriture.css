@@ -74,7 +74,7 @@
 
 .ingredient {
   display: grid;
-  grid-template-columns: minmax(5.5rem, 1fr) 3.4rem 3.6rem 3.6rem 3.4rem 1.5rem;
+  grid-template-columns: minmax(5.5rem, 1fr) 3.4rem 3.6rem 5.6rem 1.5rem;
   gap: 0.25rem;
   align-items: center;
 }
@@ -84,6 +84,26 @@
   min-width: 0;
   padding: 0.3125rem 0.25rem;
   font-size: 0.75rem;
+}
+
+/* Le prix et son unite d'achat ne font qu'une case : « 12 » et « €/kg ». */
+.prix-unitaire {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.prix-unitaire input {
+  flex: 1;
+  min-width: 0;
+}
+
+.unite-prix {
+  flex: none;
+  font-size: 0.625rem;
+  font-weight: 620;
+  color: var(--texte-doux);
 }
 
 .ingredient input[type='number'] {

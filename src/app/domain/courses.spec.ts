@@ -51,8 +51,7 @@ describe('liste de courses unifiee', () => {
                 nom: 'Viande',
                 qteParPersonne: 180,
                 unite: 'g',
-                conditionnement: 1000,
-                prixConditionnement: 12,
+                prixUnitaire: 12,
               },
             ],
           },
@@ -94,7 +93,7 @@ describe('liste de courses unifiee', () => {
   });
 });
 
-describe('courses cuisine (invariant grammes -> paquets)', () => {
+describe('courses cuisine (invariant grammes -> kilos entiers)', () => {
   const barbecue = (jour: number): Nourriture['repas'][number] => ({
     id: `r${jour}`,
     jour,
@@ -111,32 +110,53 @@ describe('courses cuisine (invariant grammes -> paquets)', () => {
         nom: 'Viande',
         qteParPersonne: 180,
         unite: 'g',
-        conditionnement: 1000,
-        prixConditionnement: 12,
+        prixUnitaire: 12,
       },
     ],
   });
 
-  it('agrege les repas AVANT de convertir en paquets', () => {
+  it('agrege les repas AVANT d’arrondir au kilo', () => {
     const nourriture: Nourriture = { repas: [barbecue(1), barbecue(2)], extras: [] };
     const lignes = coursesCuisine(nourriture, 10, 2);
 
     expect(lignes).toHaveLength(1);
     // Deux barbecues, une seule ligne : 2 x 1800 g agreges avant conversion.
     expect(lignes[0].besoin).toBe(3600);
-    expect(lignes[0].paquets).toBe(4);
+    // 3,6 kg au caddie, ca fait 4 kg : on ne compte pas les virgules.
+    expect(lignes[0].quantiteAchat).toBe(4);
+    expect(lignes[0].uniteAchat).toBe('kg');
     expect(lignes[0].prixTotal).toBe(48);
+    expect(lignes[0].reste).toBe(400);
   });
 
-  it('un besoin agrege economise des paquets par rapport au repas par repas', () => {
+  it('un besoin agrege economise un kilo par rapport au repas par repas', () => {
     const repas = [barbecue(1), barbecue(2)].map((x) => ({
       ...x,
       ingredients: x.ingredients.map((i) => ({ ...i, qteParPersonne: 140 })),
     }));
     const lignes = coursesCuisine({ repas, extras: [] }, 10, 2);
 
-    // 2 x 1400 g = 2800 g -> 3 paquets, la ou ceil(1,4) + ceil(1,4) = 4.
-    expect(lignes[0].paquets).toBe(3);
+    // 2 x 1400 g = 2800 g -> 3 kg, la ou ceil(1,4) + ceil(1,4) = 4.
+    expect(lignes[0].quantiteAchat).toBe(3);
+  });
+
+  it('achete les pieces a l’unite, sans les convertir', () => {
+    const repas = [barbecue(1)].map((x) => ({
+      ...x,
+      ingredients: x.ingredients.map((i) => ({
+        ...i,
+        nom: 'Merguez',
+        qteParPersonne: 1.5,
+        unite: 'piece' as const,
+        prixUnitaire: 0.65,
+      })),
+    }));
+    const lignes = coursesCuisine({ repas, extras: [] }, 10, 1);
+
+    // 15 merguez pile : la piece ne passe pas par le kilo.
+    expect(lignes[0].quantiteAchat).toBe(15);
+    expect(lignes[0].uniteAchat).toBe('piece(s)');
+    expect(lignes[0].prixTotal).toBeCloseTo(9.75, 2);
   });
 
   it('ignore un repas au-dela de la duree et garde le reste lisible', () => {
