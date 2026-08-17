@@ -1,4 +1,5 @@
-import { CategoriePaiement, Effectif, Invite, Regime } from './models';
+import { BOISSON_PAR_ID } from './catalogue';
+import { CategoriePaiement, ConsommationType, Effectif, Invite, Regime } from './models';
 
 /**
  * Invites nommes.
@@ -38,7 +39,23 @@ export function inviteVierge(id: string, participantId: string): Invite {
     paye: false,
     montantPaye: 0,
     joursPresence: 0,
+    consommationDeclaree: [],
   };
+}
+
+/**
+ * « Biere × 4 · Spritz × 2 » : la conso declaree en toutes lettres. Les
+ * boissons inconnues du catalogue sont ignorees a l'affichage.
+ */
+export function libelleConsommations(consommations: readonly ConsommationType[]): string {
+  return consommations
+    .filter((x) => x.verresParJour > 0)
+    .map((x) => {
+      const boisson = BOISSON_PAR_ID.get(x.boissonId);
+      return boisson ? `${boisson.nom} × ${x.verresParJour}` : '';
+    })
+    .filter((x) => x.length > 0)
+    .join(' · ');
 }
 
 /**

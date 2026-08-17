@@ -7,6 +7,7 @@ import {
   inviteVierge,
   invitesAvecAllergies,
   invitesNommesDe,
+  libelleConsommations,
   normaliserInvite,
 } from './invites';
 import { Invite } from './models';
@@ -70,7 +71,21 @@ describe('invites nommes', () => {
     expect(normalise.paye).toBe(false);
     expect(normalise.montantPaye).toBe(0);
     expect(normalise.categoriePaiementId).toBe('');
+    expect(normalise.consommationDeclaree).toEqual([]);
     expect(normalise.prenom).toBe('Paul');
+  });
+
+  it('met la conso declaree en toutes lettres, boissons inconnues ignorees', () => {
+    const libelle = libelleConsommations([
+      { boissonId: 'biere', verresParJour: 4 },
+      { boissonId: 'spritz', verresParJour: 2 },
+      { boissonId: 'inconnue', verresParJour: 9 },
+      { boissonId: 'whisky-coca', verresParJour: 0 },
+    ]);
+
+    expect(libelle).toContain('× 4');
+    expect(libelle).toContain('× 2');
+    expect(libelle).not.toContain('9');
   });
 });
 

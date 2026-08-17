@@ -29,6 +29,27 @@ function champ(valeur: unknown): string {
   return typeof valeur === 'string' ? valeur.trim().slice(0, MAX_CHAMP) : '';
 }
 
+/**
+ * La conso declaree : des paires boisson / verres par jour, bornees. Purement
+ * indicative cote produit — mais on la valide comme le reste, c'est la seule
+ * entree publique de l'app.
+ */
+function consommations(valeur: unknown): { boissonId: string; verresParJour: number }[] {
+  if (!Array.isArray(valeur)) return [];
+  return valeur
+    .slice(0, 40)
+    .map((x) => {
+      const brut = x as { boissonId?: unknown; verresParJour?: unknown };
+      const boissonId = champ(brut?.boissonId).slice(0, 60);
+      const verres = Number(brut?.verresParJour);
+      return {
+        boissonId,
+        verresParJour: Number.isFinite(verres) ? Math.min(30, Math.max(0, verres)) : 0,
+      };
+    })
+    .filter((x) => x.boissonId.length > 0 && x.verresParJour > 0);
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const code = String(req.query['code'] ?? '');
   const evenement = await chargerEvenement(code);
@@ -73,6 +94,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     envies: champ(corps['envies']),
     recommandations: champ(corps['recommandations']),
     commentaire: champ(corps['commentaire']),
+    consommations: consommations(corps['consommations']),
     creeLe: new Date().toISOString(),
   };
 

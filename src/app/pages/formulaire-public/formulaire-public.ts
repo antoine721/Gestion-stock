@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { ActivatedRoute } from '@angular/router';
 import { Api, InfosPubliques } from '../../state/api';
 import { REGIMES } from '../../domain/invites';
+import { BOISSONS, LIBELLE_FAMILLE, ORDRE_FAMILLE } from '../../domain/catalogue';
 import { Regime } from '../../domain/models';
 
 /**
@@ -23,6 +24,12 @@ export class FormulairePublic {
   protected readonly regimes = REGIMES;
   protected readonly code = computed(() => this.route.snapshot.paramMap.get('code') ?? '');
 
+  /** Le catalogue des boissons, groupe par famille, pour la conso declaree. */
+  protected readonly familles = ORDRE_FAMILLE.map((famille) => ({
+    libelle: LIBELLE_FAMILLE[famille],
+    boissons: BOISSONS.filter((x) => x.famille === famille),
+  })).filter((x) => x.boissons.length > 0);
+
   protected readonly infos = signal<InfosPubliques | undefined>(undefined);
   protected readonly introuvable = signal(false);
   protected readonly etape = signal<'identite' | 'fiche' | 'merci'>('identite');
@@ -40,7 +47,23 @@ export class FormulairePublic {
   protected readonly recommandations = signal('');
   protected readonly commentaire = signal('');
 
+  /** boissonId -> verres par jour declares. Indicatif, jamais un bareme. */
+  protected readonly consommations = signal<ReadonlyMap<string, number>>(new Map());
+
   protected readonly identiteValide = computed(() => this.prenom().trim().length > 0);
+
+  protected verresDe(boissonId: string): number {
+    return this.consommations().get(boissonId) ?? 0;
+  }
+
+  protected majVerres(boissonId: string, valeur: string): void {
+    const verres = Number(valeur);
+    if (!Number.isFinite(verres)) return;
+    const suivantes = new Map(this.consommations());
+    if (verres > 0) suivantes.set(boissonId, Math.min(30, verres));
+    else suivantes.delete(boissonId);
+    this.consommations.set(suivantes);
+  }
 
   constructor() {
     void this.charger();
@@ -79,6 +102,10 @@ export class FormulairePublic {
         envies: this.envies().trim(),
         recommandations: this.recommandations().trim(),
         commentaire: this.commentaire().trim(),
+        consommations: [...this.consommations().entries()].map(([boissonId, verresParJour]) => ({
+          boissonId,
+          verresParJour,
+        })),
       });
       this.etape.set('merci');
     } catch (erreur) {
@@ -99,6 +126,7 @@ export class FormulairePublic {
     this.envies.set('');
     this.recommandations.set('');
     this.commentaire.set('');
+    this.consommations.set(new Map());
     this.etape.set('identite');
   }
 }
