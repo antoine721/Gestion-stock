@@ -38,7 +38,10 @@ import { listeCoursesUnifiee, resumerCourses } from '../domain/courses';
 import {
   creneauVierge,
   demandesMusicales,
-  morceauVierge,
+  djSetVierge,
+  normaliserCreneau,
+  personnesAssignables,
+  resumerDj,
   resumerProgramme,
   volontaires,
 } from '../domain/programme';
@@ -48,12 +51,12 @@ import {
   CategoriePaiement,
   Cibles,
   Creneau,
+  DjSet,
   ExtraNourriture,
   IngredientRepas,
   Invite,
   Materiel,
   MomentRepas,
-  Morceau,
   Override,
   Partage,
   Participant,
@@ -84,6 +87,7 @@ export type Espace =
   | 'materiel'
   | 'courses'
   | 'programme'
+  | 'dj'
   | 'stats'
   | 'formulaire';
 
@@ -100,7 +104,8 @@ export const ESPACES: readonly {
   { id: 'utilisateurs', libelle: 'Invites', emoji: '🧑‍🤝‍🧑', teinte: 'bleu' },
   { id: 'materiel', libelle: 'Materiel', emoji: '🛠️', teinte: 'violet' },
   { id: 'courses', libelle: 'Courses', emoji: '🛒', teinte: 'olive' },
-  { id: 'programme', libelle: 'Programme & DJ', emoji: '🎶', teinte: 'indigo' },
+  { id: 'programme', libelle: 'Programme', emoji: '📅', teinte: 'indigo' },
+  { id: 'dj', libelle: 'DJ', emoji: '🎧', teinte: 'fuchsia' },
   { id: 'stats', libelle: 'Stats & budget', emoji: '📊', teinte: 'vert' },
   { id: 'formulaire', libelle: 'Formulaire', emoji: '📝', teinte: 'rose' },
 ];
@@ -122,6 +127,7 @@ export const PARTAGE_INITIAL: Partage = {
   categoriesPaiement: [],
   coursesCochees: [],
   programme: { creneaux: [], tracklist: [] },
+  djSets: [],
 };
 
 /** Bibliotheque de depart, posee a la creation de l'evenement. */
@@ -316,10 +322,19 @@ export class PlannerStore {
     resumerProgramme(this.programme(), this.partage().jours),
   );
 
-  /** Les envies musicales du formulaire et des fiches, a ajouter d'un clic. */
+  /** Les envies musicales du formulaire et des fiches, pour nourrir les DJ. */
   readonly demandesMusicales = computed(() =>
     demandesMusicales(this.reponsesFormulaire(), this.invitesNommes(), this.programme().tracklist),
   );
+
+  /** Tout le monde participe : le vivier des missions et des sets. */
+  readonly personnesAssignables = computed(() =>
+    personnesAssignables(this.participants(), this.invitesNommes()),
+  );
+
+  readonly djSets = computed(() => this.partage().djSets);
+
+  readonly resumeDj = computed(() => resumerDj(this.djSets()));
 
   /** Les invites qui veulent faire quelque chose : DJ, jeux, animation... */
   readonly volontaires = computed(() => volontaires(this.invitesNommes()));
@@ -370,9 +385,10 @@ export class PlannerStore {
         extras: partage.nourriture.extras ?? [],
       },
       programme: {
-        creneaux: partage.programme.creneaux ?? [],
+        creneaux: (partage.programme.creneaux ?? []).map((x) => normaliserCreneau(x)),
         tracklist: partage.programme.tracklist ?? [],
       },
+      djSets: partage.djSets ?? [],
       reponsesFormulaire: partage.reponsesFormulaire.map((x) => ({
         ...x,
         consommations: x.consommations ?? [],
@@ -840,36 +856,37 @@ export class PlannerStore {
     });
   }
 
-  ajouterMorceau(modele: Partial<Omit<Morceau, 'id'>> = {}): string {
+  /** Met quelqu'un en mission sur un creneau ; deja present = rien. */
+  assignerPersonne(creneauId: string, ref: string): void {
+    const creneau = this.programme().creneaux.find((x) => x.id === creneauId);
+    if (!creneau || !ref || creneau.assignes.includes(ref)) return;
+    this.majCreneau(creneauId, { assignes: [...creneau.assignes, ref] });
+  }
+
+  retirerAssignation(creneauId: string, ref: string): void {
+    const creneau = this.programme().creneaux.find((x) => x.id === creneauId);
+    if (!creneau) return;
+    this.majCreneau(creneauId, { assignes: creneau.assignes.filter((x) => x !== ref) });
+  }
+
+  // -- DJ : le tableau horaire des sets ------------------------------------
+
+  ajouterDjSet(modele: Partial<Omit<DjSet, 'id'>> = {}): string {
     const id = identifiant();
-    const programme = this.programme();
     this.majPartage({
-      programme: {
-        ...programme,
-        tracklist: [...programme.tracklist, { ...morceauVierge(id), ...modele }],
-      },
+      djSets: [...this.djSets(), { ...djSetVierge(id, modele.jour ?? 1), ...modele }],
     });
     return id;
   }
 
-  majMorceau(morceauId: string, patch: Partial<Omit<Morceau, 'id'>>): void {
-    const programme = this.programme();
+  majDjSet(djSetId: string, patch: Partial<Omit<DjSet, 'id'>>): void {
     this.majPartage({
-      programme: {
-        ...programme,
-        tracklist: programme.tracklist.map((x) => (x.id === morceauId ? { ...x, ...patch } : x)),
-      },
+      djSets: this.djSets().map((x) => (x.id === djSetId ? { ...x, ...patch } : x)),
     });
   }
 
-  supprimerMorceau(morceauId: string): void {
-    const programme = this.programme();
-    this.majPartage({
-      programme: {
-        ...programme,
-        tracklist: programme.tracklist.filter((x) => x.id !== morceauId),
-      },
-    });
+  supprimerDjSet(djSetId: string): void {
+    this.majPartage({ djSets: this.djSets().filter((x) => x.id !== djSetId) });
   }
 
   // -- Formulaire invite ---------------------------------------------------

@@ -60,6 +60,8 @@
   --teinte-olive-doux: rgba(100, 117, 27, 0.14);
   --teinte-indigo: #4338ca;
   --teinte-indigo-doux: rgba(67, 56, 202, 0.12);
+  --teinte-fuchsia: #a21caf;
+  --teinte-fuchsia-doux: rgba(162, 28, 175, 0.11);
 
   /* La geometrie du verre : coins continus, genereux. */
   --rayon: 22px;
@@ -130,6 +132,8 @@
     --teinte-olive-doux: rgba(188, 207, 109, 0.13);
     --teinte-indigo: #a7a4f7;
     --teinte-indigo-doux: rgba(167, 164, 247, 0.13);
+    --teinte-fuchsia: #eb8bf5;
+    --teinte-fuchsia-doux: rgba(235, 139, 245, 0.12);
   }
 }
 
@@ -520,6 +524,10 @@ button:disabled {
 .teinte-indigo {
   --vive: var(--teinte-indigo);
   --douce: var(--teinte-indigo-doux);
+}
+.teinte-fuchsia {
+  --vive: var(--teinte-fuchsia);
+  --douce: var(--teinte-fuchsia-doux);
 }
 
 /* -- Tableaux ------------------------------------------------------------- */

@@ -1,0 +1,88 @@
+.intro {
+  margin-bottom: 1rem;
+}
+
+/* Le tableau est large : il defile dans sa boite, jamais la page. */
+.defilement {
+  overflow-x: auto;
+}
+
+.defilement table {
+  min-width: 58rem;
+}
+
+.etroit {
+  width: 4.25rem;
+}
+
+.heure {
+  width: 5rem;
+  text-align: center;
+}
+
+/* Le statut colore sa ligne : l'etat du tableau se lit de loin. */
+.statut-valide .statut {
+  border-color: var(--ok);
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.statut-joue .statut {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.statut-refuse .statut {
+  border-color: var(--ko);
+  color: var(--ko);
+}
+
+.statut-refuse td {
+  opacity: 0.75;
+}
+
+.statut-demande .statut {
+  border-color: var(--warn);
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.ajout {
+  margin-top: 1rem;
+}
+
+/* -- Volontaires et demandes ------------------------------------------------ */
+
+.colonnes-dj {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.colonnes-dj .card + .card {
+  margin-top: 0;
+}
+
+.volontaires,
+.demandes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+}
+
+.volontaires li,
+.demandes li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.volontaires li + li,
+.demandes li + li {
+  border-top: 1px solid var(--surface-2);
+}

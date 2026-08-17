@@ -332,9 +332,10 @@ export interface Article {
 export type TypeCreneau = 'activite' | 'repas' | 'musique' | 'logistique' | 'autre';
 
 /**
- * Un creneau du planning : ce qui a ete mis en place, quand, et qui s'en
- * occupe. Les heures sont du texte « 18:30 » — assez pour trier et lire,
- * pas de fuseau ni de date a gerer.
+ * Un creneau du planning : une mission datee. Les heures sont du texte
+ * « 18:30 » — assez pour trier et lire, pas de fuseau ni de date a gerer.
+ * Tout le monde participe : chaque creneau porte ses assignes, et les
+ * equipes changent d'un creneau a l'autre.
  */
 export interface Creneau {
   id: string;
@@ -344,9 +345,33 @@ export interface Creneau {
   fin: string;
   titre: string;
   type: TypeCreneau;
-  /** Qui s'en occupe : le DJ, l'animateur, l'equipe cuisine... */
+  /** Qui s'en occupe, en toutes lettres (complement libre des assignes). */
   responsable: string;
   lieu: string;
+  notes: string;
+  /**
+   * Les personnes en mission sur ce creneau : des references prefixees —
+   * 'inv:<id>' pour un invite nomme, 'org:<id>' pour un co-organisateur.
+   */
+  assignes: string[];
+}
+
+// Le workflow d'un set DJ : un invite demande, l'orga valide, le set se joue.
+export type StatutDjSet = 'demande' | 'valide' | 'refuse' | 'joue';
+
+/** Un passage derriere les platines, planifie et suivi. */
+export interface DjSet {
+  id: string;
+  /** Jour de l'evenement, 1 = premier jour. */
+  jour: number;
+  debut: string;
+  fin: string;
+  /** Qui mixe : reference 'inv:'/'org:' ou nom libre. */
+  dj: string;
+  /** Ce qu'il compte passer : styles, ambiance. */
+  style: string;
+  statut: StatutDjSet;
+  /** Le suivi : materiel, contraintes, retours. */
   notes: string;
 }
 
@@ -436,6 +461,8 @@ export interface Partage {
   coursesCochees: string[];
   /** Le planning du festival et la tracklist. */
   programme: Programme;
+  /** Les sets DJ, avec leur workflow demande -> valide -> joue. */
+  djSets: DjSet[];
 }
 
 export interface Evenement {
