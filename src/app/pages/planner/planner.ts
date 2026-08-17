@@ -17,6 +17,7 @@ import { SectionUtilisateurs } from '../../components/section-utilisateurs/secti
 import { ValidationPanel } from '../../components/validation-panel/validation-panel';
 import { ESPACES, Espace, PlannerStore, SECTIONS } from '../../state/planner-store';
 import { SessionStore } from '../../state/session';
+import { ThemeStore } from '../../state/theme';
 import { fmtEntier, fmtEuro } from '../../domain/format';
 
 /**
@@ -50,6 +51,7 @@ import { fmtEntier, fmtEuro } from '../../domain/format';
 })
 export class Planner {
   protected readonly store = inject(PlannerStore);
+  protected readonly theme = inject(ThemeStore);
   private readonly session = inject(SessionStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);

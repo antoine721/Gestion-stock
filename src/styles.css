@@ -75,6 +75,7 @@
   --corps: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
   --chiffres: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
 
+  color-scheme: light;
   font-family: var(--corps);
   line-height: 1.5;
   color: var(--texte);
@@ -83,58 +84,61 @@
   text-rendering: optimizeLegibility;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --fond: #0b0f13;
-    --surface: rgba(28, 34, 41, 0.62);
-    --surface-2: rgba(255, 255, 255, 0.055);
-    --bord: rgba(255, 255, 255, 0.1);
-    --bord-verre: rgba(255, 255, 255, 0.14);
-    --bord-champ: rgba(255, 255, 255, 0.16);
-    --bord-fort: rgba(255, 255, 255, 0.22);
-    --texte: #eaeff2;
-    --texte-doux: #96a1aa;
+/**
+ * Le sombre ne suit pas le systeme : l'app s'ouvre en clair, et le sombre
+ * s'active par le bouton du menu, qui pose data-theme sur <html>.
+ */
+:root[data-theme='sombre'] {
+  color-scheme: dark;
+  --fond: #0b0f13;
+  --surface: rgba(28, 34, 41, 0.62);
+  --surface-2: rgba(255, 255, 255, 0.055);
+  --bord: rgba(255, 255, 255, 0.1);
+  --bord-verre: rgba(255, 255, 255, 0.14);
+  --bord-champ: rgba(255, 255, 255, 0.16);
+  --bord-fort: rgba(255, 255, 255, 0.22);
+  --texte: #eaeff2;
+  --texte-doux: #96a1aa;
 
-    --accent: #5fd3e0;
-    --accent-doux: rgba(95, 211, 224, 0.14);
-    --accent-fort: #8ee3ed;
+  --accent: #5fd3e0;
+  --accent-doux: rgba(95, 211, 224, 0.14);
+  --accent-fort: #8ee3ed;
 
-    --ok: #6fce97;
-    --ok-doux: rgba(111, 206, 151, 0.14);
-    --warn: #e0ad55;
-    --warn-doux: rgba(224, 173, 85, 0.14);
-    --ko: #ef948a;
-    --ko-doux: rgba(239, 148, 138, 0.13);
+  --ok: #6fce97;
+  --ok-doux: rgba(111, 206, 151, 0.14);
+  --warn: #e0ad55;
+  --warn-doux: rgba(224, 173, 85, 0.14);
+  --ko: #ef948a;
+  --ko-doux: rgba(239, 148, 138, 0.13);
 
-    --lueur: inset 0 1px 0 rgba(255, 255, 255, 0.09);
-    --ombre: 0 1px 1px rgba(0, 0, 0, 0.2), 0 12px 34px rgba(0, 0, 0, 0.35);
-    --ombre-haute: 0 24px 70px rgba(0, 0, 0, 0.55);
+  --lueur: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  --ombre: 0 1px 1px rgba(0, 0, 0, 0.2), 0 12px 34px rgba(0, 0, 0, 0.35);
+  --ombre-haute: 0 24px 70px rgba(0, 0, 0, 0.55);
 
-    --donnee-alcool: #0a97ad;
-    --donnee-nourriture: #b57b2e;
-    --donnee-materiel: #8b68e0;
+  --donnee-alcool: #0a97ad;
+  --donnee-nourriture: #b57b2e;
+  --donnee-materiel: #8b68e0;
 
-    --teinte-ardoise: #96a1aa;
-    --teinte-ardoise-doux: rgba(150, 161, 170, 0.13);
-    --teinte-petrole: #5fd3e0;
-    --teinte-petrole-doux: rgba(95, 211, 224, 0.13);
-    --teinte-orange: #e0ad55;
-    --teinte-orange-doux: rgba(224, 173, 85, 0.13);
-    --teinte-violet: #b79df5;
-    --teinte-violet-doux: rgba(183, 157, 245, 0.13);
-    --teinte-bleu: #93b4f5;
-    --teinte-bleu-doux: rgba(147, 180, 245, 0.13);
-    --teinte-vert: #6fce97;
-    --teinte-vert-doux: rgba(111, 206, 151, 0.13);
-    --teinte-rose: #f191bd;
-    --teinte-rose-doux: rgba(241, 145, 189, 0.12);
-    --teinte-olive: #bccf6d;
-    --teinte-olive-doux: rgba(188, 207, 109, 0.13);
-    --teinte-indigo: #a7a4f7;
-    --teinte-indigo-doux: rgba(167, 164, 247, 0.13);
-    --teinte-fuchsia: #eb8bf5;
-    --teinte-fuchsia-doux: rgba(235, 139, 245, 0.12);
-  }
+  --teinte-ardoise: #96a1aa;
+  --teinte-ardoise-doux: rgba(150, 161, 170, 0.13);
+  --teinte-petrole: #5fd3e0;
+  --teinte-petrole-doux: rgba(95, 211, 224, 0.13);
+  --teinte-orange: #e0ad55;
+  --teinte-orange-doux: rgba(224, 173, 85, 0.13);
+  --teinte-violet: #b79df5;
+  --teinte-violet-doux: rgba(183, 157, 245, 0.13);
+  --teinte-bleu: #93b4f5;
+  --teinte-bleu-doux: rgba(147, 180, 245, 0.13);
+  --teinte-vert: #6fce97;
+  --teinte-vert-doux: rgba(111, 206, 151, 0.13);
+  --teinte-rose: #f191bd;
+  --teinte-rose-doux: rgba(241, 145, 189, 0.12);
+  --teinte-olive: #bccf6d;
+  --teinte-olive-doux: rgba(188, 207, 109, 0.13);
+  --teinte-indigo: #a7a4f7;
+  --teinte-indigo-doux: rgba(167, 164, 247, 0.13);
+  --teinte-fuchsia: #eb8bf5;
+  --teinte-fuchsia-doux: rgba(235, 139, 245, 0.12);
 }
 
 * {
@@ -158,14 +162,12 @@ body {
   background-attachment: fixed;
 }
 
-@media (prefers-color-scheme: dark) {
-  body {
-    background-image:
-      radial-gradient(38rem 30rem at 12% -6%, rgba(10, 151, 173, 0.2), transparent 60%),
-      radial-gradient(34rem 26rem at 96% 4%, rgba(139, 104, 224, 0.14), transparent 62%),
-      radial-gradient(40rem 32rem at 84% 92%, rgba(181, 123, 46, 0.12), transparent 60%),
-      radial-gradient(30rem 26rem at 4% 78%, rgba(29, 78, 216, 0.12), transparent 60%);
-  }
+[data-theme='sombre'] body {
+  background-image:
+    radial-gradient(38rem 30rem at 12% -6%, rgba(10, 151, 173, 0.2), transparent 60%),
+    radial-gradient(34rem 26rem at 96% 4%, rgba(139, 104, 224, 0.14), transparent 62%),
+    radial-gradient(40rem 32rem at 84% 92%, rgba(181, 123, 46, 0.12), transparent 60%),
+    radial-gradient(30rem 26rem at 4% 78%, rgba(29, 78, 216, 0.12), transparent 60%);
 }
 
 /* -- Typographie ---------------------------------------------------------- */
@@ -284,13 +286,11 @@ select {
     box-shadow 0.15s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  input[type='number'],
-  input[type='text'],
-  input[type='password'],
-  select {
-    background: rgba(255, 255, 255, 0.06);
-  }
+[data-theme='sombre'] input[type='number'],
+[data-theme='sombre'] input[type='text'],
+[data-theme='sombre'] input[type='password'],
+[data-theme='sombre'] select {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 /* Toute saisie chiffree adopte la face des chiffres. */
@@ -368,11 +368,9 @@ button.primaire:hover {
   filter: brightness(1.08);
 }
 
-@media (prefers-color-scheme: dark) {
-  button.primaire {
-    color: #0d1416;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  }
+[data-theme='sombre'] button.primaire {
+  color: #0d1416;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 button.discret {
@@ -601,10 +599,8 @@ summary::-webkit-details-marker {
     background: color-mix(in srgb, var(--fond) 30%, rgb(255 255 255 / 0.92));
   }
 
-  @media (prefers-color-scheme: dark) {
-    .card {
-      background: rgba(28, 34, 41, 0.96);
-    }
+  [data-theme='sombre'] .card {
+    background: rgba(28, 34, 41, 0.96);
   }
 }
 
