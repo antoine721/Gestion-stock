@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Api, InfosPubliques } from '../../state/api';
-import { REGIMES } from '../../domain/invites';
+import { HEBERGEMENTS, REGIMES } from '../../domain/invites';
 import { BOISSONS, LIBELLE_FAMILLE, ORDRE_FAMILLE } from '../../domain/catalogue';
-import { Regime } from '../../domain/models';
+import { Hebergement, Regime } from '../../domain/models';
 
 /**
  * La page publique du formulaire : le seul ecran de l'app accessible sans mot
@@ -22,6 +22,7 @@ export class FormulairePublic {
   private readonly route = inject(ActivatedRoute);
 
   protected readonly regimes = REGIMES;
+  protected readonly hebergements = HEBERGEMENTS;
   protected readonly code = computed(() => this.route.snapshot.paramMap.get('code') ?? '');
 
   /** Le catalogue des boissons, groupe par famille, pour la conso declaree. */
@@ -46,6 +47,25 @@ export class FormulairePublic {
   protected readonly envies = signal('');
   protected readonly recommandations = signal('');
   protected readonly commentaire = signal('');
+  protected readonly stylesMusicaux = signal('');
+  protected readonly besoins = signal('');
+
+  // La logistique : voiture, horaires, couchage, coups de main.
+  protected readonly permis = signal(false);
+  protected readonly vehicule = signal(false);
+  protected readonly placesVoiture = signal(0);
+  protected readonly chercheCovoiturage = signal(false);
+  protected readonly hebergement = signal<Hebergement>('a-definir');
+  protected readonly arrivee = signal('');
+  protected readonly depart = signal('');
+  protected readonly materielApporte = signal('');
+
+  protected majPlacesVoiture(valeur: string): void {
+    const places = Number(valeur);
+    if (Number.isFinite(places)) {
+      this.placesVoiture.set(Math.min(9, Math.max(0, Math.round(places))));
+    }
+  }
 
   /** boissonId -> verres par jour declares. Indicatif, jamais un bareme. */
   protected readonly consommations = signal<ReadonlyMap<string, number>>(new Map());
@@ -106,6 +126,18 @@ export class FormulairePublic {
           boissonId,
           verresParJour,
         })),
+        stylesMusicaux: this.stylesMusicaux().trim(),
+        logistique: {
+          permis: this.permis(),
+          vehicule: this.vehicule(),
+          placesVoiture: this.vehicule() ? this.placesVoiture() : 0,
+          chercheCovoiturage: this.chercheCovoiturage(),
+          hebergement: this.hebergement(),
+          arrivee: this.arrivee().trim(),
+          depart: this.depart().trim(),
+          materielApporte: this.materielApporte().trim(),
+          besoins: this.besoins().trim(),
+        },
       });
       this.etape.set('merci');
     } catch (erreur) {
@@ -127,6 +159,16 @@ export class FormulairePublic {
     this.recommandations.set('');
     this.commentaire.set('');
     this.consommations.set(new Map());
+    this.stylesMusicaux.set('');
+    this.besoins.set('');
+    this.permis.set(false);
+    this.vehicule.set(false);
+    this.placesVoiture.set(0);
+    this.chercheCovoiturage.set(false);
+    this.hebergement.set('a-definir');
+    this.arrivee.set('');
+    this.depart.set('');
+    this.materielApporte.set('');
     this.etape.set('identite');
   }
 }

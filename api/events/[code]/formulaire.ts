@@ -25,6 +25,8 @@ const REGIMES = new Set([
   'casher',
 ]);
 
+const HEBERGEMENTS = new Set(['a-definir', 'sur-place', 'tente', 'rentre']);
+
 function champ(valeur: unknown): string {
   return typeof valeur === 'string' ? valeur.trim().slice(0, MAX_CHAMP) : '';
 }
@@ -80,6 +82,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const accompagnants = Number(corps['accompagnants']);
   const regime = champ(corps['regime']);
+  const logistiqueBrute = (corps['logistique'] ?? {}) as Record<string, unknown>;
+  const hebergement = champ(logistiqueBrute['hebergement']);
+  const placesVoiture = Number(logistiqueBrute['placesVoiture']);
   const reponse = {
     id: randomBytes(12).toString('hex'),
     prenom,
@@ -95,6 +100,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     recommandations: champ(corps['recommandations']),
     commentaire: champ(corps['commentaire']),
     consommations: consommations(corps['consommations']),
+    stylesMusicaux: champ(corps['stylesMusicaux']),
+    logistique: {
+      permis: logistiqueBrute['permis'] === true,
+      vehicule: logistiqueBrute['vehicule'] === true,
+      placesVoiture: Number.isFinite(placesVoiture)
+        ? Math.min(9, Math.max(0, Math.round(placesVoiture)))
+        : 0,
+      chercheCovoiturage: logistiqueBrute['chercheCovoiturage'] === true,
+      hebergement: HEBERGEMENTS.has(hebergement) ? hebergement : 'a-definir',
+      arrivee: champ(logistiqueBrute['arrivee']),
+      depart: champ(logistiqueBrute['depart']),
+      materielApporte: champ(logistiqueBrute['materielApporte']),
+      besoins: champ(logistiqueBrute['besoins']),
+    },
     creeLe: new Date().toISOString(),
   };
 

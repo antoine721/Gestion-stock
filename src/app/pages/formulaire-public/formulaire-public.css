@@ -31,6 +31,54 @@ h2 {
   gap: 0.875rem;
 }
 
+/* Les grands chapitres de la fiche : on s'y retrouve en scrollant. */
+.groupe-titre {
+  margin-top: 0.625rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--bord);
+  font-family: var(--titre);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.groupe-titre:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.875rem;
+}
+
+.cases-a-cocher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+}
+
+.case-cocher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.case-cocher input {
+  accent-color: var(--accent);
+  width: 1.0625rem;
+  height: 1.0625rem;
+}
+
+@media (max-width: 30rem) {
+  .duo {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* -- La conso declaree : le catalogue en petites lignes cochables ---------- */
 
 .conso {

@@ -72,6 +72,7 @@ describe('invites nommes', () => {
     expect(normalise.montantPaye).toBe(0);
     expect(normalise.categoriePaiementId).toBe('');
     expect(normalise.consommationDeclaree).toEqual([]);
+    expect(normalise.logistique.hebergement).toBe('a-definir');
     expect(normalise.prenom).toBe('Paul');
   });
 
