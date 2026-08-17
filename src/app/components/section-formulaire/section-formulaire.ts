@@ -73,10 +73,16 @@ export class SectionFormulaire {
       envies: this.envies().trim(),
       recommandations: this.recommandations().trim(),
       commentaire: this.commentaire().trim(),
-      // La conso et la logistique ne se saisissent que sur la page publique.
+      // Les gouts et la logistique ne se saisissent que sur la page publique.
       consommations: [],
       stylesMusicaux: '',
       logistique: logistiqueVierge(),
+      surnom: '',
+      boissonsAimees: [],
+      niveauBasiques: 'aucun',
+      niveauSpiritueux: 'aucun',
+      team: '',
+      servicesPreferes: [],
     });
     this.vider();
     this.envoye.set(true);

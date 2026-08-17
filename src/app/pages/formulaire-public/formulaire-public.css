@@ -1,5 +1,5 @@
 .page {
-  max-width: 34rem;
+  max-width: 36rem;
   margin: 2.5rem auto 4rem;
   padding: 0 1rem;
 }
@@ -8,166 +8,330 @@
   margin-bottom: 1.25rem;
 }
 
-.app-nom {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
 .entete h1 {
-  margin: 0.25rem 0;
+  margin: 0.5rem 0 0;
   font-size: 1.5rem;
 }
 
 /* Le quand et le ou, juste sous le nom : la premiere chose qu'un invite cherche. */
 .quand-ou {
-  margin-bottom: 0.25rem;
+  margin-top: 0.25rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--marque);
 }
+
+.entete .muted {
+  margin-top: 0.375rem;
+}
+
+/* -- Le fil des etapes ------------------------------------------------------ */
+
+.etapes {
+  display: flex;
+  gap: 0.375rem;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.etapes li {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.4375rem;
+  padding: 0.4375rem 0.625rem;
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon-petit);
+  background: var(--surface);
+  font-size: 0.75rem;
+  font-weight: 550;
+  color: var(--texte-doux);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.etapes .rang {
+  display: grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.etapes li.active {
+  border-color: var(--accent);
+  color: var(--texte);
+}
+
+.etapes li.active .rang {
+  background: var(--accent);
+  color: var(--fond);
+}
+
+.etapes li.faite .rang {
+  background: var(--ok-doux);
+  color: var(--ok);
+}
+
+.obligatoires {
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+}
+
+/* -- Les champs -------------------------------------------------------------- */
 
 h2 {
   font-size: 1.0625rem;
   margin-bottom: 1rem;
 }
 
+.intro {
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}
+
 .champs {
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
-}
-
-/* Les grands chapitres de la fiche : on s'y retrouve en scrollant. */
-.groupe-titre {
-  margin-top: 0.625rem;
-  padding-top: 0.875rem;
-  border-top: 1px solid var(--bord);
-  font-family: var(--titre);
-  font-size: 0.9375rem;
-  font-weight: 600;
-}
-
-.groupe-titre:first-child {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
+  gap: 1.125rem;
 }
 
 .duo {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.875rem;
+  gap: 0.75rem;
 }
 
-.cases-a-cocher {
+/* Une question fermee : son intitule, ses options, sa relance eventuelle. */
+.question {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.intitule {
+  font-size: 0.8125rem;
+  font-weight: 620;
+}
+
+.aide {
+  font-size: 0.75rem;
+  margin-top: -0.25rem;
+}
+
+.sous-question {
+  margin-top: 0.25rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--bord);
+}
+
+/* -- Les options : des boutons a etat, pas des radios grises ---------------- */
+
+.choix {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1.25rem;
+  gap: 0.5rem;
+}
+
+.option {
+  flex: 1;
+  min-width: 8rem;
+  padding: 0.5625rem 0.875rem;
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.option[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--fond);
+  font-weight: 620;
+}
+
+.jetons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.jeton {
+  white-space: nowrap;
+}
+
+.jeton {
+  padding: 0.4375rem 0.75rem;
+  font-size: 0.8125rem;
+  border-radius: 999px;
+}
+
+.jeton[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--fond);
+  font-weight: 600;
+}
+
+/* Un gout : le jeton, et son curseur d'intensite quand il est coche. */
+.gouts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.gout {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.gout .jeton {
+  flex: none;
+}
+
+.curseur {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 9rem;
+}
+
+.curseur input[type='range'] {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.curseur-valeur {
+  font-size: 0.71875rem;
+  font-weight: 650;
+  color: var(--texte-doux);
+  min-width: 2rem;
+  text-align: right;
+}
+
+/* Le chameau n'a rien a remplir : on le lui dit clairement. */
+.note-chameau {
+  padding: 0.75rem 0.875rem;
+  border-radius: var(--rayon-petit);
+  background: var(--ok-doux);
+  color: var(--ok);
+  font-size: 0.8125rem;
+  font-weight: 550;
+}
+
+/* Les paliers de consommation : le libelle, et son repere chiffre dessous. */
+.paliers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+  gap: 0.375rem;
+}
+
+.palier {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  padding: 0.5rem 0.625rem;
+  text-align: left;
+}
+
+.palier-nom {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.palier-repere {
+  font-size: 0.6875rem;
+  color: var(--texte-doux);
+}
+
+.palier[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--fond);
+}
+
+.palier[aria-pressed='true'] .palier-repere {
+  color: var(--fond);
+  opacity: 0.75;
+}
+
+/* Les equipes : une carte par posture, avec sa description. */
+.teams {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.team {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.team-emoji {
+  font-size: 1.375rem;
+  line-height: 1.2;
+  flex: none;
+}
+
+.team-texte {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.team-texte b {
+  font-size: 0.875rem;
+}
+
+.team-texte .muted {
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.team[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--fond);
+}
+
+.team[aria-pressed='true'] .muted {
+  color: var(--fond);
+  opacity: 0.8;
 }
 
 .case-cocher {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   cursor: pointer;
 }
 
 .case-cocher input {
+  width: 1rem;
+  height: 1rem;
   accent-color: var(--accent);
-  width: 1.0625rem;
-  height: 1.0625rem;
 }
 
-@media (max-width: 30rem) {
-  .duo {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* -- La conso declaree : le catalogue en petites lignes cochables ---------- */
-
-.conso {
-  padding: 0.875rem;
-  border: 1px solid var(--bord);
-  border-radius: var(--rayon-petit);
-  background: var(--surface-2);
-}
-
-.conso-titre {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--texte-doux);
-}
-
-.conso-aide {
-  margin: 0.375rem 0 0.75rem;
-  font-size: 0.75rem;
-}
-
-.famille + .famille {
-  margin-top: 0.75rem;
-}
-
-.famille-nom {
-  display: block;
-  margin-bottom: 0.25rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--texte-doux);
-}
-
-.boissons {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 0.25rem 0.75rem;
-}
-
-.boisson {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.1875rem 0;
-  cursor: pointer;
-}
-
-.boisson-nom {
-  font-size: 0.8125rem;
-}
-
-.boisson input {
-  width: 3.25rem;
-  text-align: center;
-  padding: 0.25rem 0.25rem;
-}
-
-/* Une boisson choisie ressort : on voit sa selection d'un coup d'oeil. */
-.boisson.choisie .boisson-nom {
-  font-weight: 600;
-  color: var(--accent);
-}
-
-.boisson.choisie input {
-  border-color: var(--accent);
-}
+/* -- Pied de carte ----------------------------------------------------------- */
 
 .actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 0.5rem;
   margin-top: 1.25rem;
-}
-
-.actions .primaire {
-  margin-left: auto;
-  padding: 0.625rem 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--bord);
 }
 
 .erreur {
@@ -180,4 +344,21 @@ h2 {
 
 .merci .actions {
   justify-content: center;
+}
+
+@media (max-width: 30rem) {
+  .duo {
+    grid-template-columns: 1fr;
+  }
+
+  .etapes li {
+    justify-content: center;
+    padding: 0.4375rem;
+    font-size: 0;
+    gap: 0;
+  }
+
+  .etapes .rang {
+    font-size: 0.6875rem;
+  }
 }

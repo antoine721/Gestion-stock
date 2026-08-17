@@ -31,6 +31,21 @@ function champ(valeur: unknown): string {
   return typeof valeur === 'string' ? valeur.trim().slice(0, MAX_CHAMP) : '';
 }
 
+const NIVEAUX = new Set(['aucun', 'peu', 'moyen', 'beaucoup', 'abuse']);
+
+const TEAMS = new Set(['chameau', 'degustation', 'croisiere', 'bateau-ivre']);
+
+/** Les gouts et les coups de main : des listes d'identifiants courts, bornees. */
+function identifiants(valeur: unknown, max: number): string[] {
+  if (!Array.isArray(valeur)) return [];
+  const vus = new Set<string>();
+  for (const brut of valeur.slice(0, max)) {
+    const id = champ(brut).slice(0, 40);
+    if (id) vus.add(id);
+  }
+  return [...vus];
+}
+
 /**
  * La conso declaree : des paires boisson / verres par jour, bornees. Purement
  * indicative cote produit — mais on la valide comme le reste, c'est la seule
@@ -94,6 +109,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const logistiqueBrute = (corps['logistique'] ?? {}) as Record<string, unknown>;
   const hebergement = champ(logistiqueBrute['hebergement']);
   const placesVoiture = Number(logistiqueBrute['placesVoiture']);
+  const niveauBasiques = champ(corps['niveauBasiques']);
+  const niveauSpiritueux = champ(corps['niveauSpiritueux']);
+  const team = champ(corps['team']);
   const reponse = {
     id: randomBytes(12).toString('hex'),
     prenom,
@@ -110,9 +128,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     commentaire: champ(corps['commentaire']),
     consommations: consommations(corps['consommations']),
     stylesMusicaux: champ(corps['stylesMusicaux']),
+    surnom: champ(corps['surnom']),
+    boissonsAimees: identifiants(corps['boissonsAimees'], 30),
+    niveauBasiques: NIVEAUX.has(niveauBasiques) ? niveauBasiques : 'aucun',
+    niveauSpiritueux: NIVEAUX.has(niveauSpiritueux) ? niveauSpiritueux : 'aucun',
+    team: TEAMS.has(team) ? team : '',
+    servicesPreferes: identifiants(corps['servicesPreferes'], 20),
     logistique: {
       permis: logistiqueBrute['permis'] === true,
       vehicule: logistiqueBrute['vehicule'] === true,
+      tente: logistiqueBrute['tente'] === true,
+      sejourComplet: logistiqueBrute['sejourComplet'] !== false,
       placesVoiture: Number.isFinite(placesVoiture)
         ? Math.min(9, Math.max(0, Math.round(placesVoiture)))
         : 0,

@@ -4,6 +4,7 @@ import {
   MomentRepas,
   Nourriture,
   Repas,
+  TypePlat,
   UniteIngredient,
 } from './models';
 
@@ -25,6 +26,35 @@ export const MOMENTS: readonly { id: MomentRepas; libelle: string; emoji: string
   { id: 'dejeuner', libelle: 'Midi', emoji: '🍽️' },
   { id: 'diner', libelle: 'Soir', emoji: '🌙' },
 ];
+
+/**
+ * La forme du repas. Elle ne change pas le calcul — les ingredients restent
+ * doses par personne — mais elle dit d'un coup d'oeil comment on cuisine, et
+ * ce qu'il faudra sortir : le barbecue, l'appareil a raclette, les glacieres.
+ */
+export const TYPES_PLAT: readonly { id: TypePlat; libelle: string; emoji: string }[] = [
+  { id: 'a-definir', libelle: 'A definir', emoji: '❓' },
+  { id: 'barbecue', libelle: 'Barbecue', emoji: '🔥' },
+  { id: 'plancha', libelle: 'Plancha', emoji: '🍳' },
+  { id: 'buffet-froid', libelle: 'Buffet froid', emoji: '🥗' },
+  { id: 'plat-mijote', libelle: 'Plat mijote', emoji: '🍲' },
+  { id: 'pates', libelle: 'Pates / riz', emoji: '🍝' },
+  { id: 'salade', libelle: 'Salade composee', emoji: '🥙' },
+  { id: 'raclette', libelle: 'Raclette / fondue', emoji: '🧀' },
+  { id: 'brunch', libelle: 'Brunch', emoji: '🥞' },
+  { id: 'petit-dejeuner', libelle: 'Petit dejeuner', emoji: '🥐' },
+  { id: 'pizza', libelle: 'Pizzas', emoji: '🍕' },
+  { id: 'traiteur', libelle: 'Traiteur / livraison', emoji: '🚚' },
+  { id: 'autre', libelle: 'Autre', emoji: '🍴' },
+];
+
+export const LIBELLE_TYPE_PLAT: Record<TypePlat, string> = Object.fromEntries(
+  TYPES_PLAT.map((x) => [x.id, x.libelle]),
+) as Record<TypePlat, string>;
+
+export const EMOJI_TYPE_PLAT: Record<TypePlat, string> = Object.fromEntries(
+  TYPES_PLAT.map((x) => [x.id, x.emoji]),
+) as Record<TypePlat, string>;
 
 export const LIBELLE_MOMENT: Record<MomentRepas, string> = {
   'petit-dejeuner': 'Petit dejeuner',
@@ -59,6 +89,7 @@ function ing(
  */
 export const IDEES_PLATS: readonly {
   nom: string;
+  typePlat: TypePlat;
   coutParPersonne: number;
   moments: MomentRepas[];
   vegetarienFacile: boolean;
@@ -66,6 +97,7 @@ export const IDEES_PLATS: readonly {
 }[] = [
   {
     nom: 'Viennoiseries & cafe',
+    typePlat: 'petit-dejeuner',
     coutParPersonne: 0,
     moments: ['petit-dejeuner'],
     vegetarienFacile: true,
@@ -77,6 +109,7 @@ export const IDEES_PLATS: readonly {
   },
   {
     nom: 'Brunch complet',
+    typePlat: 'brunch',
     coutParPersonne: 0,
     moments: ['petit-dejeuner'],
     vegetarienFacile: true,
@@ -89,6 +122,7 @@ export const IDEES_PLATS: readonly {
   },
   {
     nom: 'Barbecue',
+    typePlat: 'barbecue',
     coutParPersonne: 0,
     moments: ['dejeuner', 'diner'],
     vegetarienFacile: true,
@@ -101,6 +135,7 @@ export const IDEES_PLATS: readonly {
   },
   {
     nom: 'Pates bolognaise',
+    typePlat: 'pates',
     coutParPersonne: 0,
     moments: ['dejeuner', 'diner'],
     vegetarienFacile: true,
@@ -113,6 +148,7 @@ export const IDEES_PLATS: readonly {
   },
   {
     nom: 'Chili con carne',
+    typePlat: 'plat-mijote',
     coutParPersonne: 0,
     moments: ['dejeuner', 'diner'],
     vegetarienFacile: true,
@@ -125,6 +161,7 @@ export const IDEES_PLATS: readonly {
   },
   {
     nom: 'Curry de legumes',
+    typePlat: 'plat-mijote',
     coutParPersonne: 0,
     moments: ['dejeuner', 'diner'],
     vegetarienFacile: true,
@@ -136,6 +173,7 @@ export const IDEES_PLATS: readonly {
   },
   {
     nom: 'Paella',
+    typePlat: 'plat-mijote',
     coutParPersonne: 0,
     moments: ['dejeuner', 'diner'],
     vegetarienFacile: false,
@@ -148,6 +186,7 @@ export const IDEES_PLATS: readonly {
   },
   {
     nom: 'Raclette',
+    typePlat: 'raclette',
     coutParPersonne: 0,
     moments: ['diner'],
     vegetarienFacile: true,
@@ -160,6 +199,7 @@ export const IDEES_PLATS: readonly {
   },
   {
     nom: 'Tacos / fajitas',
+    typePlat: 'autre',
     coutParPersonne: 0,
     moments: ['dejeuner', 'diner'],
     vegetarienFacile: true,
@@ -172,6 +212,7 @@ export const IDEES_PLATS: readonly {
   },
   {
     nom: 'Pizzas commandees',
+    typePlat: 'pizza',
     coutParPersonne: 9,
     moments: ['diner'],
     vegetarienFacile: true,
@@ -179,6 +220,7 @@ export const IDEES_PLATS: readonly {
   },
   {
     nom: 'Salades composees',
+    typePlat: 'salade',
     coutParPersonne: 0,
     moments: ['dejeuner'],
     vegetarienFacile: true,
@@ -191,6 +233,7 @@ export const IDEES_PLATS: readonly {
   },
   {
     nom: 'Sandwichs / wraps',
+    typePlat: 'autre',
     coutParPersonne: 0,
     moments: ['dejeuner'],
     vegetarienFacile: true,
@@ -207,6 +250,7 @@ export function repasVierge(id: string, jour: number, moment: MomentRepas): Repa
     id,
     jour,
     moment,
+    typePlat: 'a-definir',
     plat: '',
     coutParPersonne: 0,
     convives: 0,
