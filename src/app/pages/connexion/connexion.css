@@ -27,10 +27,11 @@
   width: 4rem;
   height: 4rem;
   font-size: 2rem;
-  border-radius: 20px;
-  background: linear-gradient(160deg, var(--accent-doux), transparent 80%), var(--surface-2);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, var(--teinte-violet-doux), var(--teinte-bleu-doux)), var(--surface);
   border: 1px solid var(--bord);
-  box-shadow: var(--ombre), var(--lueur);
+  box-shadow: var(--ombre);
   margin-bottom: 1rem;
 }
 

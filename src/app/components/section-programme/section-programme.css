@@ -55,7 +55,7 @@
   border: 1px solid var(--bord);
   border-radius: var(--rayon-petit);
   background: var(--surface);
-  box-shadow: var(--lueur);
+  box-shadow: var(--ombre);
   overflow: hidden;
 }
 
