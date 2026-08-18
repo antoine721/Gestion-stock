@@ -123,23 +123,25 @@
     (fermee)="detailId.set('')"
     (supprimee)="supprimer(edition)"
   >
-    <label class="champ">
-      <span>Nom du profil</span>
-      <input
-        type="text"
-        [value]="edition.personneType.nom"
-        (change)="majNom(edition.personneType.id, $any($event.target).value)"
-      />
-    </label>
-    <label class="champ">
-      <span>Description</span>
-      <input
-        type="text"
-        placeholder="Qui est cette personne, comment elle boit…"
-        [value]="edition.personneType.description"
-        (change)="majDescription(edition.personneType.id, $any($event.target).value)"
-      />
-    </label>
+    <div class="compact">
+      <label class="champ">
+        <span>Nom du profil</span>
+        <input
+          type="text"
+          [value]="edition.personneType.nom"
+          (change)="majNom(edition.personneType.id, $any($event.target).value)"
+        />
+      </label>
+      <label class="champ large">
+        <span>Description</span>
+        <input
+          type="text"
+          placeholder="Qui est cette personne, comment elle boit…"
+          [value]="edition.personneType.description"
+          (change)="majDescription(edition.personneType.id, $any($event.target).value)"
+        />
+      </label>
+    </div>
 
     <div class="champ">
       <span>Icone</span>

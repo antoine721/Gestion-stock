@@ -97,6 +97,7 @@ export function repasVierge(id: string, jour: number, moment: MomentRepas): Repa
     moment,
     typePlat: 'a-definir',
     plat: '',
+    sansRepas: false,
     coutParPersonne: 0,
     convives: 0,
     vegetarienPrevu: false,
@@ -213,7 +214,8 @@ export function coursesCuisine(
   const lignes = new Map<string, LigneCuisine>();
 
   for (const repas of nourriture.repas) {
-    if (repas.plat.trim().length === 0 || repas.jour < 1 || repas.jour > duree) continue;
+    if (repas.sansRepas || repas.plat.trim().length === 0) continue;
+    if (repas.jour < 1 || repas.jour > duree) continue;
     const convives = convivesDe(repas, invites);
 
     for (const ingredient of repas.ingredients) {
@@ -269,6 +271,8 @@ export interface BudgetNourriture {
   repasPrevus: number;
   /** Cases jour x moment encore vides sur la duree de l'evenement. */
   repasManquants: number;
+  /** Cases ou l'on a decide de ne pas faire de repas. */
+  repasSautes: number;
 }
 
 export function budgetNourriture(
@@ -277,9 +281,11 @@ export function budgetNourriture(
   jours: number,
 ): BudgetNourriture {
   const duree = Math.max(1, jours);
-  const prevus = nourriture.repas.filter(
-    (x) => x.plat.trim().length > 0 && x.jour >= 1 && x.jour <= duree,
-  );
+  const dansLaDuree = nourriture.repas.filter((x) => x.jour >= 1 && x.jour <= duree);
+  const prevus = dansLaDuree.filter((x) => !x.sansRepas && x.plat.trim().length > 0);
+  // Un repas qu'on a decide de ne pas faire n'est plus un repas a decider :
+  // sur trois cases, en sauter une en laisse deux a remplir, pas trois.
+  const sautes = dansLaDuree.filter((x) => x.sansRepas).length;
 
   const coutForfaits = prevus
     .filter((x) => x.ingredients.length === 0)
@@ -296,6 +302,7 @@ export function budgetNourriture(
     coutExtras,
     total: coutRepas + coutExtras,
     repasPrevus: prevus.length,
-    repasManquants: duree * MOMENTS.length - prevus.length,
+    repasManquants: Math.max(0, duree * MOMENTS.length - prevus.length - sautes),
+    repasSautes: sautes,
   };
 }

@@ -850,6 +850,26 @@ export class PlannerStore {
     });
   }
 
+  /**
+   * Decide qu'on ne fait pas ce repas. La case garde une trace de la decision
+   * — sans elle, elle repasserait en « repas a decider » a la seconde ou on
+   * l'a videe, et on se reposerait la question a chaque passage.
+   */
+  sauterRepas(jour: number, moment: MomentRepas): void {
+    this.definirRepas(jour, moment, {
+      sansRepas: true,
+      plat: '',
+      typePlat: 'a-definir',
+      coutParPersonne: 0,
+      ingredients: [],
+    });
+  }
+
+  /** On remet le repas au programme : la case redevient a decider. */
+  remettreRepas(repasId: string): void {
+    this.majRepasParId(repasId, () => ({ sansRepas: false }));
+  }
+
   ajouterExtraNourriture(): string {
     const id = identifiant();
     const nourriture = this.nourriture();

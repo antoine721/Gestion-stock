@@ -139,65 +139,11 @@
 
 /* -- Le panneau de detail --------------------------------------------------- */
 
-/* Le chapitre d'une section du panneau. */
-.sous-titre {
-  display: block;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--bord);
-  font-size: 0.6875rem;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--texte-doux);
-}
-
-.paye-mini {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.8125rem;
-  color: var(--texte-doux);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.paye-mini input {
-  accent-color: var(--ok);
-  width: 1rem;
-  height: 1rem;
-}
-
-.paye-mini.regle {
-  color: var(--ok);
-  font-weight: 600;
-}
-
-.logistique-cases {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1.25rem;
-}
-
 /*
- * Le detail compact : une grille dense plutot qu'une colonne de champs pleine
- * largeur. Trois libelles courts tiennent sur une ligne, et la fiche entiere
- * se lit sans faire defiler le panneau.
+ * La grille compacte, le chapitre et les cases a cocher viennent des styles
+ * globaux : tous les panneaux de l'app partagent la meme grammaire. Ne restent
+ * ici que les elements propres a la fiche invite.
  */
-.compact {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  align-items: end;
-  gap: 0.5rem 0.75rem;
-}
-
-.compact .large {
-  grid-column: 1 / -1;
-}
-
-.compact .champ span {
-  font-size: 0.6875rem;
-}
 
 /* La checklist des quatre taches, en tete du panneau. */
 .checklist {
@@ -235,10 +181,6 @@
   background: var(--accent);
   color: var(--fond);
   font-weight: 600;
-}
-
-.declare {
-  font-size: 0.75rem;
 }
 
 /* Les suggestions de goodies venues des invites. */

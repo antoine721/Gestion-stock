@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { PlannerStore } from '../../state/planner-store';
 import { Modale } from '../modale/modale';
 import { Panneau } from '../panneau/panneau';
+import { BlocCalendrier, Calendrier } from '../calendrier/calendrier';
 import {
   TYPES_CRENEAU,
   libelleVolontariat,
@@ -11,6 +12,16 @@ import {
 import { dateDuJour } from '../../domain/evenement';
 import { fmtEntier } from '../../domain/format';
 import { Creneau, TypeCreneau } from '../../domain/models';
+
+/** Les deux facons de regarder le meme planning. */
+type VueProgramme = 'kanban' | 'calendrier';
+
+/** Le choix de vue tient sur l'appareil, pas dans l'evenement : c'est un gout. */
+const CLE_VUE = 'vialcrm.programme.vue';
+
+function vueEnregistree(): VueProgramme {
+  return localStorage.getItem(CLE_VUE) === 'calendrier' ? 'calendrier' : 'kanban';
+}
 
 /** La saisie minimale d'une mission. */
 interface BrouillonCreneau {
@@ -23,14 +34,17 @@ interface BrouillonCreneau {
 }
 
 /**
- * Le programme du festival, en calendrier : une colonne par jour, les
- * creneaux-missions en ordre chronologique. Tout le monde participe — chaque
- * creneau porte ses assignes, visibles d'un coup d'oeil. La creation ouvre
- * une modale, le detail complet le panneau lateral.
+ * Le programme du festival, sous deux angles. Le kanban empile les missions
+ * du jour dans l'ordre : c'est la vue qui se lit vite et qui se remplit vite.
+ * Le calendrier les pose a leur heure et a leur duree : c'est la seule qui
+ * montre les trous de l'apres-midi et les deux ateliers cales en meme temps.
+ *
+ * Tout le monde participe — chaque creneau porte ses assignes. La creation
+ * ouvre une modale, le detail complet le panneau lateral.
  */
 @Component({
   selector: 'app-section-programme',
-  imports: [Modale, Panneau],
+  imports: [Calendrier, Modale, Panneau],
   templateUrl: './section-programme.html',
   styleUrl: './section-programme.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,6 +54,45 @@ export class SectionProgramme {
   protected readonly fmtEntier = fmtEntier;
   protected readonly types = TYPES_CRENEAU;
   protected readonly libelleVolontariat = libelleVolontariat;
+
+  /** La vue choisie, gardee d'une visite a l'autre sur cet appareil. */
+  protected readonly vue = signal<VueProgramme>(vueEnregistree());
+
+  protected choisirVue(vue: VueProgramme): void {
+    this.vue.set(vue);
+    localStorage.setItem(CLE_VUE, vue);
+  }
+
+  /** Les colonnes du calendrier : un jour, sa date quand elle est calee. */
+  protected readonly colonnesCalendrier = computed(() =>
+    this.journees().map((x) => ({ jour: x.jour, date: x.date })),
+  );
+
+  /**
+   * Les missions traduites en blocs. L'etat de l'equipe fait la couleur : une
+   * mission sans personne dessus doit sauter aux yeux dans le calendrier
+   * comme elle saute aux yeux dans le kanban.
+   */
+  protected readonly blocsCalendrier = computed<BlocCalendrier[]>(() =>
+    this.store.programme().creneaux.map((creneau) => ({
+      id: creneau.id,
+      jour: creneau.jour,
+      debut: creneau.debut,
+      fin: creneau.fin,
+      titre: creneau.titre || 'Sans titre',
+      detail: [
+        creneau.lieu,
+        creneau.assignes
+          .map((x) => this.nomDe(x))
+          .filter(Boolean)
+          .join(', '),
+      ]
+        .filter((x) => x.length > 0)
+        .join(' · '),
+      emoji: this.emojiDe(creneau.type),
+      ton: creneau.assignes.length > 0 ? 'ok' : 'warn',
+    })),
+  );
 
   protected readonly journees = computed(() => {
     const programme = this.store.programme();

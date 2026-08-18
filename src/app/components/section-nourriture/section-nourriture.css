@@ -172,3 +172,13 @@ table input[type='text'] {
     min-width: 23rem;
   }
 }
+
+/* Une case ou l'on a decide de ne rien faire : presente, mais eteinte. */
+.case-sautee {
+  opacity: 0.62;
+}
+
+.pas-de-repas {
+  margin: 0;
+  font-size: 0.8125rem;
+}

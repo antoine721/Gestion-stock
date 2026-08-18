@@ -5,9 +5,21 @@
     @if (store.resumeProgramme().sansAssigne > 0) {
       <span class="pill warn"> {{ store.resumeProgramme().sansAssigne }} a pourvoir </span>
     }
-    <button type="button" class="primaire pousse" (click)="ouvrirCreation(1)">
-      + Nouvelle mission
-    </button>
+    <!-- Deux facons de lire le meme planning : la liste qui se remplit vite,
+         la grille horaire qui montre les trous et les chevauchements. -->
+    <div class="segments pousse">
+      <button type="button" [attr.aria-pressed]="vue() === 'kanban'" (click)="choisirVue('kanban')">
+        Kanban
+      </button>
+      <button
+        type="button"
+        [attr.aria-pressed]="vue() === 'calendrier'"
+        (click)="choisirVue('calendrier')"
+      >
+        Calendrier
+      </button>
+    </div>
+    <button type="button" class="primaire" (click)="ouvrirCreation(1)">+ Nouvelle mission</button>
   </div>
 
   <p class="intro muted">
@@ -15,62 +27,73 @@
     pour ouvrir son detail et assigner du monde — les equipes changent d'un creneau a l'autre.
   </p>
 
-  <div class="calendrier">
-    @for (journee of journees(); track journee.jour) {
-      <div class="jour-colonne">
-        <div class="jour-head">
-          <h3>
-            Jour {{ journee.jour }}
-            @if (journee.date) {
-              <span class="muted date-jour">{{ journee.date }}</span>
-            }
-          </h3>
-          <button
-            type="button"
-            class="discret"
-            title="Ajouter une mission ce jour-la"
-            (click)="ouvrirCreation(journee.jour)"
-          >
-            +
-          </button>
-        </div>
-
-        @if (journee.creneaux.length === 0) {
-          <p class="vide">Rien de prevu.</p>
-        }
-
-        @for (creneau of journee.creneaux; track creneau.id) {
-          <article class="evenement" [class.ouvert]="detailId() === creneau.id">
-            <button type="button" class="entete-evt" (click)="detailId.set(creneau.id)">
-              <span class="heures num">
-                {{ creneau.debut || '—' }}
-                @if (creneau.fin) {
-                  &nbsp;→ {{ creneau.fin }}
-                }
-              </span>
-              <span class="titre-evt">
-                {{ emojiDe(creneau.type) }} {{ creneau.titre || 'Sans titre' }}
-              </span>
-              @if (creneau.lieu) {
-                <span class="lieu muted">📍 {{ creneau.lieu }}</span>
+  @if (vue() === 'calendrier') {
+    <app-calendrier
+      [colonnes]="colonnesCalendrier()"
+      [blocs]="blocsCalendrier()"
+      [actif]="detailId()"
+      videLibelle="Rien de prevu."
+      (choisi)="detailId.set($event)"
+      (ajout)="ouvrirCreation($event)"
+    />
+  } @else {
+    <div class="calendrier">
+      @for (journee of journees(); track journee.jour) {
+        <div class="jour-colonne">
+          <div class="jour-head">
+            <h3>
+              Jour {{ journee.jour }}
+              @if (journee.date) {
+                <span class="muted date-jour">{{ journee.date }}</span>
               }
-              @if (creneau.assignes.length > 0) {
-                <span class="equipe">
-                  @for (ref of creneau.assignes; track ref) {
-                    @if (nomDe(ref)) {
-                      <span class="membre">{{ nomDe(ref) }}</span>
-                    }
+            </h3>
+            <button
+              type="button"
+              class="discret"
+              title="Ajouter une mission ce jour-la"
+              (click)="ouvrirCreation(journee.jour)"
+            >
+              +
+            </button>
+          </div>
+
+          @if (journee.creneaux.length === 0) {
+            <p class="vide">Rien de prevu.</p>
+          }
+
+          @for (creneau of journee.creneaux; track creneau.id) {
+            <article class="evenement" [class.ouvert]="detailId() === creneau.id">
+              <button type="button" class="entete-evt" (click)="detailId.set(creneau.id)">
+                <span class="heures num">
+                  {{ creneau.debut || '—' }}
+                  @if (creneau.fin) {
+                    &nbsp;→ {{ creneau.fin }}
                   }
                 </span>
-              } @else {
-                <span class="tag warn">a pourvoir</span>
-              }
-            </button>
-          </article>
-        }
-      </div>
-    }
-  </div>
+                <span class="titre-evt">
+                  {{ emojiDe(creneau.type) }} {{ creneau.titre || 'Sans titre' }}
+                </span>
+                @if (creneau.lieu) {
+                  <span class="lieu muted">📍 {{ creneau.lieu }}</span>
+                }
+                @if (creneau.assignes.length > 0) {
+                  <span class="equipe">
+                    @for (ref of creneau.assignes; track ref) {
+                      @if (nomDe(ref)) {
+                        <span class="membre">{{ nomDe(ref) }}</span>
+                      }
+                    }
+                  </span>
+                } @else {
+                  <span class="tag warn">a pourvoir</span>
+                }
+              </button>
+            </article>
+          }
+        </div>
+      }
+    </div>
+  }
 
   <p class="hint">
     Les personnes viennent de la base d'invites et des co-organisateurs. Les sets DJ ont leur propre
@@ -184,16 +207,15 @@
     (fermee)="detailId.set('')"
     (supprimee)="supprimer(creneau)"
   >
-    <label class="champ">
-      <span>Mission</span>
-      <input
-        type="text"
-        [value]="creneau.titre"
-        (input)="maj(creneau, { titre: $any($event.target).value })"
-      />
-    </label>
-
-    <div class="grid-champs">
+    <div class="compact">
+      <label class="champ large">
+        <span>Mission</span>
+        <input
+          type="text"
+          [value]="creneau.titre"
+          (input)="maj(creneau, { titre: $any($event.target).value })"
+        />
+      </label>
       <label class="champ">
         <span>Jour</span>
         <select (change)="majJour(creneau, $any($event.target).value)">
@@ -202,19 +224,6 @@
           }
         </select>
       </label>
-      <label class="champ">
-        <span>Type</span>
-        <select (change)="maj(creneau, { type: $any($event.target).value })">
-          @for (type of types; track type.id) {
-            <option [value]="type.id" [selected]="type.id === creneau.type">
-              {{ type.emoji }} {{ type.libelle }}
-            </option>
-          }
-        </select>
-      </label>
-    </div>
-
-    <div class="grid-champs">
       <label class="champ">
         <span>Debut</span>
         <input
@@ -233,17 +242,26 @@
           (input)="maj(creneau, { fin: $any($event.target).value })"
         />
       </label>
+      <label class="champ">
+        <span>Type</span>
+        <select (change)="maj(creneau, { type: $any($event.target).value })">
+          @for (type of types; track type.id) {
+            <option [value]="type.id" [selected]="type.id === creneau.type">
+              {{ type.emoji }} {{ type.libelle }}
+            </option>
+          }
+        </select>
+      </label>
+      <label class="champ">
+        <span>Lieu</span>
+        <input
+          type="text"
+          placeholder="Ou ?"
+          [value]="creneau.lieu"
+          (input)="maj(creneau, { lieu: $any($event.target).value })"
+        />
+      </label>
     </div>
-
-    <label class="champ">
-      <span>Lieu</span>
-      <input
-        type="text"
-        placeholder="Ou ?"
-        [value]="creneau.lieu"
-        (input)="maj(creneau, { lieu: $any($event.target).value })"
-      />
-    </label>
 
     <span class="sous-titre">L'equipe</span>
     <div class="membres">
@@ -276,11 +294,10 @@
       </select>
     </label>
 
-    <span class="sous-titre">Consignes</span>
     <label class="champ">
-      <span>Notes</span>
+      <span>Consignes</span>
       <textarea
-        rows="3"
+        rows="2"
         placeholder="Materiel a prendre, consignes, points d'attention..."
         [value]="creneau.notes"
         (input)="maj(creneau, { notes: $any($event.target).value })"

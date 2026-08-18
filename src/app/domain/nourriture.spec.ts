@@ -44,6 +44,40 @@ describe('nourriture', () => {
     expect(budget.repasManquants).toBe(5);
   });
 
+  it('un repas qu’on decide de ne pas faire n’est plus a decider', () => {
+    const nourriture: Nourriture = {
+      repas: [
+        repas(1, { coutParPersonne: 7 }),
+        // On a tranche : pas de repas sur cette case. Elle sort du compte.
+        { ...repas(1, { id: 'saute', moment: 'dejeuner' }), plat: '', sansRepas: true },
+      ],
+      extras: [],
+    };
+
+    const budget = budgetNourriture(nourriture, 10, 1);
+    // 3 cases dans la journee, une decidee, une sautee : il en reste une.
+    expect(budget.repasManquants).toBe(1);
+    expect(budget.repasSautes).toBe(1);
+    expect(budget.repasPrevus).toBe(1);
+  });
+
+  it('ne compte ni le cout ni les ingredients d’un repas qu’on ne fait pas', () => {
+    const nourriture: Nourriture = {
+      repas: [
+        {
+          ...repas(1, { coutParPersonne: 7 }),
+          sansRepas: true,
+          ingredients: [
+            { id: 'i', nom: 'Viande', qteParPersonne: 200, unite: 'g', prixUnitaire: 12 },
+          ],
+        },
+      ],
+      extras: [],
+    };
+
+    expect(budgetNourriture(nourriture, 10, 1).coutRepas).toBe(0);
+  });
+
   it('ignore un repas planifie au-dela de la duree de l’evenement', () => {
     const nourriture: Nourriture = { repas: [repas(3, { coutParPersonne: 5 })], extras: [] };
     expect(budgetNourriture(nourriture, 10, 1).coutRepas).toBe(0);
