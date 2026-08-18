@@ -1,0 +1,189 @@
+:host {
+  display: block;
+}
+
+/* -- Ce qui n'a pas encore d'heure ----------------------------------------- */
+
+.a-caler {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 0.875rem;
+}
+
+.etiquette {
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.jeton-caler {
+  padding: 0.3125rem 0.6875rem;
+  border-style: dashed;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+.jeton-caler.actif {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* -- La grille : l'axe des heures, puis une colonne par jour ---------------- */
+
+.grille {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  /* Le defilement horizontal rogne aussi le bas : la derniere heure est
+     centree sur la ligne de fin, donc elle deborde d'une demi-ligne. */
+  padding-bottom: 0.75rem;
+}
+
+/* L'axe porte les heures en regard des lignes de la piste. */
+.axe {
+  position: relative;
+  flex: none;
+  width: 2.75rem;
+  /* La hauteur de la piste, plus la tete de colonne au-dessus. */
+  height: var(--hauteur);
+  margin-top: 2.25rem;
+}
+
+.heure {
+  position: absolute;
+  right: 0.375rem;
+  transform: translateY(-50%);
+  font-size: 0.6875rem;
+  color: var(--texte-doux);
+}
+
+.colonnes {
+  display: flex;
+  flex: 1;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.colonne {
+  flex: 1;
+  min-width: 8.5rem;
+}
+
+.tete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding-bottom: 0.375rem;
+}
+
+.jour-nom {
+  font-size: 0.8125rem;
+  font-weight: 620;
+}
+
+.tete .date {
+  margin-left: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.piste {
+  position: relative;
+  height: var(--hauteur);
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon-petit);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.ligne {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--bord);
+  opacity: 0.6;
+}
+
+.rien {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+}
+
+/* -- Les blocs ------------------------------------------------------------- */
+
+.bloc {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  /* Un creneau court doit rester cliquable meme reduit a une lichette. */
+  min-height: 1.5rem;
+  padding: 0.25rem 0.4375rem;
+  overflow: hidden;
+  border: 1px solid var(--bord-fort);
+  border-left: 3px solid var(--texte-doux);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: none;
+  text-align: left;
+}
+
+.bloc:hover {
+  z-index: 2;
+  box-shadow: var(--ombre);
+}
+
+.bloc.actif {
+  border-color: var(--accent);
+  border-left-color: var(--accent);
+  box-shadow: var(--lueur);
+}
+
+.bloc-heure {
+  font-size: 0.625rem;
+  color: var(--texte-doux);
+}
+
+.bloc-titre {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.bloc-detail {
+  font-size: 0.6875rem;
+  color: var(--texte-doux);
+  line-height: 1.2;
+}
+
+/* Le liseré gauche porte l'etat : pourvu, a pourvoir, refuse. */
+.ton-ok {
+  border-left-color: var(--ok);
+}
+
+.ton-warn {
+  border-left-color: var(--warn);
+}
+
+.ton-ko {
+  border-left-color: var(--ko);
+  opacity: 0.6;
+}
+
+@media (max-width: 52rem) {
+  .colonne {
+    min-width: 7.5rem;
+  }
+
+  .bloc-detail {
+    display: none;
+  }
+}

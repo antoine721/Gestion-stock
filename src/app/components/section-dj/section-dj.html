@@ -1,5 +1,30 @@
 <section class="card">
   <div class="barre-tableau">
+    <h2>La nuit, heure par heure</h2>
+    <span class="muted num">
+      {{ fmtEntier(store.resumeDj().valides) }} valide(s) ·
+      {{ fmtEntier(store.resumeDj().demandes) }} demande(s)
+    </span>
+    <button type="button" class="primaire pousse" (click)="ouvrirCreation()">+ Nouveau set</button>
+  </div>
+
+  <p class="intro muted">
+    Chaque set a sa place et sa duree : d'un coup d'oeil, on voit ce que couvre la soiree, les
+    trous, et les deux DJ programmes en meme temps. Clique un bloc pour le suivre en detail.
+  </p>
+
+  <app-calendrier
+    [colonnes]="colonnesCalendrier()"
+    [blocs]="blocsCalendrier()"
+    [actif]="detailId()"
+    videLibelle="Pas de set."
+    (choisi)="detailId.set($event)"
+    (ajout)="ouvrirCreationJour($event)"
+  />
+</section>
+
+<section class="card">
+  <div class="barre-tableau">
     <h2>Le tableau horaire</h2>
     <span class="muted num">
       {{ fmtEntier(store.resumeDj().valides) }} valide(s) ·
@@ -9,8 +34,8 @@
   </div>
 
   <p class="intro muted">
-    Qui mixe, quand, et ou en est la demande : un invite propose un set, vous validez (ou pas), et
-    le set finit « joue ». Clique une ligne pour la suivre en detail.
+    Le meme planning, ligne a ligne, avec le suivi : un invite propose un set, vous validez (ou
+    pas), et le set finit « joue ».
   </p>
 
   @if (sets().length === 0) {
@@ -206,19 +231,17 @@
     (fermee)="detailId.set('')"
     (supprimee)="supprimer(set)"
   >
-    <label class="champ">
-      <span>Statut de la demande</span>
-      <select (change)="maj(set, { statut: $any($event.target).value })">
-        @for (statut of statuts; track statut.id) {
-          <option [value]="statut.id" [selected]="statut.id === set.statut">
-            {{ statut.libelle }}
-          </option>
-        }
-      </select>
-    </label>
-
-    <span class="sous-titre">Creneau</span>
-    <div class="grid-champs">
+    <div class="compact">
+      <label class="champ">
+        <span>Statut</span>
+        <select (change)="maj(set, { statut: $any($event.target).value })">
+          @for (statut of statuts; track statut.id) {
+            <option [value]="statut.id" [selected]="statut.id === set.statut">
+              {{ statut.libelle }}
+            </option>
+          }
+        </select>
+      </label>
       <label class="champ">
         <span>Jour</span>
         <select (change)="majJour(set, $any($event.target).value)">
@@ -245,35 +268,32 @@
           (input)="maj(set, { fin: $any($event.target).value })"
         />
       </label>
+      <label class="champ">
+        <span>DJ</span>
+        <select (change)="maj(set, { dj: $any($event.target).value })">
+          <option value="" [selected]="!set.dj">— A definir</option>
+          @for (personne of store.personnesAssignables(); track personne.ref) {
+            <option [value]="personne.ref" [selected]="personne.ref === set.dj">
+              {{ personne.nom }}
+            </option>
+          }
+        </select>
+      </label>
+      <label class="champ">
+        <span>Style / ambiance</span>
+        <input
+          type="text"
+          placeholder="Techno, annees 80, libre..."
+          [value]="set.style"
+          (input)="maj(set, { style: $any($event.target).value })"
+        />
+      </label>
     </div>
 
-    <span class="sous-titre">Artiste</span>
-    <label class="champ">
-      <span>DJ</span>
-      <select (change)="maj(set, { dj: $any($event.target).value })">
-        <option value="" [selected]="!set.dj">— A definir</option>
-        @for (personne of store.personnesAssignables(); track personne.ref) {
-          <option [value]="personne.ref" [selected]="personne.ref === set.dj">
-            {{ personne.nom }}
-          </option>
-        }
-      </select>
-    </label>
-    <label class="champ">
-      <span>Style / ambiance</span>
-      <input
-        type="text"
-        placeholder="Techno, annees 80, libre..."
-        [value]="set.style"
-        (input)="maj(set, { style: $any($event.target).value })"
-      />
-    </label>
-
-    <span class="sous-titre">Suivi</span>
     <label class="champ">
       <span>Notes de regie</span>
       <textarea
-        rows="4"
+        rows="3"
         placeholder="Materiel apporte, contraintes techniques, retours apres le set..."
         [value]="set.notes"
         (input)="maj(set, { notes: $any($event.target).value })"

@@ -60,22 +60,25 @@ export class SectionNourriture {
       month: 'long',
     });
     const rang = new Map(MOMENTS.map((x, i) => [x.id, i]));
-    return this.store
-      .nourriture()
-      .repas.filter((x) => x.jour <= jours)
-      .map((repas) => {
-        const date = dateDuJour(this.store.infos().debut, repas.jour);
-        return {
-          repas,
-          date: date ? format.format(date) : `Jour ${repas.jour}`,
-          moment: MOMENTS.find((x) => x.id === repas.moment),
-        };
-      })
-      .sort(
-        (a, b) =>
-          a.repas.jour - b.repas.jour ||
-          (rang.get(a.repas.moment) ?? 0) - (rang.get(b.repas.moment) ?? 0),
-      );
+    return (
+      this.store
+        .nourriture()
+        // Une case ou l'on a decide de ne rien faire n'est pas un repas planifie.
+        .repas.filter((x) => x.jour <= jours && !x.sansRepas)
+        .map((repas) => {
+          const date = dateDuJour(this.store.infos().debut, repas.jour);
+          return {
+            repas,
+            date: date ? format.format(date) : `Jour ${repas.jour}`,
+            moment: MOMENTS.find((x) => x.id === repas.moment),
+          };
+        })
+        .sort(
+          (a, b) =>
+            a.repas.jour - b.repas.jour ||
+            (rang.get(a.repas.moment) ?? 0) - (rang.get(b.repas.moment) ?? 0),
+        )
+    );
   });
 
   protected readonly grille = computed(() => {
@@ -91,6 +94,11 @@ export class SectionNourriture {
   });
 
   protected readonly regimes = computed(() => compterParRegime(this.store.invitesNommes()));
+
+  /** Une case sautee n'est ni un repas planifie, ni un repas a decider. */
+  protected readonly sautes = computed(
+    () => this.store.nourriture().repas.filter((x) => x.sansRepas).length,
+  );
 
   protected readonly allergies = computed(() => invitesAvecAllergies(this.store.invitesNommes()));
 
@@ -133,14 +141,15 @@ export class SectionNourriture {
   }
 
   /**
-   * On peut decider de sauter un repas : le brunch remplace le petit dejeuner
-   * et le midi, personne ne mange le soir du depart. La case redevient vide,
-   * et ne compte plus ni dans le budget ni dans les repas sans plat.
+   * On peut decider de ne pas faire un repas : le brunch remplace le petit
+   * dejeuner et le midi, personne ne mange le soir du depart. La decision est
+   * gardee — la case sort du budget ET des repas a decider, au lieu de
+   * repasser en « a decider » a la seconde ou on l'a videe.
    */
-  protected supprimerRepas(repas: Repas): void {
+  protected sauterRepas(repas: Repas): void {
     const quoi = repas.plat.trim() || 'ce repas';
-    if (confirm(`Retirer ${quoi} du planning ? La case redeviendra libre.`)) {
-      this.store.supprimerRepas(repas.id);
+    if (confirm(`On ne fait pas ${quoi} ? La case ne comptera plus dans les repas a decider.`)) {
+      this.store.sauterRepas(repas.jour, repas.moment);
     }
   }
 

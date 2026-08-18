@@ -2,6 +2,14 @@
   <div class="barre-tableau">
     <h2>Les repas planifies</h2>
     <span class="muted num">{{ fmtEntier(repasPlanifies().length) }} repas</span>
+    @if (store.budgetNourriture().repasManquants > 0) {
+      <span class="pill warn num">
+        {{ fmtEntier(store.budgetNourriture().repasManquants) }} a decider
+      </span>
+    }
+    @if (sautes() > 0) {
+      <span class="tag num">{{ fmtEntier(sautes()) }} sans repas</span>
+    }
     <span class="muted num pousse">{{ fmtEuro(store.budgetNourriture().total) }}</span>
     <button type="button" (click)="chargerMenus()">Charger les menus du Festivial</button>
   </div>
@@ -61,14 +69,14 @@
               <td class="droite num principal">
                 {{ fmtEuro(coutDuRepas(ligne.repas, store.cadre().invites)) }}
               </td>
-              <!-- Un repas qu'on decide de ne pas faire se retire d'ici : la
-                   case redevient libre dans la grille. -->
+              <!-- Decider de ne pas faire ce repas le sort du tableau ET des
+                   repas a decider : c'est une decision, pas un oubli. -->
               <td class="actions-ligne">
                 <button
                   type="button"
                   class="discret"
-                  title="Ne pas faire ce repas"
-                  (click)="supprimerRepas(ligne.repas)"
+                  title="On ne fait pas ce repas"
+                  (click)="sauterRepas(ligne.repas)"
                 >
                   ×
                 </button>
@@ -103,17 +111,28 @@
       <h3>Jour {{ ligne.jour }}</h3>
       <div class="cases">
         @for (case_ of ligne.cases; track case_.moment.id) {
-          <div class="case" [class.vide-case]="!case_.repas">
+          <div
+            class="case"
+            [class.vide-case]="!case_.repas"
+            [class.case-sautee]="case_.repas?.sansRepas"
+          >
             <div class="case-head">
               <span>{{ case_.moment.emoji }} {{ case_.moment.libelle }}</span>
               @if (case_.repas; as repas) {
-                <span class="muted num">{{
-                  fmtEuro(coutDuRepas(repas, store.cadre().invites))
-                }}</span>
+                @if (!repas.sansRepas) {
+                  <span class="muted num">{{
+                    fmtEuro(coutDuRepas(repas, store.cadre().invites))
+                  }}</span>
+                }
               }
             </div>
 
-            @if (case_.repas; as repas) {
+            @if (case_.repas?.sansRepas) {
+              <p class="pas-de-repas muted">On ne fait pas ce repas.</p>
+              <button type="button" class="discret" (click)="store.remettreRepas(case_.repas!.id)">
+                Remettre ce repas
+              </button>
+            } @else if (case_.repas; as repas) {
               <label class="champ">
                 <span>Plat</span>
                 <input
@@ -257,10 +276,10 @@
               <button
                 type="button"
                 class="discret retirer"
-                title="Ne pas faire ce repas"
-                (click)="supprimerRepas(repas)"
+                title="Cette case ne comptera plus dans les repas a decider"
+                (click)="sauterRepas(repas)"
               >
-                Ne pas faire ce repas
+                On ne fait pas ce repas
               </button>
             } @else {
               <button
@@ -269,6 +288,14 @@
                 (click)="platLibre(ligne.jour, case_.moment.id)"
               >
                 + Ajouter un plat
+              </button>
+              <button
+                type="button"
+                class="discret"
+                title="Cette case ne comptera plus dans les repas a decider"
+                (click)="store.sauterRepas(ligne.jour, case_.moment.id)"
+              >
+                On ne mange pas
               </button>
             }
           </div>
