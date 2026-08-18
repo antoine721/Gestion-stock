@@ -46,6 +46,36 @@ export interface LigneCourses {
   imageUrl: string;
 }
 
+/** Un article de rayon vierge : la seule definition des valeurs par defaut. */
+export function articleCourseVierge(id: string): ArticleCourse {
+  return {
+    id,
+    nom: '',
+    marque: '',
+    code: '',
+    imageUrl: '',
+    categorie: 'autre',
+    quantite: 1,
+    contenance: 0,
+    unite: 'piece',
+    conditionnement: '',
+    prixUnitaire: 0,
+    achete: false,
+  };
+}
+
+/**
+ * Complete un article venu de la base avec les champs apparus depuis qu'il a
+ * ete pose. Un rayon rempli avant que les contenances existent doit continuer
+ * de s'afficher : sans ce filet, une seule ligne ancienne fait tomber toute la
+ * liste, et avec elle la page de l'evenement.
+ */
+export function normaliserArticleCourse(
+  brut: Partial<ArticleCourse> & { id: string },
+): ArticleCourse {
+  return { ...articleCourseVierge(brut.id), ...brut };
+}
+
 function qte(valeur: number, unite: UniteIngredient): string {
   if (unite === 'ml') return fmtVolume(valeur);
   if (unite === 'g') return valeur >= 1000 ? `${(valeur / 1000).toFixed(1)} kg` : `${valeur} g`;

@@ -36,9 +36,9 @@ import {
 } from '../domain/nourriture';
 import { JOURS_MENUS_FESTIVIAL, MENUS_FESTIVIAL } from '../domain/menus-festivial';
 import { infosVierges } from '../domain/evenement';
-import { articleVierge, budgetMateriel } from '../domain/materiel-liste';
+import { articleVierge, budgetMateriel, normaliserArticle } from '../domain/materiel-liste';
 import { budgetGlobal, repartitionGlobale } from '../domain/stats';
-import { listeCoursesUnifiee, resumerCourses } from '../domain/courses';
+import { listeCoursesUnifiee, normaliserArticleCourse, resumerCourses } from '../domain/courses';
 import { repartirParCategorie } from '../domain/categories-courses';
 import {
   creneauVierge,
@@ -445,7 +445,8 @@ export class PlannerStore {
         tracklist: partage.programme.tracklist ?? [],
       },
       djSets: partage.djSets ?? [],
-      coursesLibres: partage.coursesLibres ?? [],
+      articles: (partage.articles ?? []).map((x) => normaliserArticle(x)),
+      coursesLibres: (partage.coursesLibres ?? []).map((x) => normaliserArticleCourse(x)),
       infos: { ...infosVierges(), ...partage.infos },
       reponsesFormulaire: partage.reponsesFormulaire.map((x) => ({
         ...x,
