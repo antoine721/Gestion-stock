@@ -48,6 +48,7 @@ const PARTAGE_TEST = {
   reponsesFormulaire: [],
   categoriesPaiement: [],
   coursesCochees: [],
+  coursesLibres: [],
   programme: { creneaux: [], tracklist: [] },
   djSets: [],
   infos: { lieu: '', debut: '', fin: '', description: '' },

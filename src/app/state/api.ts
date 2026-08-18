@@ -42,6 +42,14 @@ export interface ReponsePublique {
   goodiesAutre: string;
 }
 
+/** Un produit trouve par la recherche Open Food Facts. */
+export interface ProduitTrouve {
+  code: string;
+  nom: string;
+  marque: string;
+  imageUrl: string;
+}
+
 export interface EvenementDistant {
   code: string;
   partage: Partage;
@@ -132,6 +140,19 @@ export class Api {
     });
   }
 
+  /**
+   * Cherche un produit sur Open Food Facts, via notre relais : le navigateur
+   * ne peut pas poser le User-Agent qu'exige OFF, et le relais amortit les
+   * limites de debit avec son cache.
+   */
+  async rechercherProduits(requete: string, signal?: AbortSignal) {
+    const { resultats } = await this.appeler<{ resultats: ProduitTrouve[] }>(
+      `/api/produits/recherche?q=${encodeURIComponent(requete)}`,
+      { signal },
+    );
+    return resultats;
+  }
+
   async retirerParticipant(code: string, participantId: string) {
     return this.appeler<{ ok: true }>(
       `/api/events/${encodeURIComponent(code)}/participants/${encodeURIComponent(participantId)}`,
@@ -141,7 +162,13 @@ export class Api {
 
   private async appeler<T>(
     url: string,
-    options: { methode?: string; motDePasse?: string; corps?: unknown } = {},
+    options: {
+      methode?: string;
+      motDePasse?: string;
+      corps?: unknown;
+      /** Pour annuler une recherche que la frappe suivante a deja perimee. */
+      signal?: AbortSignal;
+    } = {},
   ): Promise<T> {
     const motDePasse = options.motDePasse ?? this.sessionStore.session()?.motDePasse ?? '';
     const enTetes: Record<string, string> = { 'x-mot-de-passe': motDePasse };
@@ -151,6 +178,7 @@ export class Api {
       method: options.methode ?? 'GET',
       headers: enTetes,
       body: options.corps === undefined ? undefined : JSON.stringify(options.corps),
+      signal: options.signal,
     });
 
     if (!reponse.ok) {

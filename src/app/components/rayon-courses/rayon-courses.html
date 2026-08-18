@@ -1,0 +1,244 @@
+<section class="card">
+  <div class="barre-tableau">
+    <h2>🛒 Le rayon</h2>
+    <span class="muted num">
+      {{ store.coursesLibres().length }} article(s) · {{ fmtEuro(totalRayon()) }}
+    </span>
+  </div>
+
+  <p class="intro muted">
+    Cherche un produit, pose-le dans la liste. Le nom et la photo viennent d'Open Food Facts ; la
+    quantite et le prix, c'est toi qui les mets — ils dependent du magasin.
+  </p>
+
+  <!-- La barre de recherche : le geste central de cet ecran. -->
+  <div class="barre-recherche">
+    <span class="loupe" aria-hidden="true">🔍</span>
+    <input
+      type="search"
+      placeholder="Papier toilette, liquide vaisselle, charbon..."
+      autocomplete="off"
+      aria-label="Chercher un produit"
+      [value]="requete()"
+      (input)="majRequete($any($event.target).value)"
+    />
+    @if (recherche()) {
+      <span class="etat muted">Recherche…</span>
+    } @else if (requete()) {
+      <button type="button" class="discret" title="Effacer" (click)="viderRecherche()">×</button>
+    }
+  </div>
+
+  @if (erreur()) {
+    <p class="sans-resultat">
+      {{ erreur() }}
+      @if (requete().trim()) {
+        <button type="button" class="discret" (click)="ouvrirAjoutLibre()">
+          Ajouter « {{ requete().trim() }} » a la main
+        </button>
+      }
+    </p>
+  }
+
+  @if (resultats().length > 0) {
+    <div class="resultats">
+      @for (produit of resultats(); track produit.code || produit.nom) {
+        <button type="button" class="produit" (click)="ouvrirAjout(produit)">
+          <span class="vignette">
+            @if (produit.imageUrl) {
+              <img [src]="produit.imageUrl" [alt]="produit.nom" loading="lazy" />
+            } @else {
+              <span class="sans-photo" aria-hidden="true">🛒</span>
+            }
+          </span>
+          <span class="produit-nom">{{ produit.nom }}</span>
+          @if (produit.marque) {
+            <span class="produit-marque muted">{{ produit.marque }}</span>
+          }
+        </button>
+      }
+    </div>
+    <p class="credit muted">
+      Photos et donnees produits :
+      <a href="https://fr.openfoodfacts.org" target="_blank" rel="noopener">Open Food Facts</a>
+      — donnees sous ODbL, photos sous CC-BY-SA.
+    </p>
+  }
+
+  <!-- Ce qui est deja pose : la meme grammaire que le reste, en plus visuel. -->
+  @if (store.coursesLibres().length === 0) {
+    <p class="vide">
+      Rien dans le rayon. Cherche un produit ci-dessus — le PQ, les sacs poubelle et le charbon ne
+      sortiront d'aucun autre ecran de l'app.
+    </p>
+  } @else {
+    <ul class="paniers">
+      @for (article of store.coursesLibres(); track article.id) {
+        <li [class.pris]="article.achete">
+          <span
+            class="liseré"
+            [style.background]="'var(--teinte-' + teinteDe(article.categorie) + ')'"
+          ></span>
+
+          <span class="vignette">
+            @if (article.imageUrl) {
+              <img [src]="article.imageUrl" [alt]="article.nom" loading="lazy" />
+            } @else {
+              <span class="sans-photo" aria-hidden="true">🛒</span>
+            }
+          </span>
+
+          <span class="identite">
+            <span class="nom">{{ article.nom }}</span>
+            <span class="secondaire muted">
+              @if (article.marque) {
+                {{ article.marque }} ·
+              }
+              <select
+                class="rayon-select"
+                aria-label="Rayon"
+                (change)="majArticle(article, { categorie: $any($event.target).value })"
+              >
+                @for (categorie of categories; track categorie.id) {
+                  <option [value]="categorie.id" [selected]="categorie.id === article.categorie">
+                    {{ categorie.emoji }} {{ categorie.libelle }}
+                  </option>
+                }
+              </select>
+            </span>
+          </span>
+
+          <span class="compteur">
+            <button
+              type="button"
+              class="discret"
+              title="Un de moins"
+              [disabled]="article.quantite <= 1"
+              (click)="majQuantite(article, -1)"
+            >
+              −
+            </button>
+            <input
+              type="number"
+              class="qte num"
+              min="1"
+              step="1"
+              aria-label="Quantite"
+              [value]="article.quantite"
+              (input)="majArticleNombre(article, 'quantite', $any($event.target).value)"
+            />
+            <button
+              type="button"
+              class="discret"
+              title="Un de plus"
+              (click)="majQuantite(article, 1)"
+            >
+              +
+            </button>
+          </span>
+
+          <label class="prix-unitaire">
+            <input
+              type="number"
+              class="num"
+              min="0"
+              step="0.1"
+              aria-label="Prix unitaire en euros"
+              [value]="article.prixUnitaire"
+              (input)="majArticleNombre(article, 'prixUnitaire', $any($event.target).value)"
+            />
+            <span class="muted">€/u</span>
+          </label>
+
+          <span class="total num">{{ fmtEuro(article.quantite * article.prixUnitaire) }}</span>
+
+          <button
+            type="button"
+            class="discret retirer"
+            title="Retirer du rayon"
+            (click)="supprimer(article)"
+          >
+            ×
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</section>
+
+<!-- Poser un produit : la quantite et le prix, rien d'autre a decider. -->
+@if (ajoutOuvert()) {
+  <app-modale
+    titre="Ajouter aux courses"
+    sousTitre="La quantite et le prix sont a toi : Open Food Facts ne les connait pas."
+    libelleValider="Ajouter a la liste"
+    [valideDesactive]="ajoutInvalide()"
+    (fermee)="ajoutOuvert.set(false)"
+    (validee)="poser()"
+  >
+    <div class="apercu">
+      <span class="vignette grande">
+        @if (brouillon().imageUrl) {
+          <img [src]="brouillon().imageUrl" [alt]="brouillon().nom" />
+        } @else {
+          <span class="sans-photo" aria-hidden="true">🛒</span>
+        }
+      </span>
+      <span class="apercu-texte">
+        <strong>{{ brouillon().nom || 'Sans nom' }}</strong>
+        @if (brouillon().marque) {
+          <span class="muted">{{ brouillon().marque }}</span>
+        }
+      </span>
+    </div>
+
+    <label class="champ">
+      <span>Nom *</span>
+      <input
+        type="text"
+        autocomplete="off"
+        [value]="brouillon().nom"
+        (input)="majBrouillon({ nom: $any($event.target).value })"
+      />
+    </label>
+
+    <label class="champ">
+      <span>Rayon</span>
+      <select (change)="majBrouillon({ categorie: $any($event.target).value })">
+        @for (categorie of categories; track categorie.id) {
+          <option [value]="categorie.id" [selected]="categorie.id === brouillon().categorie">
+            {{ categorie.emoji }} {{ categorie.libelle }}
+          </option>
+        }
+      </select>
+    </label>
+
+    <div class="grid-champs">
+      <label class="champ">
+        <span>Quantite</span>
+        <input
+          type="number"
+          min="1"
+          step="1"
+          [value]="brouillon().quantite"
+          (input)="majNombre('quantite', $any($event.target).value)"
+        />
+      </label>
+      <label class="champ">
+        <span>Prix unitaire (€)</span>
+        <input
+          type="number"
+          min="0"
+          step="0.1"
+          [value]="brouillon().prixUnitaire"
+          (input)="majNombre('prixUnitaire', $any($event.target).value)"
+          (keyup.enter)="poser()"
+        />
+      </label>
+    </div>
+
+    <p class="total-brouillon">
+      Total de la ligne <strong class="num">{{ fmtEuro(totalBrouillon()) }}</strong>
+    </p>
+  </app-modale>
+}
