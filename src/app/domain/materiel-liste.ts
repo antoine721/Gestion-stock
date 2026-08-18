@@ -44,29 +44,6 @@ export const LIBELLE_STATUT_ARTICLE: Record<StatutArticle, string> = Object.from
   STATUTS_ARTICLE.map((x) => [x.id, x.libelle]),
 ) as Record<StatutArticle, string>;
 
-/** De quoi partir vite : les oublis classiques d'une fete en exterieur. */
-export const IDEES_ARTICLES: readonly {
-  nom: string;
-  categorie: CategorieArticle;
-  mode: ModeArticle;
-}[] = [
-  { nom: 'Guirlandes lumineuses', categorie: 'decoration', mode: 'achat' },
-  { nom: 'Ballons & banderoles', categorie: 'decoration', mode: 'achat' },
-  { nom: 'Generateur electrique', categorie: 'electricite', mode: 'location' },
-  { nom: 'Rallonges & multiprises', categorie: 'electricite', mode: 'achat' },
-  { nom: 'Enceinte sono', categorie: 'sono', mode: 'location' },
-  { nom: 'Jeux de lumiere', categorie: 'sono', mode: 'location' },
-  { nom: 'Tables pliantes', categorie: 'mobilier', mode: 'location' },
-  { nom: 'Bancs / chaises', categorie: 'mobilier', mode: 'location' },
-  { nom: 'Barnum / tonnelle', categorie: 'mobilier', mode: 'location' },
-  { nom: 'Frigo ou glaciere', categorie: 'cuisine', mode: 'location' },
-  { nom: 'Barbecue / plancha', categorie: 'cuisine', mode: 'location' },
-  { nom: 'Gobelets reutilisables', categorie: 'vaisselle', mode: 'achat' },
-  { nom: 'Assiettes & couverts', categorie: 'vaisselle', mode: 'achat' },
-  { nom: 'Camionnette', categorie: 'transport', mode: 'location' },
-  { nom: 'Tentes', categorie: 'hebergement', mode: 'location' },
-];
-
 export function articleVierge(id: string): Article {
   return {
     id,

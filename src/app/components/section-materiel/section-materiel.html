@@ -6,12 +6,6 @@
       <span class="pill warn">{{ store.budgetMateriel().aPrevoir }} a prevoir</span>
     }
     <span class="pousse"></span>
-    <select class="idees" (change)="piocherIdee($event)">
-      <option value="">Piocher une idee…</option>
-      @for (idee of idees(); track idee.nom) {
-        <option [value]="idee.nom">{{ idee.nom }}</option>
-      }
-    </select>
     <button type="button" class="primaire" (click)="ouvrirCreation()">+ Nouvel article</button>
   </div>
 
@@ -36,7 +30,7 @@
   </div>
 
   @if (store.articles().length === 0) {
-    <p class="vide">Rien pour l'instant. Pioche dans les idees ou cree un article.</p>
+    <p class="vide">Rien pour l'instant. Cree un article pour commencer la liste.</p>
   } @else {
     <div class="boite-tableau">
       <table class="tableau">

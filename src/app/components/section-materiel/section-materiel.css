@@ -14,12 +14,6 @@
   color: var(--warn);
 }
 
-/* Le selecteur d'idees reste compact dans la barre du tableau. */
-.idees {
-  width: auto;
-  max-width: 12rem;
-}
-
 .par-categorie {
   margin-top: 1.25rem;
 }
