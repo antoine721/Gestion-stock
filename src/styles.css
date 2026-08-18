@@ -73,6 +73,11 @@
   --teinte-indigo-doux: rgba(90, 85, 201, 0.12);
   --teinte-fuchsia: #a84ec2;
   --teinte-fuchsia-doux: rgba(168, 78, 194, 0.12);
+  /* Le gris du fourre-tout « Autre » : volontairement hors palette, pour ne
+     pas voler une couleur a un vrai rayon. */
+  --teinte-neutre: #8f8e89;
+  --teinte-neutre-doux: rgba(143, 142, 137, 0.14);
+  --teinte-olive-courses: #7a8a2e;
 
   /* Geometrie : des coins moderes, une profondeur discrete. */
   --rayon: 14px;
@@ -158,6 +163,12 @@
   --teinte-indigo-doux: rgba(127, 122, 224, 0.16);
   --teinte-fuchsia: #bd72d4;
   --teinte-fuchsia-doux: rgba(189, 114, 212, 0.15);
+  --teinte-neutre: #8a8984;
+  --teinte-neutre-doux: rgba(138, 137, 132, 0.16);
+  /* L'olive du camembert descend d'un cran sur fond noir : celle de la barre
+     laterale y est trop claire pour rester dans la bande de luminosite. On la
+     dedouble plutot que de repeindre la teinte de tout l'app. */
+  --teinte-olive-courses: #8d9c43;
 }
 
 * {

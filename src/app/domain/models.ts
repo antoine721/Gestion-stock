@@ -382,6 +382,37 @@ export type CategorieArticle =
 
 export type ModeArticle = 'achat' | 'location';
 
+// ---------------------------------------------------------------------------
+// Le rayon : ce qu'on ajoute a la main a la liste de courses
+// ---------------------------------------------------------------------------
+
+/** Les rayons de la liste de courses. Ils portent la couleur du camembert. */
+export type CategorieCourse =
+  'alcool' | 'soft' | 'nourriture' | 'intendance' | 'jetable' | 'materiel' | 'autre';
+
+/**
+ * Un article pose a la main dans la liste de courses, en general trouve par
+ * la recherche Open Food Facts.
+ *
+ * Le nom et la photo viennent d'Open Food Facts ; la quantite et le prix, non
+ * — ils dependent du magasin et du nombre d'invites, donc c'est l'organisateur
+ * qui les pose. Aucun prix n'est jamais devine.
+ */
+export interface ArticleCourse {
+  id: string;
+  nom: string;
+  /** La marque, quand la recherche l'a donnee : « Lotus », « Sopalin ». */
+  marque: string;
+  /** Le code-barres Open Food Facts, vide si l'article a ete saisi a la main. */
+  code: string;
+  imageUrl: string;
+  categorie: CategorieCourse;
+  quantite: number;
+  prixUnitaire: number;
+  /** Coche dans la liste de courses. */
+  achete: boolean;
+}
+
 export type StatutArticle = 'a-prevoir' | 'reserve' | 'achete' | 'recupere';
 
 export interface Article {
@@ -572,6 +603,8 @@ export interface Partage {
   categoriesPaiement: CategoriePaiement[];
   /** Lignes cochees de la liste de courses unifiee (le materiel a son statut). */
   coursesCochees: string[];
+  /** Ce qu'on a ajoute a la main au rayon : PQ, sacs poubelle, charbon... */
+  coursesLibres: ArticleCourse[];
   /** Le planning du festival et la tracklist. */
   programme: Programme;
   /** Les sets DJ, avec leur workflow demande -> valide -> joue. */

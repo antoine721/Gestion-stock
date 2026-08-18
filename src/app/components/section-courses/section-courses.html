@@ -1,3 +1,7 @@
+<!-- Le rayon d'abord : c'est ici qu'on ajoute, la liste en dessous montre le
+     resultat de tout ce que l'app a calcule par ailleurs. -->
+<app-rayon-courses />
+
 <section class="card">
   <div class="card-head">
     <h2>La liste de courses</h2>
@@ -12,6 +16,13 @@
     kilo, au litre ou a la piece, le materiel suit son statut. Coche au fur et a mesure — tout le
     monde voit la meme liste.
   </p>
+
+  @if (store.repartitionCourses().length > 0) {
+    <app-camembert-courses
+      [parts]="store.repartitionCourses()"
+      [total]="store.resumeCourses().total"
+    />
+  }
 
   @if (store.resumeCourses().restant > 0) {
     <p class="reste">
@@ -43,12 +54,25 @@
                 [checked]="ligne.cochee"
                 (change)="store.basculerCourse(ligne.id)"
               />
+              <!-- La couleur du rayon, doublee de son nom : une teinte seule ne
+                   dirait rien a qui ne distingue pas ces deux verts-la. -->
+              <span
+                class="pastille-rayon"
+                [style.background]="'var(--teinte-' + teinteDe(ligne.categorie) + ')'"
+                [title]="libelleDe(ligne.categorie)"
+              ></span>
+              @if (ligne.imageUrl) {
+                <img class="miniature" [src]="ligne.imageUrl" alt="" loading="lazy" />
+              }
               <span class="contenu">
                 <span class="nom">{{ ligne.nom }}</span>
                 <span class="quantite num">{{ ligne.quantite }}</span>
-                @if (ligne.detail) {
-                  <span class="detail muted">{{ ligne.detail }}</span>
-                }
+                <span class="detail muted">
+                  {{ libelleDe(ligne.categorie) }}
+                  @if (ligne.detail) {
+                    · {{ ligne.detail }}
+                  }
+                </span>
               </span>
               <span class="prix num">{{ fmtEuro(ligne.prix) }}</span>
             </label>

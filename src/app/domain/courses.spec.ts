@@ -71,10 +71,36 @@ describe('liste de courses unifiee', () => {
         { ...articleVierge('a1'), nom: 'Guirlandes', mode: 'achat', statut: 'achete' },
         { ...articleVierge('a2'), nom: 'Generateur', mode: 'location' },
       ],
+      [
+        {
+          id: 'c1',
+          nom: 'Papier toilette',
+          marque: 'Lotus',
+          code: '3255551234567',
+          imageUrl: 'https://images.example/pq.jpg',
+          categorie: 'intendance',
+          quantite: 4,
+          prixUnitaire: 2.5,
+          achete: false,
+        },
+      ],
       new Set(['bar:biere']),
     );
 
-    expect(lignes.map((x) => x.groupe)).toEqual(['bar', 'cuisine', 'grignotage', 'materiel']);
+    expect(lignes.map((x) => x.groupe)).toEqual([
+      'bar',
+      'cuisine',
+      'grignotage',
+      'rayon',
+      'materiel',
+    ]);
+    // Chaque ligne repart avec son rayon : c'est lui qui separe le total.
+    expect(lignes.find((x) => x.id === 'bar:biere')?.categorie).toBe('alcool');
+    expect(lignes.find((x) => x.groupe === 'cuisine')?.categorie).toBe('nourriture');
+    const pq = lignes.find((x) => x.id === 'rayon:c1');
+    expect(pq?.categorie).toBe('intendance');
+    expect(pq?.prix).toBe(10);
+    expect(pq?.imageUrl).toBe('https://images.example/pq.jpg');
     // La location ne s'achete pas : elle n'a rien a faire dans les courses.
     expect(lignes.find((x) => x.nom === 'Generateur')).toBeUndefined();
     expect(lignes.find((x) => x.id === 'bar:biere')?.cochee).toBe(true);
@@ -84,8 +110,28 @@ describe('liste de courses unifiee', () => {
 
   it('resume le total et ce qui reste a acheter', () => {
     const resume = resumerCourses([
-      { id: 'a', groupe: 'bar', nom: 'A', quantite: '', detail: '', prix: 30, cochee: true },
-      { id: 'b', groupe: 'cuisine', nom: 'B', quantite: '', detail: '', prix: 20, cochee: false },
+      {
+        id: 'a',
+        groupe: 'bar',
+        categorie: 'alcool',
+        nom: 'A',
+        quantite: '',
+        detail: '',
+        prix: 30,
+        cochee: true,
+        imageUrl: '',
+      },
+      {
+        id: 'b',
+        groupe: 'cuisine',
+        categorie: 'nourriture',
+        nom: 'B',
+        quantite: '',
+        detail: '',
+        prix: 20,
+        cochee: false,
+        imageUrl: '',
+      },
     ]);
 
     expect(resume.total).toBe(50);

@@ -90,3 +90,21 @@
 .cochee .prix {
   color: var(--texte-doux);
 }
+
+/* La couleur du rayon sur chaque ligne, en rappel du camembert. */
+.pastille-rayon {
+  flex: none;
+  width: 0.5rem;
+  height: 1.375rem;
+  border-radius: 3px;
+}
+
+/* La photo, quand le produit vient du rayon. */
+.miniature {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
+  border-radius: 4px;
+  background: var(--fond);
+}
