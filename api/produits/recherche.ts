@@ -19,6 +19,13 @@ import { autorise } from '../_db';
  * On ne renvoie que ce qui sert a choisir : nom, marque, photo. Ni prix ni
  * quantite — ils dependent du magasin et du nombre d'invites, c'est
  * l'organisateur qui les pose.
+ *
+ * La pertinence tient a trois reglages, dans cet ordre d'importance :
+ * les produits vendus en France d'abord (une base mondiale rend surtout des
+ * references qu'on ne trouvera jamais en magasin), les plus scannes ensuite
+ * (ce que les gens achetent vraiment, plutot qu'une fiche creee une fois),
+ * et enfin ceux qui ont une photo — dans un rayon visuel, une fiche sans
+ * image ne sert a rien.
  */
 
 const CONTACT = process.env['OFF_CONTACT'] ?? 'contact@vialcrm.app';
@@ -39,7 +46,24 @@ interface Resultat {
   nom: string;
   marque: string;
   imageUrl: string;
+  /** Le conditionnement tel qu'OFF l'ecrit : « 1,5 L », « 6 x 33 cl ». */
+  conditionnement: string;
 }
+
+/** Le pays qu'on privilegie : ce qu'on peut reellement mettre dans un caddie. */
+const PAYS = 'en:france';
+
+/** Les champs demandes a OFF : tout le reste est du poids mort sur le reseau. */
+const CHAMPS = [
+  'code',
+  'product_name',
+  'product_name_fr',
+  'brands',
+  'image_front_url',
+  'image_front_small_url',
+  'image_small_url',
+  'quantity',
+].join(',');
 
 /**
  * Cache de module : il survit aux invocations tant que la lambda reste chaude.
@@ -68,14 +92,26 @@ function normaliser(produits: unknown): Resultat[] {
       code,
       nom,
       marque: texte(p['brands']).split(',')[0]?.trim() ?? '',
+      // La grande image d'abord : la vignette du rayon est trop large pour la
+      // miniature de 200 px, qui y remonterait floue.
       imageUrl:
+        texte(p['image_front_url']) ||
         texte(p['image_front_small_url']) ||
-        texte(p['image_small_url']) ||
-        texte(p['image_front_url']),
+        texte(p['image_small_url']),
+      conditionnement: texte(p['quantity']).slice(0, 40),
     });
     if (resultats.length >= RESULTATS) break;
   }
-  return resultats;
+  return classer(resultats);
+}
+
+/**
+ * Les produits avec photo passent devant. Le tri d'OFF reste respecte a
+ * l'interieur de chaque groupe : on ne fait que repousser ce qui ne se voit
+ * pas, sans le jeter — une fiche sans image reste un produit valable.
+ */
+function classer(resultats: Resultat[]): Resultat[] {
+  return [...resultats].sort((a, b) => Number(!!b.imageUrl) - Number(!!a.imageUrl));
 }
 
 async function interroger(url: string): Promise<Response> {
@@ -87,35 +123,49 @@ async function interroger(url: string): Promise<Response> {
   });
 }
 
-/**
- * Deux moteurs, dans cet ordre : le moteur de recherche dedie d'OFF, rapide,
- * puis l'ancienne recherche du site, plus lente mais toujours la. Si le
- * premier change ou tombe, la barre de recherche continue de marcher.
- */
-async function chercher(requete: string): Promise<Resultat[]> {
-  const q = encodeURIComponent(requete);
-
-  try {
-    const reponse = await interroger(
-      `https://search.openfoodfacts.org/search?q=${q}&page_size=${RESULTATS}&lang=fr`,
-    );
-    if (reponse.ok) {
-      const corps = (await reponse.json()) as { hits?: unknown };
-      const resultats = normaliser(corps.hits);
-      if (resultats.length > 0) return resultats;
-    }
-  } catch {
-    // Moteur indisponible ou trop lent : on tente l'ancien.
-  }
-
+/** Le moteur de recherche dedie d'OFF : le plus rapide des deux. */
+async function moteurDedie(requete: string, franceSeulement: boolean): Promise<Resultat[]> {
+  const filtre = franceSeulement ? ` countries_tags:${PAYS}` : '';
+  const q = encodeURIComponent(requete + filtre);
   const reponse = await interroger(
-    `https://fr.openfoodfacts.org/cgi/search.pl?search_terms=${q}` +
+    `https://search.openfoodfacts.org/search?q=${q}` +
+      `&page_size=${RESULTATS}&lang=fr&sort_by=popularity_key&fields=${CHAMPS}`,
+  );
+  if (!reponse.ok) throw new Error(`Open Food Facts a repondu ${reponse.status}`);
+  const corps = (await reponse.json()) as { hits?: unknown };
+  return normaliser(corps.hits);
+}
+
+/** L'ancienne recherche du site : plus lente, mais elle n'a jamais bouge. */
+async function moteurHistorique(requete: string): Promise<Resultat[]> {
+  const reponse = await interroger(
+    `https://fr.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(requete)}` +
       `&search_simple=1&action=process&json=1&page_size=${RESULTATS}` +
-      `&fields=code,product_name,product_name_fr,brands,image_front_small_url,image_small_url`,
+      `&sort_by=unique_scans_n&fields=${CHAMPS}` +
+      `&tagtype_0=countries&tag_contains_0=contains&tag_0=france`,
   );
   if (!reponse.ok) throw new Error(`Open Food Facts a repondu ${reponse.status}`);
   const corps = (await reponse.json()) as { products?: unknown };
   return normaliser(corps.products);
+}
+
+/**
+ * La cascade de recherche. Elle distingue deux echecs qui n'appellent pas la
+ * meme suite : un moteur qui TOMBE se remplace par l'autre, un moteur qui
+ * repond VIDE se relance en relachant le filtre pays. Sans cette distinction,
+ * une recherche infructueuse couterait deux appels a un moteur deja muet.
+ */
+async function chercher(requete: string): Promise<Resultat[]> {
+  try {
+    const enFrance = await moteurDedie(requete, true);
+    if (enFrance.length > 0) return enFrance;
+    // Rien en France : plutot qu'une liste vide, on elargit une fois. Un
+    // produit etranger reste un produit qu'on peut poser dans la liste.
+    return await moteurDedie(requete, false);
+  } catch {
+    // Le moteur dedie est indisponible : l'ancien prend le relais.
+    return moteurHistorique(requete);
+  }
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

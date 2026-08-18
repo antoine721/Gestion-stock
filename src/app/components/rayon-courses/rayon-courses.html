@@ -108,6 +108,15 @@
             </span>
           </span>
 
+          <span class="conditionnement">
+            <span class="lecture num">
+              {{ libelleQuantite(article.quantite, article.contenance, article.unite) }}
+            </span>
+            @if (totalContenance(article.quantite, article.contenance, article.unite); as tout) {
+              <span class="muted num">soit {{ tout }}</span>
+            }
+          </span>
+
           <span class="compteur">
             <button
               type="button"
@@ -213,9 +222,22 @@
       </select>
     </label>
 
+    <!-- Deux facons d'acheter : a la piece, ou par contenant. « 2 sacs » ne
+         dit rien tant qu'on ne sait pas s'ils font 4 ou 10 kg. -->
+    <label class="champ">
+      <span>Comment ca s'achete</span>
+      <select (change)="majUnite($any($event.target).value)">
+        @for (unite of unites; track unite.id) {
+          <option [value]="unite.id" [selected]="unite.id === brouillon().unite">
+            {{ unite.libelle }}
+          </option>
+        }
+      </select>
+    </label>
+
     <div class="grid-champs">
       <label class="champ">
-        <span>Quantite</span>
+        <span>{{ brouillon().unite === 'piece' ? 'Combien' : 'Combien de contenants' }}</span>
         <input
           type="number"
           min="1"
@@ -224,6 +246,18 @@
           (input)="majNombre('quantite', $any($event.target).value)"
         />
       </label>
+      @if (brouillon().unite !== 'piece') {
+        <label class="champ">
+          <span>Contenance d'un seul</span>
+          <input
+            type="number"
+            min="0"
+            step="0.1"
+            [value]="brouillon().contenance"
+            (input)="majNombre('contenance', $any($event.target).value)"
+          />
+        </label>
+      }
       <label class="champ">
         <span>Prix unitaire (€)</span>
         <input
@@ -238,7 +272,16 @@
     </div>
 
     <p class="total-brouillon">
-      Total de la ligne <strong class="num">{{ fmtEuro(totalBrouillon()) }}</strong>
+      <span>
+        {{ libelleQuantite(brouillon().quantite, brouillon().contenance, brouillon().unite) }}
+        @if (
+          totalContenance(brouillon().quantite, brouillon().contenance, brouillon().unite);
+          as tout
+        ) {
+          <span class="muted">— soit {{ tout }} en tout</span>
+        }
+      </span>
+      <strong class="num">{{ fmtEuro(totalBrouillon()) }}</strong>
     </p>
   </app-modale>
 }

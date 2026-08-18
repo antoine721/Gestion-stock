@@ -3,8 +3,14 @@ import { PlannerStore } from '../../state/planner-store';
 import { Api, ProduitTrouve } from '../../state/api';
 import { Modale } from '../modale/modale';
 import { CATEGORIES_COURSE } from '../../domain/categories-courses';
+import {
+  UNITES_ACHAT,
+  libelleQuantite,
+  lireConditionnement,
+  totalContenance,
+} from '../../domain/unites-achat';
 import { fmtEuro } from '../../domain/format';
-import { ArticleCourse, CategorieCourse } from '../../domain/models';
+import { ArticleCourse, CategorieCourse, UniteAchat } from '../../domain/models';
 
 /** Ce qu'on regle avant de poser un produit dans la liste. */
 interface Brouillon {
@@ -14,6 +20,8 @@ interface Brouillon {
   imageUrl: string;
   categorie: CategorieCourse;
   quantite: number;
+  contenance: number;
+  unite: UniteAchat;
   prixUnitaire: number;
 }
 
@@ -44,6 +52,9 @@ export class RayonCourses {
 
   protected readonly fmtEuro = fmtEuro;
   protected readonly categories = CATEGORIES_COURSE;
+  protected readonly unites = UNITES_ACHAT;
+  protected readonly libelleQuantite = libelleQuantite;
+  protected readonly totalContenance = totalContenance;
 
   // -- La recherche ----------------------------------------------------------
 
@@ -114,12 +125,17 @@ export class RayonCourses {
 
   /** Un resultat de recherche : nom, marque et photo sont deja remplis. */
   protected ouvrirAjout(produit: ProduitTrouve): void {
+    // Le conditionnement de l'etiquette pre-remplit le contenant : « 1,5 L »
+    // devient une contenance et son unite, prets a corriger si besoin.
+    const { contenance, unite } = lireConditionnement(produit.conditionnement);
     this.brouillon.set({
       ...brouillonVierge(),
       nom: produit.nom,
       marque: produit.marque,
       code: produit.code,
       imageUrl: produit.imageUrl,
+      contenance,
+      unite,
     });
     this.ajoutOuvert.set(true);
   }
@@ -134,9 +150,14 @@ export class RayonCourses {
     this.brouillon.set({ ...this.brouillon(), ...patch });
   }
 
-  protected majNombre(champ: 'quantite' | 'prixUnitaire', valeur: string): void {
+  protected majNombre(champ: 'quantite' | 'prixUnitaire' | 'contenance', valeur: string): void {
     const nombre = Number(valeur);
     if (Number.isFinite(nombre)) this.majBrouillon({ [champ]: Math.max(0, nombre) });
+  }
+
+  /** Repasser « a la piece » efface la contenance : elle n'aurait plus de sens. */
+  protected majUnite(unite: UniteAchat): void {
+    this.majBrouillon({ unite, contenance: unite === 'piece' ? 0 : this.brouillon().contenance });
   }
 
   protected readonly totalBrouillon = computed(
@@ -153,6 +174,8 @@ export class RayonCourses {
       imageUrl: brouillon.imageUrl,
       categorie: brouillon.categorie,
       quantite: Math.max(1, Math.round(brouillon.quantite)),
+      contenance: brouillon.unite === 'piece' ? 0 : Math.max(0, brouillon.contenance),
+      unite: brouillon.unite,
       prixUnitaire: Math.max(0, brouillon.prixUnitaire),
     });
     this.ajoutOuvert.set(false);
@@ -174,7 +197,7 @@ export class RayonCourses {
 
   protected majArticleNombre(
     article: ArticleCourse,
-    champ: 'quantite' | 'prixUnitaire',
+    champ: 'quantite' | 'prixUnitaire' | 'contenance',
     valeur: string,
   ): void {
     const nombre = Number(valeur);
@@ -202,6 +225,8 @@ function brouillonVierge(): Brouillon {
     imageUrl: '',
     categorie: 'intendance',
     quantite: 1,
+    contenance: 0,
+    unite: 'piece',
     prixUnitaire: 0,
   };
 }

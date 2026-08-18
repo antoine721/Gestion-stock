@@ -48,6 +48,8 @@ export interface ProduitTrouve {
   nom: string;
   marque: string;
   imageUrl: string;
+  /** Le conditionnement lu sur l'etiquette : « 1,5 L », « 500 g ». */
+  conditionnement: string;
 }
 
 export interface EvenementDistant {

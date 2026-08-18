@@ -386,6 +386,12 @@ export type ModeArticle = 'achat' | 'location';
 // Le rayon : ce qu'on ajoute a la main a la liste de courses
 // ---------------------------------------------------------------------------
 
+/**
+ * Comment un article se compte dans le caddie : a la piece, ou par le poids
+ * (ou le volume) de son contenant.
+ */
+export type UniteAchat = 'piece' | 'g' | 'kg' | 'ml' | 'L';
+
 /** Les rayons de la liste de courses. Ils portent la couleur du camembert. */
 export type CategorieCourse =
   'alcool' | 'soft' | 'nourriture' | 'intendance' | 'jetable' | 'materiel' | 'autre';
@@ -407,7 +413,14 @@ export interface ArticleCourse {
   code: string;
   imageUrl: string;
   categorie: CategorieCourse;
+  /** Combien de contenants on achete. */
   quantite: number;
+  /**
+   * Ce que pese (ou contient) UN contenant. 0 avec l'unite « piece » : la
+   * ligne se lit alors « × 4 » et non « 4 × 0 ».
+   */
+  contenance: number;
+  unite: UniteAchat;
   prixUnitaire: number;
   /** Coche dans la liste de courses. */
   achete: boolean;
