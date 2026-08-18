@@ -9,8 +9,8 @@
   </div>
 
   <p class="intro muted">
-    Chaque set a sa place et sa duree : d'un coup d'oeil, on voit ce que couvre la soiree, les
-    trous, et les deux DJ programmes en meme temps. Clique un bloc pour le suivre en detail.
+    Les sets a leur heure et a leur duree. Deux sets qui se chevauchent se partagent la largeur de
+    la colonne.
   </p>
 
   <app-calendrier
@@ -100,8 +100,7 @@
   }
 
   <p class="hint">
-    Valide un set pour l'inscrire au marbre ; le planning des missions reste l'espace Programme —
-    ici, c'est la regie musicale.
+    Un set valide est cale. Le planning des missions se tient dans l'espace Programme.
   </p>
 </section>
 
@@ -136,9 +135,7 @@
         <h2>🎶 Ce que le public veut entendre</h2>
         <span class="muted num">{{ fmtEntier(store.demandesMusicales().length) }}</span>
       </div>
-      <p class="intro muted">
-        Les envies musicales collectees par le formulaire : de quoi briefer les DJ.
-      </p>
+      <p class="intro muted">Les styles que les invites ont indiques au formulaire.</p>
       <ul class="demandes">
         @for (demande of store.demandesMusicales(); track demande.cle) {
           <li>

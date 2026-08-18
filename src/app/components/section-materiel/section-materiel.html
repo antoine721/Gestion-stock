@@ -99,7 +99,7 @@
 @if (creationOuverte()) {
   <app-modale
     titre="Nouvel article"
-    sousTitre="Le minimum pour poser la ligne — caution et responsable se reglent ensuite."
+    sousTitre="Le minimum pour poser la ligne. Caution et responsable se reglent dans le detail."
     libelleValider="Creer l'article"
     [valideDesactive]="creationInvalide()"
     (fermee)="creationOuverte.set(false)"

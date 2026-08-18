@@ -125,7 +125,9 @@ export function listeCoursesUnifiee(
       categorie: article.categorie,
       nom: article.nom,
       quantite: libelleQuantite(article.quantite, article.contenance, article.unite),
-      detail: article.marque,
+      // Le conditionnement passe avant la marque : « 12 rouleaux » dit ce
+      // qu'on achete, « Lotus » dit seulement chez qui.
+      detail: [article.conditionnement, article.marque].filter((x) => x.trim()).join(' · '),
       prix: Math.max(0, article.quantite) * Math.max(0, article.prixUnitaire),
       cochee: article.achete,
       imageUrl: article.imageUrl,

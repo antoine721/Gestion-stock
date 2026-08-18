@@ -6,8 +6,8 @@
     </div>
 
     <p class="intro muted">
-      Ce que les invites ont rempli via le formulaire. Chacun a designe le co-organisateur qui
-      l'invite : relis, et valide — la reponse devient une fiche rattachee a la bonne personne.
+      Chaque reponse porte le co-organisateur que l'invite a coche. Valider la transforme en fiche,
+      rattachee a cette personne.
     </p>
 
     @for (reponse of store.reponsesFormulaire(); track reponse.id) {
@@ -128,8 +128,8 @@
     }
 
     <p class="hint">
-      Ce que la personne declare boire est indicatif : c'est toi qui choisis son profil alcool — et
-      donc les quantites qui entrent dans le calcul. Qui ne boit pas n'en a pas besoin.
+      Ce que la personne declare boire n'entre pas dans le calcul. Ce sont les quantites du profil
+      alcool que tu lui attaches qui comptent. Un non-buveur n'en a pas besoin.
     </p>
   </section>
 }
@@ -483,7 +483,7 @@
 @if (creationOuverte()) {
   <app-modale
     titre="Nouvel invite"
-    sousTitre="Le minimum pour poser la fiche — tu completeras le detail juste apres."
+    sousTitre="Le minimum pour poser la fiche. Le detail s'ouvre juste apres."
     libelleValider="Creer la fiche"
     [valideDesactive]="creationInvalide()"
     (fermee)="creationOuverte.set(false)"

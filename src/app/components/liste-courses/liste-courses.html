@@ -180,7 +180,7 @@
                   } @else {
                     <p class="muted">
                       Besoin {{ fmtVolume(ligne.mlNecessaire) }}, marge comprise
-                      {{ fmtVolume(ligne.mlAvecMarge) }} —
+                      {{ fmtVolume(ligne.mlAvecMarge) }}, soit
                       @for (part of ligne.detail; track part.boissonNom) {
                         <span class="part num">
                           {{ part.boissonNom }} {{ fmtVolume(part.ml) }}
@@ -198,7 +198,7 @@
 
     <div class="materiel">
       <label class="champ">
-        <span>Tireuse a biere — prix total (€)</span>
+        <span>Tireuse a biere, prix total (€)</span>
         <input
           type="number"
           min="0"
