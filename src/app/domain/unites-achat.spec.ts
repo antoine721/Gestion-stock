@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  formatContenance,
-  libelleQuantite,
-  lireConditionnement,
-  totalContenance,
-} from './unites-achat';
+import { formatContenance, libelleQuantite, totalContenance } from './unites-achat';
 
 describe('la ligne de courses se lit devant le rayon', () => {
   it('compte a la piece quand il n’y a pas de contenant', () => {
@@ -35,32 +30,5 @@ describe('la ligne de courses se lit devant le rayon', () => {
     expect(totalContenance(3, 500, 'g')).toBe('1,5 kg');
     // En dessous, l'unite de l'etiquette reste la plus parlante.
     expect(totalContenance(2, 250, 'ml')).toBe('500 ml');
-  });
-});
-
-describe('lecture du conditionnement d’Open Food Facts', () => {
-  it('lit les etiquettes courantes', () => {
-    expect(lireConditionnement('1,5 L')).toEqual({ contenance: 1.5, unite: 'L' });
-    expect(lireConditionnement('500 g')).toEqual({ contenance: 500, unite: 'g' });
-    expect(lireConditionnement('75 cl')).toEqual({ contenance: 750, unite: 'ml' });
-    expect(lireConditionnement('10kg')).toEqual({ contenance: 10, unite: 'kg' });
-  });
-
-  it('remonte a l’unite superieure quand l’etiquette s’ignore', () => {
-    // 1500 g est un 1,5 kg qui n'a pas ete ecrit comme tel.
-    expect(lireConditionnement('1500 g')).toEqual({ contenance: 1.5, unite: 'kg' });
-    expect(lireConditionnement('100 cl')).toEqual({ contenance: 1, unite: 'L' });
-  });
-
-  it('lit un pack par son contenant, pas par son total', () => {
-    // C'est le pack qu'on met dans le caddie ; la quantite de la ligne dira
-    // combien de packs.
-    expect(lireConditionnement('6 x 33 cl')).toEqual({ contenance: 330, unite: 'ml' });
-  });
-
-  it('revient a la piece quand rien ne se lit', () => {
-    expect(lireConditionnement('12 rouleaux')).toEqual({ contenance: 0, unite: 'piece' });
-    expect(lireConditionnement('')).toEqual({ contenance: 0, unite: 'piece' });
-    expect(lireConditionnement('format familial')).toEqual({ contenance: 0, unite: 'piece' });
   });
 });

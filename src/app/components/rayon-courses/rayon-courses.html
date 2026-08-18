@@ -7,12 +7,11 @@
   </div>
 
   <p class="intro muted">
-    Le nom, la photo et le conditionnement viennent d'Open Food Facts. La quantite et le prix
-    restent a saisir : ils dependent du magasin.
+    Le catalogue donne le nom, la photo, le conditionnement et un prix relevé en rayon. La quantité
+    reste à saisir, et le prix se corrige : c'est le ticket de caisse qui tranche.
   </p>
 
-  <!-- Une pause de 280 ms dans la frappe avant d'interroger OFF : voir le
-       composant. -->
+  <!-- La recherche est locale : elle repond a la frappe, sans reseau. -->
   <div class="barre-recherche">
     <span class="loupe" aria-hidden="true">🔍</span>
     <input
@@ -23,21 +22,21 @@
       [value]="requete()"
       (input)="majRequete($any($event.target).value)"
     />
-    @if (recherche()) {
-      <span class="etat muted">Recherche…</span>
-    } @else if (requete()) {
+    @if (requete()) {
       <button type="button" class="discret" title="Effacer" (click)="viderRecherche()">×</button>
     }
   </div>
 
-  @if (erreur()) {
+  @if (catalogue.erreur()) {
+    <p class="sans-resultat">{{ catalogue.erreur() }}</p>
+  }
+
+  @if (sansResultat()) {
     <p class="sans-resultat">
-      {{ erreur() }}
-      @if (requete().trim()) {
-        <button type="button" class="discret" (click)="ouvrirAjoutLibre()">
-          Ajouter « {{ requete().trim() }} » a la main
-        </button>
-      }
+      Aucun produit du catalogue ne correspond.
+      <button type="button" class="discret" (click)="ouvrirAjoutLibre()">
+        Ajouter « {{ requete().trim() }} » a la main
+      </button>
     </p>
   }
 
@@ -50,8 +49,13 @@
         <button type="button" class="produit" (click)="ouvrirAjout(produit)">
           <span class="carte">
             <span class="vignette">
-              @if (produit.imageUrl) {
-                <img [src]="produit.imageUrl" [alt]="produit.nom" loading="lazy" />
+              @if (imageVisible(produit.code, produit.imageUrl)) {
+                <img
+                  [src]="produit.imageUrl"
+                  [alt]="produit.nom"
+                  loading="lazy"
+                  (error)="signalerImageCassee(produit.code)"
+                />
               } @else {
                 <span class="sans-photo" aria-hidden="true">🛒</span>
               }
@@ -59,21 +63,23 @@
             <span class="produit-nom">{{ produit.nom }}</span>
             <!-- Le conditionnement reste visible sans survol : c'est lui qui
                  dit combien de rouleaux il y a dans le paquet. -->
-            @if (produit.conditionnement) {
-              <span class="conditionnement-etiquette">{{ produit.conditionnement }}</span>
+            @if (etiquette(produit)) {
+              <span class="conditionnement-etiquette">{{ etiquette(produit) }}</span>
             }
             @if (produit.marque) {
               <span class="produit-marque muted">{{ produit.marque }}</span>
             }
+            <!-- Le prix du releve : il sert a comparer deux marques d'un coup
+                 d'oeil, pas a annoncer le montant du ticket. -->
+            <span class="prix-releve">{{ fmtEuro(produit.prix) }}</span>
             <span class="ajouter">Choisir la quantite</span>
           </span>
         </button>
       }
     </div>
     <p class="credit muted">
-      Photos et donnees :
-      <a href="https://fr.openfoodfacts.org" target="_blank" rel="noopener">Open Food Facts</a>.
-      Donnees sous ODbL, photos sous CC-BY-SA.
+      Prix et photos relevés en supermarché. Les prix datent du relevé : ils situent, ils n'engagent
+      pas.
     </p>
   }
 
@@ -93,8 +99,13 @@
           ></span>
 
           <span class="vignette">
-            @if (article.imageUrl) {
-              <img [src]="article.imageUrl" [alt]="article.nom" loading="lazy" />
+            @if (imageVisible(article.id, article.imageUrl)) {
+              <img
+                [src]="article.imageUrl"
+                [alt]="article.nom"
+                loading="lazy"
+                (error)="signalerImageCassee(article.id)"
+              />
             } @else {
               <span class="sans-photo" aria-hidden="true">🛒</span>
             }
@@ -194,7 +205,7 @@
 @if (ajoutOuvert()) {
   <app-modale
     titre="Ajouter aux courses"
-    sousTitre="La quantite et le prix sont a toi : Open Food Facts ne les connait pas."
+    sousTitre="La quantité est à toi. Le prix vient du relevé : corrige-le si le tien diffère."
     libelleValider="Ajouter a la liste"
     [valideDesactive]="ajoutInvalide()"
     (fermee)="ajoutOuvert.set(false)"
