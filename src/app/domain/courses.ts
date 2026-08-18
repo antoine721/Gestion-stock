@@ -9,6 +9,7 @@ import {
 import { LigneCuisine } from './nourriture';
 import { coutArticle } from './materiel-liste';
 import { categorieDuProduit } from './categories-courses';
+import { libelleQuantite } from './unites-achat';
 import { fmtVolume } from './format';
 
 /**
@@ -123,7 +124,7 @@ export function listeCoursesUnifiee(
       groupe: 'rayon',
       categorie: article.categorie,
       nom: article.nom,
-      quantite: `× ${Math.max(0, article.quantite)}`,
+      quantite: libelleQuantite(article.quantite, article.contenance, article.unite),
       detail: article.marque,
       prix: Math.max(0, article.quantite) * Math.max(0, article.prixUnitaire),
       cochee: article.achete,

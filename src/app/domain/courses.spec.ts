@@ -80,6 +80,8 @@ describe('liste de courses unifiee', () => {
           imageUrl: 'https://images.example/pq.jpg',
           categorie: 'intendance',
           quantite: 4,
+          contenance: 0,
+          unite: 'piece',
           prixUnitaire: 2.5,
           achete: false,
         },
@@ -100,6 +102,7 @@ describe('liste de courses unifiee', () => {
     const pq = lignes.find((x) => x.id === 'rayon:c1');
     expect(pq?.categorie).toBe('intendance');
     expect(pq?.prix).toBe(10);
+    expect(pq?.quantite).toBe('× 4');
     expect(pq?.imageUrl).toBe('https://images.example/pq.jpg');
     // La location ne s'achete pas : elle n'a rien a faire dans les courses.
     expect(lignes.find((x) => x.nom === 'Generateur')).toBeUndefined();

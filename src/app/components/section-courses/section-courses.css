@@ -102,9 +102,12 @@
 /* La photo, quand le produit vient du rayon. */
 .miniature {
   flex: none;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  /* « contain » et non « cover » : on montre le produit en entier, quitte a
+     laisser du vide autour. Une etiquette rognee ne se reconnait plus. */
   object-fit: contain;
+  padding: 0.125rem;
   border-radius: 4px;
   background: var(--fond);
 }
