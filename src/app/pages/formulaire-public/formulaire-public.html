@@ -66,15 +66,32 @@
                 (input)="surnom.set($any($event.target).value)"
               />
             </label>
-            <label class="champ">
-              <span>Qui t'invite ?</span>
-              <input
-                type="text"
-                placeholder="Le prenom de la personne qui t'a envoye ce lien"
-                [value]="invitePar()"
-                (input)="invitePar.set($any($event.target).value)"
-              />
-            </label>
+            @if (organisateurs().length > 0) {
+              <div class="question">
+                <span class="intitule">Qui t'invite ? *</span>
+                <p class="muted aide">
+                  Coche la personne qui t'a envoye ce lien : ta fiche atterrira directement chez
+                  elle.
+                </p>
+                <div class="hotes">
+                  @for (organisateur of organisateurs(); track organisateur.id) {
+                    <label
+                      class="case-cocher hote"
+                      [class.choisi]="invitParId() === organisateur.id"
+                    >
+                      <input
+                        type="checkbox"
+                        [checked]="invitParId() === organisateur.id"
+                        (change)="
+                          invitParId.set(invitParId() === organisateur.id ? '' : organisateur.id)
+                        "
+                      />
+                      <span>{{ organisateur.nom }}</span>
+                    </label>
+                  }
+                </div>
+              </div>
+            }
           </div>
 
           <div class="actions">
@@ -207,7 +224,11 @@
             </div>
 
             <div class="question">
-              <span class="intitule">Tu as une tente ? *</span>
+              <span class="intitule">Tu amenes une tente ? *</span>
+              <p class="muted aide">
+                Tout le monde dort sur place, sous tente. Si tu n'en as pas, dis-le : on te trouvera
+                une place sous celle de quelqu'un.
+              </p>
               <div class="choix">
                 <button
                   type="button"
@@ -215,7 +236,7 @@
                   [attr.aria-pressed]="tente() === 'oui'"
                   (click)="tente.set('oui')"
                 >
-                  Oui, j'amene ma tente
+                  Oui, j'amene la mienne
                 </button>
                 <button
                   type="button"
@@ -223,7 +244,7 @@
                   [attr.aria-pressed]="tente() === 'non'"
                   (click)="tente.set('non')"
                 >
-                  Non
+                  Non, il m'en faut une
                 </button>
               </div>
             </div>
@@ -385,6 +406,42 @@
                 />
               </label>
             }
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Les goodies</h2>
+          <div class="champs">
+            <div class="question">
+              <span class="intitule">Est-ce que des goodies t'interessent ?</span>
+              <p class="muted aide">
+                On peut a peu pres tout faire floquer aux couleurs du festival. Coche ce que tu
+                porterais ou utiliserais vraiment : c'est ce qui decidera de ce qu'on commande. Rien
+                n'est promis, et cocher n'engage a rien.
+              </p>
+              <div class="jetons">
+                @for (goodie of goodiesCatalogue; track goodie.id) {
+                  <button
+                    type="button"
+                    class="jeton"
+                    [attr.aria-pressed]="veutGoodie(goodie.id)"
+                    (click)="basculerGoodie(goodie.id)"
+                  >
+                    {{ goodie.emoji }} {{ goodie.libelle }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <label class="champ">
+              <span>Autre — une idee a nous souffler ?</span>
+              <input
+                type="text"
+                placeholder="Tapis de souris, tablier, serviette de plage..."
+                [value]="goodiesAutre()"
+                (input)="goodiesAutre.set($any($event.target).value)"
+              />
+            </label>
           </div>
         </section>
 

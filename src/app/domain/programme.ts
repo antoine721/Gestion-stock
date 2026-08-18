@@ -9,6 +9,7 @@ import {
   StatutDjSet,
   TypeCreneau,
 } from './models';
+import { libelleServices } from './preferences';
 
 /**
  * Programme.
@@ -202,7 +203,7 @@ export function demandesMusicales(
   const demandes: DemandeMusicale[] = [];
 
   for (const reponse of reponses) {
-    const texte = reponse.recommandations.trim();
+    const texte = reponse.stylesMusicaux.trim();
     if (texte) demandes.push({ cle: `reponse:${reponse.id}`, texte, demandePar: reponse.prenom });
   }
   for (const invite of invites) {
@@ -217,7 +218,25 @@ export function demandesMusicales(
   return demandes.filter((x) => !dejaLa.has(`${x.texte}|${x.demandePar}`.toLowerCase()));
 }
 
-/** Les invites qui veulent faire quelque chose : DJ, jeux, animation... */
+/**
+ * Les invites qui veulent faire quelque chose : DJ, jeux, animation... Les
+ * envies ecrites a la main et les coups de main coches au formulaire disent
+ * la meme chose, alors on les regarde ensemble.
+ */
 export function volontaires(invites: readonly Invite[]): Invite[] {
-  return invites.filter((x) => x.envies.trim().length > 0);
+  return invites.filter((x) => x.envies.trim().length > 0 || x.servicesPreferes.length > 0);
+}
+
+/** « DJ, mixer un set · 🍳 Faire a manger » — ce qu'un volontaire propose. */
+export function libelleVolontariat(invite: Invite): string {
+  return [invite.envies.trim(), libelleServices(invite.servicesPreferes)]
+    .filter((x) => x.length > 0)
+    .join(' · ');
+}
+
+/** Ceux qui se proposent derriere les platines, quelle que soit la formulation. */
+export function volontairesDj(invites: readonly Invite[]): Invite[] {
+  return volontaires(invites).filter(
+    (x) => x.servicesPreferes.includes('dj') || /dj|mix|platine/i.test(x.envies),
+  );
 }

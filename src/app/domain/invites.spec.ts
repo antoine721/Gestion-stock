@@ -7,8 +7,11 @@ import {
   inviteVierge,
   invitesAvecAllergies,
   invitesNommesDe,
-  libelleConsommations,
+  neBoitPas,
   normaliserInvite,
+  presenceComplete,
+  etatTaches,
+  tousLesJours,
 } from './invites';
 import { Invite } from './models';
 
@@ -71,22 +74,57 @@ describe('invites nommes', () => {
     expect(normalise.paye).toBe(false);
     expect(normalise.montantPaye).toBe(0);
     expect(normalise.categoriePaiementId).toBe('');
-    expect(normalise.consommationDeclaree).toEqual([]);
-    expect(normalise.logistique.hebergement).toBe('a-definir');
+    expect(normalise.joursPresents).toEqual([]);
+    expect(normalise.goodies).toEqual([]);
+    expect(normalise.logistique.tente).toBe(false);
     expect(normalise.prenom).toBe('Paul');
   });
+});
 
-  it('met la conso declaree en toutes lettres, boissons inconnues ignorees', () => {
-    const libelle = libelleConsommations([
-      { boissonId: 'biere', verresParJour: 4 },
-      { boissonId: 'spritz', verresParJour: 2 },
-      { boissonId: 'inconnue', verresParJour: 9 },
-      { boissonId: 'whisky-coca', verresParJour: 0 },
-    ]);
+describe('jours sur place', () => {
+  it('reconnait « tous les jours » quelle que soit la duree', () => {
+    const complet = invite('a', { joursPresents: tousLesJours(3) });
+    expect(presenceComplete(complet, 3)).toBe(true);
+    // La meme fiche sur un evenement rallonge n'est plus complete.
+    expect(presenceComplete(complet, 4)).toBe(false);
+  });
 
-    expect(libelle).toContain('× 4');
-    expect(libelle).toContain('× 2');
-    expect(libelle).not.toContain('9');
+  it('ne confond pas une presence partielle avec un sejour complet', () => {
+    expect(presenceComplete(invite('a', { joursPresents: [2, 3] }), 3)).toBe(false);
+  });
+});
+
+describe('taches d’une fiche', () => {
+  const categories = [
+    { id: 'we', nom: 'Week-end complet', montant: 40 },
+    { id: 'gratuit', nom: 'Invite d’honneur', montant: 0 },
+  ];
+
+  it('compte les quatre cases a cocher', () => {
+    const etat = etatTaches(invite('a'), categories);
+    expect(etat.faites).toBe(0);
+
+    const pret = invite('b', {
+      categoriePaiementId: 'we',
+      paye: true,
+      personneTypeId: 'biere',
+      joursPresents: [1, 2],
+    });
+    expect(etatTaches(pret, categories).faites).toBe(4);
+  });
+
+  it('n’attend aucun paiement sur un tarif gratuit', () => {
+    const etat = etatTaches(invite('a', { categoriePaiementId: 'gratuit' }), categories);
+    expect(etat.tarif).toBe(true);
+    expect(etat.paiement).toBe(true);
+  });
+
+  it('n’attend aucun profil alcool de qui ne boit pas', () => {
+    const chameau = invite('a', { team: 'chameau' });
+    expect(neBoitPas(chameau)).toBe(true);
+    expect(etatTaches(chameau, categories).profil).toBe(true);
+    // Celui qui boit, lui, a bien un profil a choisir.
+    expect(etatTaches(invite('b', { team: 'croisiere' }), categories).profil).toBe(false);
   });
 });
 

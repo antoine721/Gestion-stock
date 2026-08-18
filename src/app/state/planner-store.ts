@@ -22,7 +22,9 @@ import {
   niveauxVierges,
   normaliserInvite,
   resumerLogistique,
+  tousLesJours,
 } from '../domain/invites';
+import { resumerGoodies } from '../domain/preferences';
 import {
   budgetNourriture,
   coursesCuisine,
@@ -356,6 +358,21 @@ export class PlannerStore {
   /** Covoiturage, couchage, materiel prete : la logistique d'un coup d'oeil. */
   readonly resumeLogistique = computed(() => resumerLogistique(this.invitesNommes()));
 
+  /**
+   * L'envie de goodies, fiches validees et reponses en attente confondues :
+   * on commande sur la demande totale, pas sur ce qui a deja ete valide.
+   */
+  readonly resumeGoodies = computed(() =>
+    resumerGoodies([...this.invitesNommes(), ...this.reponsesFormulaire()]),
+  );
+
+  /** Les goodies suggeres a la main, qui ne sont dans aucune liste. */
+  readonly suggestionsGoodies = computed(() =>
+    [...this.invitesNommes(), ...this.reponsesFormulaire()]
+      .filter((x) => x.goodiesAutre.trim().length > 0)
+      .map((x) => ({ qui: x.prenom, quoi: x.goodiesAutre.trim() })),
+  );
+
   /** Les effectifs anonymes herites de l'ancienne saisie par profil. */
   readonly effectifsAnonymes = computed(() =>
     this.participants().reduce(
@@ -421,7 +438,7 @@ export class PlannerStore {
       infos: { ...infosVierges(), ...partage.infos },
       reponsesFormulaire: partage.reponsesFormulaire.map((x) => ({
         ...x,
-        consommations: x.consommations ?? [],
+        invitParId: x.invitParId ?? '',
         stylesMusicaux: x.stylesMusicaux ?? '',
         logistique: { ...logistiqueVierge(), ...x.logistique },
         surnom: x.surnom ?? '',
@@ -430,6 +447,8 @@ export class PlannerStore {
         autreAlcool: x.autreAlcool ?? '',
         team: x.team ?? '',
         servicesPreferes: x.servicesPreferes ?? [],
+        goodies: x.goodies ?? [],
+        goodiesAutre: x.goodiesAutre ?? '',
       })),
     });
     this.participants.set(
@@ -985,10 +1004,6 @@ export class PlannerStore {
     const reponse = this.reponsesFormulaire().find((x) => x.id === reponseId);
     if (!reponse) return;
 
-    const remarques = [reponse.preferencesBoissons, reponse.recommandations, reponse.commentaire]
-      .filter((x) => x.trim().length > 0)
-      .join(' · ');
-
     this.majPartage({
       invites: [
         ...this.invitesNommes(),
@@ -998,21 +1013,22 @@ export class PlannerStore {
           nom: reponse.nom,
           regime: reponse.regime,
           allergies: reponse.allergies,
-          envies: reponse.envies,
-          remarques,
-          // La conso declaree suit la fiche : une aide pour choisir le
-          // profil, jamais un bareme.
-          consommationDeclaree: reponse.consommations.map((x) => ({ ...x })),
+          remarques: reponse.commentaire,
           stylesMusicaux: reponse.stylesMusicaux,
           logistique: { ...reponse.logistique },
+          // « Je reste tout le sejour » se traduit en jours ; un sejour partiel
+          // se decrit en texte libre, donc l'organisateur tranchera lui-meme.
+          joursPresents: reponse.logistique.sejourComplet ? tousLesJours(this.partage().jours) : [],
           surnom: reponse.surnom,
-          // Les gouts declares suivent aussi : ils orientent le profil, sans
-          // jamais le decider a la place de l'organisateur.
+          // Les gouts declares suivent : ils orientent le profil, sans jamais
+          // le decider a la place de l'organisateur.
           boissonsAimees: [...reponse.boissonsAimees],
           niveaux: { ...reponse.niveaux },
           autreAlcool: reponse.autreAlcool,
           team: reponse.team,
           servicesPreferes: [...reponse.servicesPreferes],
+          goodies: [...reponse.goodies],
+          goodiesAutre: reponse.goodiesAutre,
         },
       ],
       reponsesFormulaire: this.reponsesFormulaire().filter((x) => x.id !== reponseId),

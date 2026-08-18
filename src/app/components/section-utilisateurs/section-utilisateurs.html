@@ -6,8 +6,8 @@
     </div>
 
     <p class="intro muted">
-      Ce que les invites ont rempli via le formulaire. Relis, choisis qui l'amene, et valide : la
-      reponse devient une fiche.
+      Ce que les invites ont rempli via le formulaire. Chacun a designe le co-organisateur qui
+      l'invite : relis, et valide — la reponse devient une fiche rattachee a la bonne personne.
     </p>
 
     @for (reponse of store.reponsesFormulaire(); track reponse.id) {
@@ -15,11 +15,11 @@
         <div class="proposition-head">
           <div>
             <strong>{{ reponse.prenom }} {{ reponse.nom }}</strong>
-            @if (reponse.invitePar) {
-              <span class="muted"> · invite par {{ reponse.invitePar }}</span>
+            @if (reponse.surnom) {
+              <span class="muted"> « {{ reponse.surnom }} »</span>
             }
-            @if (reponse.accompagnants > 0) {
-              <span class="tag">+{{ reponse.accompagnants }}</span>
+            @if (reponse.invitePar) {
+              <span class="tag accent">invite par {{ reponse.invitePar }}</span>
             }
           </div>
           <span class="muted num">{{ dateDe(reponse) }}</span>
@@ -36,49 +36,21 @@
               <dd>{{ reponse.allergies }}</dd>
             </div>
           }
-          @if (libelleConsommations(reponse.consommations); as conso) {
-            @if (conso) {
-              <div class="large">
-                <dt>Dit boire sur une journee</dt>
-                <dd>{{ conso }}</dd>
-              </div>
-            }
-          }
-          @if (reponse.preferencesBoissons) {
-            <div>
-              <dt>Boissons</dt>
-              <dd>{{ reponse.preferencesBoissons }}</dd>
-            </div>
-          }
-          @if (reponse.envies) {
-            <div>
-              <dt>Envies</dt>
-              <dd>{{ reponse.envies }}</dd>
-            </div>
-          }
-          @if (reponse.stylesMusicaux) {
-            <div>
-              <dt>Styles musicaux</dt>
-              <dd>{{ reponse.stylesMusicaux }}</dd>
-            </div>
-          }
-          @if (reponse.recommandations) {
-            <div>
-              <dt>Musique</dt>
-              <dd>{{ reponse.recommandations }}</dd>
-            </div>
-          }
-          @if (reponse.logistique.arrivee || reponse.logistique.depart) {
-            <div>
-              <dt>Arrivee → depart</dt>
-              <dd>
-                {{ reponse.logistique.arrivee || '?' }} → {{ reponse.logistique.depart || '?' }}
-              </dd>
-            </div>
-          }
           <div>
-            <dt>Hebergement</dt>
-            <dd>{{ libelleHebergement[reponse.logistique.hebergement] }}</dd>
+            <dt>Sejour</dt>
+            <dd>
+              @if (reponse.logistique.sejourComplet) {
+                Du debut a la fin
+              } @else {
+                {{ reponse.logistique.arrivee || '?' }} → {{ reponse.logistique.depart || '?' }}
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>Tente</dt>
+            <dd>
+              {{ reponse.logistique.tente ? 'Amene la sienne' : 'A loger sous une autre tente' }}
+            </dd>
           </div>
           @if (resumeVoiture(reponse.logistique); as voiture) {
             @if (voiture) {
@@ -87,6 +59,34 @@
                 <dd>{{ voiture }}</dd>
               </div>
             }
+          }
+          @if (reponse.stylesMusicaux) {
+            <div>
+              <dt>Musique</dt>
+              <dd>{{ reponse.stylesMusicaux }}</dd>
+            </div>
+          }
+          @if (libelleServices(reponse.servicesPreferes); as services) {
+            @if (services) {
+              <div class="large">
+                <dt>Coups de main</dt>
+                <dd>{{ services }}</dd>
+              </div>
+            }
+          }
+          @if (libelleGoodies(reponse.goodies); as goodies) {
+            @if (goodies) {
+              <div class="large">
+                <dt>Goodies</dt>
+                <dd>{{ goodies }}</dd>
+              </div>
+            }
+          }
+          @if (reponse.goodiesAutre) {
+            <div>
+              <dt>Idee de goodie</dt>
+              <dd>{{ reponse.goodiesAutre }}</dd>
+            </div>
           }
           @if (reponse.logistique.materielApporte) {
             <div>
@@ -113,10 +113,7 @@
             <span>Amene par</span>
             <select (change)="choisirPorteur(reponse.id, $any($event.target).value)">
               @for (participant of store.participants(); track participant.id) {
-                <option
-                  [value]="participant.id"
-                  [selected]="participant.id === porteurDe(reponse.id)"
-                >
+                <option [value]="participant.id" [selected]="participant.id === porteurDe(reponse)">
                   {{ participant.nom }}
                 </option>
               }
@@ -131,8 +128,8 @@
     }
 
     <p class="hint">
-      La conso declaree est indicative : c'est toi qui choisis le profil alcool de la fiche — et
-      donc les quantites qui entrent dans le calcul.
+      Ce que la personne declare boire est indicatif : c'est toi qui choisis son profil alcool — et
+      donc les quantites qui entrent dans le calcul. Qui ne boit pas n'en a pas besoin.
     </p>
   </section>
 }
@@ -161,6 +158,9 @@
       + Ajouter
     </button>
   </div>
+  <p class="hint">
+    Ce sont eux que les invites cochent dans le formulaire, a la question « qui t'invite ? ».
+  </p>
 </section>
 
 <!-- Les tarifs : un tableau, creation en modale, detail en panneau. -->
@@ -267,8 +267,14 @@
           covoit</span
         >
       }
+      <!-- Tout le monde dort sur place, sous tente : la seule inconnue est de
+           savoir combien de toiles arrivent toutes seules. -->
       <span class="tag"
-        >🛏 <span class="num">{{ store.resumeLogistique().dormeurs }}</span> dorment sur place</span
+        >⛺ <span class="num">{{ store.resumeLogistique().tentes }}</span> amenent leur tente ·
+        <span class="num">{{
+          store.invitesNommes().length - store.resumeLogistique().tentes
+        }}</span>
+        a loger</span
       >
       @if (store.resumeLogistique().preteurs > 0) {
         <span class="tag"
@@ -303,12 +309,22 @@
         }
       </select>
     </label>
+    <!-- Le filtre le plus utile : « montre-moi ce qu'il me reste a faire ». -->
     <label class="champ">
-      <span>Paiement</span>
-      <select (change)="filtrePaiement.set($any($event.target).value)">
-        <option value="tous" [selected]="filtrePaiement() === 'tous'">Tous</option>
-        <option value="paye" [selected]="filtrePaiement() === 'paye'">A paye</option>
-        <option value="non-paye" [selected]="filtrePaiement() === 'non-paye'">N'a pas paye</option>
+      <span>Reste a faire</span>
+      <select (change)="filtreTache.set($any($event.target).value)">
+        <option value="tous" [selected]="filtreTache() === 'tous'">Tout</option>
+        <option value="incomplet" [selected]="filtreTache() === 'incomplet'">
+          Fiches incompletes ({{ restantParTache()['incomplet'] ?? 0 }})
+        </option>
+        @for (tache of taches; track tache.id) {
+          <option [value]="tache.id" [selected]="filtreTache() === tache.id">
+            {{ tache.libelle }} ({{ restantParTache()[tache.id] ?? 0 }})
+          </option>
+        }
+        <option value="complet" [selected]="filtreTache() === 'complet'">
+          Fiches pretes ({{ restantParTache()['complet'] ?? 0 }})
+        </option>
       </select>
     </label>
     @if (filtresActifs()) {
@@ -351,7 +367,8 @@
             <th>Profil alcool</th>
             <th>Tarif</th>
             <th class="droite">Paiement</th>
-            <th class="droite">Jours</th>
+            <th>Sur place</th>
+            <th class="droite">Reste a faire</th>
             <th></th>
           </tr>
         </thead>
@@ -376,6 +393,8 @@
               <td>
                 @if (nomDuProfil(invite.personneTypeId); as profil) {
                   {{ profil }}
+                } @else if (neBoitPas(invite)) {
+                  <span class="pill">🐫 Ne boit pas</span>
                 } @else {
                   <span class="pill warn">Sans profil</span>
                 }
@@ -397,8 +416,21 @@
                   <span class="muted">—</span>
                 }
               </td>
-              <td class="droite num">
-                {{ invite.joursPresence > 0 ? invite.joursPresence : '—' }}
+              <td>
+                @if (libellePresence(invite); as presence) {
+                  {{ presence }}
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td class="droite">
+                <span
+                  class="pill num"
+                  [class.ok]="tachesFaites(invite) === totalTaches"
+                  [class.warn]="tachesFaites(invite) < totalTaches"
+                >
+                  {{ tachesFaites(invite) }}/{{ totalTaches }}
+                </span>
               </td>
               <td class="chevron droite">›</td>
             </tr>
@@ -413,6 +445,39 @@
     Les profils ». Ici, tu les attaches a des personnes.
   </p>
 </section>
+
+<!-- Les goodies : ce que la demande dit de ce qu'il faut faire floquer. -->
+@if (store.resumeGoodies().length > 0 || store.suggestionsGoodies().length > 0) {
+  <section class="card">
+    <div class="card-head">
+      <h2>Les goodies</h2>
+      <span class="muted">ce que les invites ont coche, fiches et reponses confondues</span>
+    </div>
+    @if (store.resumeGoodies().length > 0) {
+      <div class="etiquettes">
+        @for (goodie of store.resumeGoodies(); track goodie.id) {
+          <span class="tag"
+            >{{ goodie.libelle }} · <span class="num">{{ goodie.nombre }}</span></span
+          >
+        }
+      </div>
+    }
+    @if (store.suggestionsGoodies().length > 0) {
+      <ul class="suggestions">
+        @for (suggestion of store.suggestionsGoodies(); track suggestion.qui + suggestion.quoi) {
+          <li>
+            <strong>{{ suggestion.qui }}</strong>
+            <span class="muted"> — {{ suggestion.quoi }}</span>
+          </li>
+        }
+      </ul>
+    }
+    <p class="hint">
+      Le compte dit combien de personnes prendraient chaque objet : de quoi decider quoi commander,
+      et en quelle quantite.
+    </p>
+  </section>
+}
 
 <!-- Creation d'un invite : la saisie minimale, le reste va dans le panneau. -->
 @if (creationOuverte()) {
@@ -491,7 +556,7 @@
   </app-modale>
 }
 
-<!-- Detail d'un invite : tout le reste, dans le panneau de droite. -->
+<!-- Detail d'un invite : tout le reste, en compact, dans le panneau de droite. -->
 @if (detail(); as invite) {
   <app-panneau
     [titre]="(invite.prenom || 'Sans prenom') + ' ' + invite.nom"
@@ -500,7 +565,24 @@
     (fermee)="detailId.set('')"
     (supprimee)="supprimer(invite)"
   >
-    <div class="grid-champs">
+    <!-- La checklist en tete : elle dit en un coup d'oeil ce qui manque
+         encore sur cette fiche, sans avoir a la parcourir. -->
+    <div class="checklist">
+      <span
+        class="pill num"
+        [class.ok]="tachesFaites(invite) === totalTaches"
+        [class.warn]="tachesFaites(invite) < totalTaches"
+      >
+        {{ tachesFaites(invite) }}/{{ totalTaches }}
+      </span>
+      @for (tache of taches; track tache.id) {
+        <span class="coche" [class.faite]="tacheFaite(invite, tache.id)">
+          {{ tacheFaite(invite, tache.id) ? '✓' : '○' }} {{ tache.libelle }}
+        </span>
+      }
+    </div>
+
+    <div class="compact">
       <label class="champ">
         <span>Prenom</span>
         <input
@@ -517,9 +599,14 @@
           (input)="maj(invite, { nom: $any($event.target).value })"
         />
       </label>
-    </div>
-
-    <div class="grid-champs">
+      <label class="champ">
+        <span>Surnom</span>
+        <input
+          type="text"
+          [value]="invite.surnom"
+          (input)="maj(invite, { surnom: $any($event.target).value })"
+        />
+      </label>
       <label class="champ">
         <span>Amene par</span>
         <select (change)="maj(invite, { participantId: $any($event.target).value })">
@@ -530,10 +617,12 @@
           }
         </select>
       </label>
-      <label class="champ">
+      <label class="champ large">
         <span>Profil alcool</span>
         <select (change)="maj(invite, { personneTypeId: $any($event.target).value })">
-          <option value="" [selected]="!invite.personneTypeId">— Sans profil</option>
+          <option value="" [selected]="!invite.personneTypeId">
+            {{ neBoitPas(invite) ? '— Ne boit pas' : '— Sans profil' }}
+          </option>
           @for (type of store.personnesTypes(); track type.id) {
             <option [value]="type.id" [selected]="type.id === invite.personneTypeId">
               {{ type.emoji }} {{ type.nom }}
@@ -544,8 +633,8 @@
     </div>
 
     <span class="sous-titre">Paiement</span>
-    <div class="grid-champs">
-      <label class="champ">
+    <div class="compact">
+      <label class="champ large">
         <span>Tarif</span>
         <select (change)="maj(invite, { categoriePaiementId: $any($event.target).value })">
           <option value="" [selected]="!invite.categoriePaiementId">— A definir</option>
@@ -563,39 +652,50 @@
           min="0"
           step="1"
           [value]="invite.montantPaye"
-          (input)="majNombre(invite, 'montantPaye', $any($event.target).value)"
+          (input)="majMontantPaye(invite, $any($event.target).value)"
         />
       </label>
-    </div>
-    <div class="ligne-paye">
       <label class="paye-mini" [class.regle]="invite.paye">
         <input type="checkbox" [checked]="invite.paye" (change)="basculerPaye(invite)" />
-        <span>A paye sa part</span>
+        <span>A paye</span>
       </label>
       @if (tarifDe(invite); as tarif) {
         @if (invite.paye && invite.montantPaye < tarif.montant) {
           <span class="pill warn num"
             >manque {{ fmtEuro(tarif.montant - invite.montantPaye) }}</span
           >
-        } @else if (invite.paye) {
-          <span class="pill ok">Regle</span>
         }
       }
-      <label class="champ places">
-        <span>Jours sur place</span>
-        <input
-          type="number"
-          min="0"
-          step="1"
-          placeholder="tous"
-          [value]="invite.joursPresence || ''"
-          (input)="majNombre(invite, 'joursPresence', $any($event.target).value)"
-        />
-      </label>
     </div>
 
+    <!-- Jours sur place : soit tous les jours, soit les dates precises. -->
+    <span class="sous-titre">Jours sur place</span>
+    <div class="jours-presence">
+      <button
+        type="button"
+        class="jour-chip"
+        [attr.aria-pressed]="estLaTousLesJours(invite)"
+        (click)="marquerTousLesJours(invite)"
+      >
+        Tous les jours
+      </button>
+      @for (jour of joursEvenement(); track jour.jour) {
+        <button
+          type="button"
+          class="jour-chip"
+          [attr.aria-pressed]="presentLe(invite, jour.jour) && !estLaTousLesJours(invite)"
+          (click)="basculerJour(invite, jour.jour)"
+        >
+          {{ jour.libelle }}
+        </button>
+      }
+    </div>
+    @if (invite.joursPresents.length === 0) {
+      <p class="hint">Personne n'a encore dit quand elle est la : coche les jours, ou « tous ».</p>
+    }
+
     <span class="sous-titre">A table</span>
-    <div class="grid-champs">
+    <div class="compact">
       <label class="champ">
         <span>Regime</span>
         <select (change)="maj(invite, { regime: $any($event.target).value })">
@@ -606,7 +706,7 @@
           }
         </select>
       </label>
-      <label class="champ">
+      <label class="champ large">
         <span>Allergies</span>
         <input
           type="text"
@@ -617,8 +717,10 @@
       </label>
     </div>
 
+    <!-- Pas de champ hebergement : tout le monde dort sur place, sous tente.
+         Reste a savoir qui amene la sienne. -->
     <span class="sous-titre">Logistique</span>
-    <div class="grid-champs">
+    <div class="compact">
       <label class="champ">
         <span>Arrivee</span>
         <input
@@ -637,18 +739,29 @@
           (input)="majLogistique(invite, { depart: $any($event.target).value })"
         />
       </label>
+      @if (invite.logistique.vehicule) {
+        <label class="champ">
+          <span>Places libres</span>
+          <input
+            type="number"
+            min="0"
+            max="9"
+            step="1"
+            [value]="invite.logistique.placesVoiture"
+            (input)="majPlacesVoiture(invite, $any($event.target).value)"
+          />
+        </label>
+      }
     </div>
-    <label class="champ">
-      <span>Hebergement</span>
-      <select (change)="majLogistique(invite, { hebergement: $any($event.target).value })">
-        @for (option of hebergements; track option.id) {
-          <option [value]="option.id" [selected]="option.id === invite.logistique.hebergement">
-            {{ option.libelle }}
-          </option>
-        }
-      </select>
-    </label>
     <div class="logistique-cases">
+      <label class="paye-mini">
+        <input
+          type="checkbox"
+          [checked]="invite.logistique.tente"
+          (change)="majLogistique(invite, { tente: !invite.logistique.tente })"
+        />
+        <span>⛺ Amene sa tente</span>
+      </label>
       <label class="paye-mini">
         <input
           type="checkbox"
@@ -675,21 +788,8 @@
         />
         <span>Cherche covoit</span>
       </label>
-      @if (invite.logistique.vehicule) {
-        <label class="champ places">
-          <span>Places libres</span>
-          <input
-            type="number"
-            min="0"
-            max="9"
-            step="1"
-            [value]="invite.logistique.placesVoiture"
-            (input)="majPlacesVoiture(invite, $any($event.target).value)"
-          />
-        </label>
-      }
     </div>
-    <div class="grid-champs">
+    <div class="compact">
       <label class="champ">
         <span>Apporte / prete</span>
         <input
@@ -711,7 +811,7 @@
     </div>
 
     <span class="sous-titre">Envies</span>
-    <div class="grid-champs">
+    <div class="compact">
       <label class="champ">
         <span>Envies</span>
         <input
@@ -730,24 +830,37 @@
           (input)="maj(invite, { stylesMusicaux: $any($event.target).value })"
         />
       </label>
+      <label class="champ large">
+        <span>Remarques</span>
+        <input
+          type="text"
+          placeholder="Arrive samedi, ne connait personne..."
+          [value]="invite.remarques"
+          (input)="maj(invite, { remarques: $any($event.target).value })"
+        />
+      </label>
     </div>
-    <label class="champ">
-      <span>Remarques</span>
-      <input
-        type="text"
-        placeholder="Arrive samedi, dort sur place..."
-        [value]="invite.remarques"
-        (input)="maj(invite, { remarques: $any($event.target).value })"
-      />
-    </label>
 
-    @if (libelleConsommations(invite.consommationDeclaree); as conso) {
-      @if (conso) {
-        <p class="conso-declaree muted">
-          Dit boire sur une journee : <strong>{{ conso }}</strong> — indicatif, le calcul suit le
-          profil que tu choisis.
+    <!-- Ce que la personne a declare elle-meme : lecture seule, c'est sa
+         parole, pas une saisie d'organisateur. -->
+    @if (libelleServices(invite.servicesPreferes); as services) {
+      @if (services) {
+        <p class="declare muted">
+          Coups de main : <strong>{{ services }}</strong>
         </p>
       }
+    }
+    @if (libelleGoodies(invite.goodies); as goodies) {
+      @if (goodies) {
+        <p class="declare muted">
+          Goodies : <strong>{{ goodies }}</strong>
+        </p>
+      }
+    }
+    @if (invite.goodiesAutre) {
+      <p class="declare muted">
+        Idee de goodie : <strong>{{ invite.goodiesAutre }}</strong>
+      </p>
     }
   </app-panneau>
 }

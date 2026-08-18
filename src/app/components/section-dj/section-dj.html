@@ -93,7 +93,7 @@
           <li>
             <div>
               <strong>{{ invite.prenom }} {{ invite.nom }}</strong>
-              <span class="muted"> — {{ invite.envies }}</span>
+              <span class="muted"> — {{ libelleVolontariat(invite) }}</span>
               @if (invite.stylesMusicaux) {
                 <span class="muted"> · {{ invite.stylesMusicaux }}</span>
               }

@@ -61,6 +61,14 @@
               >
                 <span class="emoji" aria-hidden="true">{{ espace.emoji }}</span>
                 <span class="lib">{{ espace.libelle }}</span>
+                @if (badgeDe(espace.id); as aValider) {
+                  <span
+                    class="pastille num"
+                    [title]="aValider + ' fiche(s) du formulaire a valider'"
+                  >
+                    {{ aValider }}
+                  </span>
+                }
                 @if (indicateurDe(espace.id); as valeur) {
                   <span class="valeur num">{{ valeur }}</span>
                 }

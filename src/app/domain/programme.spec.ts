@@ -3,6 +3,7 @@ import {
   creneauVierge,
   demandesMusicales,
   djSetVierge,
+  libelleVolontariat,
   nomDeRef,
   normaliserCreneau,
   personnesAssignables,
@@ -11,6 +12,7 @@ import {
   resumerProgramme,
   trierDjSets,
   volontaires,
+  volontairesDj,
 } from './programme';
 import { inviteVierge, logistiqueVierge } from './invites';
 import { Creneau, Programme } from './models';
@@ -94,16 +96,12 @@ describe('musique', () => {
     id: 'f1',
     prenom: 'Chloe',
     nom: '',
+    invitParId: '',
     invitePar: '',
-    accompagnants: 0,
     regime: 'omnivore' as const,
     allergies: '',
-    preferencesBoissons: '',
-    envies: '',
-    recommandations: 'Daft Punk',
     commentaire: '',
-    consommations: [],
-    stylesMusicaux: '',
+    stylesMusicaux: 'Daft Punk',
     logistique: logistiqueVierge(),
     surnom: '',
     boissonsAimees: [],
@@ -111,6 +109,8 @@ describe('musique', () => {
     autreAlcool: '',
     team: '' as const,
     servicesPreferes: [],
+    goodies: [],
+    goodiesAutre: '',
     creeLe: '',
   };
 
@@ -133,11 +133,15 @@ describe('musique', () => {
     expect(demandes).toHaveLength(0);
   });
 
-  it('liste les volontaires depuis les envies des fiches', () => {
+  it('liste les volontaires, envies ecrites comme coups de main coches', () => {
     const invites = [
       { ...inviteVierge('i1', 'a'), prenom: 'Paul', envies: 'DJ' },
       { ...inviteVierge('i2', 'a'), prenom: 'Lucie' },
+      { ...inviteVierge('i3', 'a'), prenom: 'Sami', servicesPreferes: ['cuisine'] },
     ];
-    expect(volontaires(invites).map((x) => x.prenom)).toEqual(['Paul']);
+    expect(volontaires(invites).map((x) => x.prenom)).toEqual(['Paul', 'Sami']);
+    // Le DJ se reconnait dans les deux formulations.
+    expect(volontairesDj(invites).map((x) => x.prenom)).toEqual(['Paul']);
+    expect(libelleVolontariat(invites[2])).toContain('Faire a manger');
   });
 });
