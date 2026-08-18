@@ -11,8 +11,8 @@ const FICHIER = 'produits.json';
 /**
  * Le catalogue du rayon, charge une fois pour la session.
  *
- * 268 produits tiennent dans 80 ko : on les prend en entier au premier
- * affichage du rayon, et toutes les recherches suivantes se font en memoire.
+ * Moins de 200 produits, 60 ko : on les prend en entier au premier affichage
+ * du rayon, et toutes les recherches suivantes se font en memoire.
  * C'est ce qui rend la barre de recherche instantanee, et ce qui la fait
  * marcher meme quand le reseau du terrain de camping ne marche pas.
  */

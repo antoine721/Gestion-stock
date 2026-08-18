@@ -11,28 +11,6 @@
     "prix": 0.51
   },
   {
-    "code": "VC4AECOMM-412377",
-    "nom": "Bière blonde El León",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/412377_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 330,
-    "unite": "ml",
-    "conditionnement": "canette",
-    "prix": 0.33
-  },
-  {
-    "code": "VC4AECOMM-390311",
-    "nom": "Bière blonde Koenigsbier",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/390311_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 330,
-    "unite": "ml",
-    "conditionnement": "canette",
-    "prix": 0.29
-  },
-  {
     "code": "VC4AECOMM-064042",
     "nom": "Bière blonde classique Carrefour",
     "marque": "Carrefour",
@@ -66,28 +44,6 @@
     "prix": 0.48
   },
   {
-    "code": "VC4AECOMM-130402",
-    "nom": "Cava brut Berberana",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/130402_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 750,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 3.59
-  },
-  {
-    "code": "VC4AECOMM-130429",
-    "nom": "Cava demi-sec Berberana",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/130429_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 750,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 3.59
-  },
-  {
     "code": "VC4AECOMM-231782",
     "nom": "Gin tonic Tanqueray Flor de Sevilla",
     "marque": "",
@@ -110,17 +66,6 @@
     "prix": 2.95
   },
   {
-    "code": "VC4AECOMM-297786",
-    "nom": "Lambrusco rose Casteldiserra",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/297786_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 750,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 1.86
-  },
-  {
     "code": "654802085",
     "nom": "Limoncello Carrefour",
     "marque": "Carrefour",
@@ -130,17 +75,6 @@
     "unite": "ml",
     "conditionnement": "bouteille",
     "prix": 4.65
-  },
-  {
-    "code": "prod1070019",
-    "nom": "Liqueur de plantes Geistluchs",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/125788_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 700,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 5.99
   },
   {
     "code": "816214251",
@@ -165,28 +99,6 @@
     "prix": 0.4
   },
   {
-    "code": "VC4AECOMM-487905",
-    "nom": "Rhum ambré Carum",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/487905_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 700,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 6.65
-  },
-  {
-    "code": "VC4AECOMM-504015",
-    "nom": "Rhum blanc Apache",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/504015_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 700,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 5.25
-  },
-  {
     "code": "VC4AECOMM-808818",
     "nom": "Rhum citron Bacardí",
     "marque": "",
@@ -198,52 +110,8 @@
     "prix": 2.79
   },
   {
-    "code": "520663124",
-    "nom": "Vermouth rouge Forteni",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/521170_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 1,
-    "unite": "L",
-    "conditionnement": "bouteille",
-    "prix": 2.39
-  },
-  {
-    "code": "847106003",
-    "nom": "Vin blanc airén Viña Lobón",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/016518_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 750,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 1.4
-  },
-  {
-    "code": "fprod1260333",
-    "nom": "Vin blanc jeune 3 Reinos",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/323002_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 750,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 1.58
-  },
-  {
-    "code": "784000504",
-    "nom": "Vin blanc verdejo Estilete",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/871997_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 750,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 1.86
-  },
-  {
     "code": "520661424",
-    "nom": "Vin rose Carrefour",
+    "nom": "Vin rosé Carrefour",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/513381_00_1.jpg",
     "categorie": "alcool",
@@ -251,28 +119,6 @@
     "unite": "L",
     "conditionnement": "brique",
     "prix": 1.17
-  },
-  {
-    "code": "847106005",
-    "nom": "Vin rose tempranillo Viña Lobón",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/016808_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 750,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 1.4
-  },
-  {
-    "code": "793945517",
-    "nom": "Vin rouge jeune Fuenteviña",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/892488_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 750,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 1.1
   },
   {
     "code": "520661412",
@@ -284,72 +130,6 @@
     "unite": "L",
     "conditionnement": "brique",
     "prix": 1.05
-  },
-  {
-    "code": "520661386",
-    "nom": "Vin rouge tempranillo Marqués Dospalacios",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/300426_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 750,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 1.25
-  },
-  {
-    "code": "789105164",
-    "nom": "Vin rouge tempranillo Viña Lobón",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/883635_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 750,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 1.25
-  },
-  {
-    "code": "prod392958",
-    "nom": "Whisky Westerly",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/468665_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 700,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 6.29
-  },
-  {
-    "code": "prod100158",
-    "nom": "Whisky écossais Loch Castle",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/224635_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 700,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 5.99
-  },
-  {
-    "code": "prod100159",
-    "nom": "Whisky écossais Loch Castle",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/224637_00_1.jpg",
-    "categorie": "alcool",
-    "contenance": 1,
-    "unite": "L",
-    "conditionnement": "bouteille",
-    "prix": 8.49
-  },
-  {
-    "code": "848100443",
-    "nom": "Ammoniaque parfumé Carrefour",
-    "marque": "Carrefour",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/047296_00_1.jpg",
-    "categorie": "intendance",
-    "contenance": 1.5,
-    "unite": "L",
-    "conditionnement": "bidon",
-    "prix": 0.65
   },
   {
     "code": "2013790076",
@@ -364,7 +144,7 @@
   },
   {
     "code": "prod731123",
-    "nom": "Boite de mouchoirs Carrefour",
+    "nom": "Boîte de mouchoirs Carrefour",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/856007_00_1.jpg",
     "categorie": "intendance",
@@ -374,19 +154,8 @@
     "prix": 1.5
   },
   {
-    "code": "2007970225",
-    "nom": "Brosse a récurer avec manche Vigar",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/720471_00_1.jpg",
-    "categorie": "intendance",
-    "contenance": 0,
-    "unite": "piece",
-    "conditionnement": "",
-    "prix": 2.45
-  },
-  {
     "code": "2008102347",
-    "nom": "Chiffon a poussière microfibre Carrefour",
+    "nom": "Chiffon à poussière microfibre Carrefour",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/257432_00_1.jpg",
     "categorie": "intendance",
@@ -405,17 +174,6 @@
     "unite": "piece",
     "conditionnement": "",
     "prix": 0.97
-  },
-  {
-    "code": "538408123",
-    "nom": "Crème a récurer citron",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/193699_00_1.jpg",
-    "categorie": "intendance",
-    "contenance": 750,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 0.99
   },
   {
     "code": "861000518",
@@ -495,17 +253,6 @@
     "prix": 2.35
   },
   {
-    "code": "prod460754",
-    "nom": "Essuie-tout double épaisseur Simpl Choice",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/827720_00_1.jpg",
-    "categorie": "intendance",
-    "contenance": 0,
-    "unite": "piece",
-    "conditionnement": "4 rouleaux",
-    "prix": 1.99
-  },
-  {
     "code": "prod270519",
     "nom": "Film étirable Carrefour",
     "marque": "Carrefour",
@@ -559,17 +306,6 @@
     "unite": "kg",
     "conditionnement": "sac",
     "prix": 0.85
-  },
-  {
-    "code": "prod395310",
-    "nom": "Lessive en pastilles Puntomatic",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/739190_00_1.jpg",
-    "categorie": "intendance",
-    "contenance": 0,
-    "unite": "piece",
-    "conditionnement": "8 pastilles",
-    "prix": 1.1
   },
   {
     "code": "VC4AECOMM-573180",
@@ -627,17 +363,6 @@
     "prix": 0.91
   },
   {
-    "code": "VC4AECOMM-490076",
-    "nom": "Liquide vaisselle citron Simpl",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/490076_00_1.jpg",
-    "categorie": "intendance",
-    "contenance": 1.3,
-    "unite": "L",
-    "conditionnement": "bouteille",
-    "prix": 1.1
-  },
-  {
     "code": "fprod1250064",
     "nom": "Liquide vaisselle peaux sensibles Carrefour Eco Planet",
     "marque": "Carrefour",
@@ -691,17 +416,6 @@
     "unite": "piece",
     "conditionnement": "12 rouleaux",
     "prix": 2.49
-  },
-  {
-    "code": "VC4AECOMM-167066",
-    "nom": "Papier toilette 2 épaisseurs Simpl Choice",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/167066_00_1.jpg",
-    "categorie": "intendance",
-    "contenance": 0,
-    "unite": "piece",
-    "conditionnement": "12 rouleaux",
-    "prix": 2.1
   },
   {
     "code": "VC4AECOMM-480594",
@@ -760,7 +474,7 @@
   },
   {
     "code": "93001296",
-    "nom": "Pelle a poussière Carrefour",
+    "nom": "Pelle à poussière Carrefour",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/475824_00_1.jpg",
     "categorie": "intendance",
@@ -771,7 +485,7 @@
   },
   {
     "code": "fprod1460577",
-    "nom": "Sacs a glacons XL Carrefour",
+    "nom": "Sacs à glaçons XL Carrefour",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/403985_00_1.jpg",
     "categorie": "intendance",
@@ -793,7 +507,7 @@
   },
   {
     "code": "fprod1460576",
-    "nom": "Sacs congélation moyens a zip Carrefour Expert",
+    "nom": "Sacs congélation moyens à zip Carrefour Expert",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/403981_00_1.jpg",
     "categorie": "intendance",
@@ -801,17 +515,6 @@
     "unite": "piece",
     "conditionnement": "20 sacs",
     "prix": 1.16
-  },
-  {
-    "code": "VC4A-27406478",
-    "nom": "Sacs poubelle 30 L Simpl",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/316277_00_1.jpg",
-    "categorie": "intendance",
-    "contenance": 0,
-    "unite": "piece",
-    "conditionnement": "20 sacs",
-    "prix": 0.69
   },
   {
     "code": "VC4AECOMM-316271",
@@ -881,7 +584,7 @@
   },
   {
     "code": "prod273027",
-    "nom": "Savon solide a l'huile d'olive",
+    "nom": "Savon solide à l'huile d'olive",
     "marque": "",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/320830_00_1.jpg",
     "categorie": "intendance",
@@ -892,7 +595,7 @@
   },
   {
     "code": "VC4A-5182760",
-    "nom": "Serpillère a franges Carrefour",
+    "nom": "Serpillère à franges Carrefour",
     "marque": "",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/017896_00_1.jpg",
     "categorie": "intendance",
@@ -909,7 +612,7 @@
     "categorie": "intendance",
     "contenance": 0,
     "unite": "piece",
-    "conditionnement": "2 serpilleres",
+    "conditionnement": "2 serpillères",
     "prix": 1.99
   },
   {
@@ -947,13 +650,13 @@
   },
   {
     "code": "VC4AECOMM-024582",
-    "nom": "Cuilleres réutilisables",
+    "nom": "Cuillères réutilisables",
     "marque": "",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/024582_00_1.jpg",
     "categorie": "jetable",
     "contenance": 0,
     "unite": "piece",
-    "conditionnement": "25 cuilleres",
+    "conditionnement": "25 cuillères",
     "prix": 2.59
   },
   {
@@ -969,7 +672,7 @@
   },
   {
     "code": "VC4AECOMM-026105",
-    "nom": "Gobelets a cidre réutilisables",
+    "nom": "Gobelets réutilisables",
     "marque": "",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/026105_00_1.jpg",
     "categorie": "jetable",
@@ -980,7 +683,7 @@
   },
   {
     "code": "VC4A-9403663",
-    "nom": "Gobelets en carton Nupik Naturgo",
+    "nom": "Gobelets en carton",
     "marque": "",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/428685_00_1.jpg",
     "categorie": "jetable",
@@ -991,13 +694,13 @@
   },
   {
     "code": "VC4AECOMM-024590",
-    "nom": "Petites cuilleres réutilisables",
+    "nom": "Petites cuillères réutilisables",
     "marque": "",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/024590_00_1.jpg",
     "categorie": "jetable",
     "contenance": 0,
     "unite": "piece",
-    "conditionnement": "25 cuilleres",
+    "conditionnement": "25 cuillères",
     "prix": 2.39
   },
   {
@@ -1023,17 +726,6 @@
     "prix": 1.99
   },
   {
-    "code": "VC4AECOMM-242608",
-    "nom": "Serviettes en papier 1 épaisseur Simpl",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/242608_00_1.jpg",
-    "categorie": "jetable",
-    "contenance": 0,
-    "unite": "piece",
-    "conditionnement": "200 serviettes",
-    "prix": 1.25
-  },
-  {
     "code": "VC4A-5912694",
     "nom": "Serviettes en papier blanches Carrefour Home",
     "marque": "",
@@ -1057,7 +749,7 @@
   },
   {
     "code": "VC4A-8344275",
-    "nom": "Touillettes en bois Nupik Naturgo",
+    "nom": "Touillettes en bois",
     "marque": "",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/332305_00_1.jpg",
     "categorie": "jetable",
@@ -1068,13 +760,13 @@
   },
   {
     "code": "prod64283",
-    "nom": "Allumettes Tres Estrellas",
+    "nom": "Allumettes",
     "marque": "",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/909422_00_1.jpg",
     "categorie": "materiel",
     "contenance": 0,
     "unite": "piece",
-    "conditionnement": "3 boites",
+    "conditionnement": "3 boîtes",
     "prix": 1.2
   },
   {
@@ -1133,17 +825,6 @@
     "prix": 2.59
   },
   {
-    "code": "766002207",
-    "nom": "Anchois a l'huile Caprimar",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/103209_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 23,
-    "unite": "g",
-    "conditionnement": "boite",
-    "prix": 1.07
-  },
-  {
     "code": "fprod1210204",
     "nom": "Baguette farinée",
     "marque": "",
@@ -1166,39 +847,6 @@
     "prix": 0.81
   },
   {
-    "code": "VC4AECOMM-287615",
-    "nom": "Biscuits fourrés chocolat Mini Crok",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/287615_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 220,
-    "unite": "g",
-    "conditionnement": "paquet",
-    "prix": 0.9
-  },
-  {
-    "code": "VC4AECOMM-695953",
-    "nom": "Blanc de dinde braisé en tranches Campofrío",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/695953_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 75,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 0.99
-  },
-  {
-    "code": "VC4AECOMM-698818",
-    "nom": "Blanc de dinde en tranches Campofrío",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/698818_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 75,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 0.99
-  },
-  {
     "code": "VC4AECOMM-429471",
     "nom": "Bonbons fraises gélifiées Carrefour",
     "marque": "Carrefour",
@@ -1219,17 +867,6 @@
     "unite": "g",
     "conditionnement": "sachet",
     "prix": 1.08
-  },
-  {
-    "code": "VC4AECOMM-231259",
-    "nom": "Boudin noir de Burgos",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/231259_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 0,
-    "unite": "piece",
-    "conditionnement": "",
-    "prix": 2.18
   },
   {
     "code": "VC4AECOMM-249478",
@@ -1298,17 +935,6 @@
     "prix": 3.75
   },
   {
-    "code": "607219906",
-    "nom": "Carpaccio de boeuf mariné Roler",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/393681_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 110,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 3.85
-  },
-  {
     "code": "675501975",
     "nom": "Chewing-gums menthe sans sucres Trident",
     "marque": "",
@@ -1321,7 +947,7 @@
   },
   {
     "code": "prod1070117",
-    "nom": "Chips a l'ancienne Carrefour",
+    "nom": "Chips à l'ancienne Carrefour",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/130123_00_1.jpg",
     "categorie": "nourriture",
@@ -1340,17 +966,6 @@
     "unite": "g",
     "conditionnement": "sachet",
     "prix": 1.27
-  },
-  {
-    "code": "prod1022999",
-    "nom": "Chips jambon serrano Carrefour",
-    "marque": "Carrefour",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/107052_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 150,
-    "unite": "g",
-    "conditionnement": "sachet",
-    "prix": 1.15
   },
   {
     "code": "VC4AECOMM-132467",
@@ -1397,17 +1012,6 @@
     "prix": 1.1
   },
   {
-    "code": "VC4AECOMM-592392",
-    "nom": "Chocolat au lait Sabú",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/592392_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 100,
-    "unite": "g",
-    "conditionnement": "tablette",
-    "prix": 0.72
-  },
-  {
     "code": "521004207",
     "nom": "Chocolat noir 50 % Carrefour",
     "marque": "Carrefour",
@@ -1417,39 +1021,6 @@
     "unite": "g",
     "conditionnement": "tablette",
     "prix": 0.78
-  },
-  {
-    "code": "prod841658",
-    "nom": "Chorizo de Pampelune en tranches Revilla",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/699043_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 65,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 0.99
-  },
-  {
-    "code": "VC4AECOMM-710817",
-    "nom": "Chorizo en tranches El Pozo",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/710817_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 70,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 0.99
-  },
-  {
-    "code": "VC4AECOMM-698652",
-    "nom": "Chorizo en tranches Revilla",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/698652_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 65,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 0.99
   },
   {
     "code": "prod760336",
@@ -1486,7 +1057,7 @@
   },
   {
     "code": "prod1010183",
-    "nom": "Crème d'avoine a cuisiner bio Oatly",
+    "nom": "Crème d'avoine à cuisiner bio Oatly",
     "marque": "",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/089916_00_1.jpg",
     "categorie": "nourriture",
@@ -1505,17 +1076,6 @@
     "unite": "ml",
     "conditionnement": "brique",
     "prix": 1.2
-  },
-  {
-    "code": "prod1130681",
-    "nom": "Dés de jambon sec Sánchez Alcaraz",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/192700_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 80,
-    "unite": "g",
-    "conditionnement": "2 x 40 g",
-    "prix": 1.05
   },
   {
     "code": "prod260340",
@@ -1541,7 +1101,7 @@
   },
   {
     "code": "VC4AECOMM-546301",
-    "nom": "Fromage a tartiner affiné Carrefour",
+    "nom": "Fromage à tartiner affiné Carrefour",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/546301_00_1.jpg",
     "categorie": "nourriture",
@@ -1552,7 +1112,7 @@
   },
   {
     "code": "804713850",
-    "nom": "Fromage a tartiner allégé Carrefour",
+    "nom": "Fromage à tartiner allégé Carrefour",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/918952_00_1.jpg",
     "categorie": "nourriture",
@@ -1563,7 +1123,7 @@
   },
   {
     "code": "VC4AECOMM-120096",
-    "nom": "Fromage a tartiner bio Carrefour Bio",
+    "nom": "Fromage à tartiner bio Carrefour Bio",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/120096_00_1.jpg",
     "categorie": "nourriture",
@@ -1574,7 +1134,7 @@
   },
   {
     "code": "VC4AECOMM-549840",
-    "nom": "Fromage a tartiner camembert Carrefour",
+    "nom": "Fromage à tartiner camembert Carrefour",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/549840_00_1.jpg",
     "categorie": "nourriture",
@@ -1585,7 +1145,7 @@
   },
   {
     "code": "804713848",
-    "nom": "Fromage a tartiner nature Carrefour",
+    "nom": "Fromage à tartiner nature Carrefour",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/918951_00_1.jpg",
     "categorie": "nourriture",
@@ -1613,19 +1173,8 @@
     "categorie": "nourriture",
     "contenance": 250,
     "unite": "g",
-    "conditionnement": "boite",
+    "conditionnement": "boîte",
     "prix": 1.36
-  },
-  {
-    "code": "VC4AECOMM-167044",
-    "nom": "Fromage râpé El Caserío",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/167044_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 80,
-    "unite": "g",
-    "conditionnement": "sachet",
-    "prix": 1.43
   },
   {
     "code": "fprod1350064",
@@ -1661,17 +1210,6 @@
     "prix": 0.99
   },
   {
-    "code": "prod930223",
-    "nom": "Gressins a l'huile d'olive Carrefour",
-    "marque": "Carrefour",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/046209_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 180,
-    "unite": "g",
-    "conditionnement": "sachet",
-    "prix": 0.97
-  },
-  {
     "code": "prod970952",
     "nom": "Gressins complets Carrefour",
     "marque": "Carrefour",
@@ -1690,7 +1228,7 @@
     "categorie": "nourriture",
     "contenance": 210,
     "unite": "g",
-    "conditionnement": "boite",
+    "conditionnement": "boîte",
     "prix": 0.63
   },
   {
@@ -1701,63 +1239,8 @@
     "categorie": "nourriture",
     "contenance": 400,
     "unite": "g",
-    "conditionnement": "boite",
+    "conditionnement": "boîte",
     "prix": 0.67
-  },
-  {
-    "code": "VC4AECOMM-698858",
-    "nom": "Jambon blanc en tranches Campofrío",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/698858_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 75,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 0.99
-  },
-  {
-    "code": "VC4AECOMM-135079",
-    "nom": "Jambon blanc en tranches El Pozo",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/135079_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 80,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 1.0
-  },
-  {
-    "code": "VC4AECOMM-698955",
-    "nom": "Jambon blanc réduit en sel Campofrío",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/698955_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 65,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 0.99
-  },
-  {
-    "code": "VC4AECOMM-338992",
-    "nom": "Jambon sec en demi-tranches El Pozo",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/338992_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 50,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 0.99
-  },
-  {
-    "code": "VC4AECOMM-710124",
-    "nom": "Jambon sec en tranches El Pozo",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/710124_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 90,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 1.65
   },
   {
     "code": "fprod1280602",
@@ -1769,17 +1252,6 @@
     "unite": "ml",
     "conditionnement": "bouteille",
     "prix": 0.89
-  },
-  {
-    "code": "530363462",
-    "nom": "Lait demi-écrémé Central Lechera Asturiana",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/168680_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 500,
-    "unite": "ml",
-    "conditionnement": "brique",
-    "prix": 0.72
   },
   {
     "code": "531731276",
@@ -1844,7 +1316,7 @@
     "categorie": "nourriture",
     "contenance": 320,
     "unite": "g",
-    "conditionnement": "boite",
+    "conditionnement": "boîte",
     "prix": 0.9
   },
   {
@@ -1855,30 +1327,8 @@
     "categorie": "nourriture",
     "contenance": 285,
     "unite": "g",
-    "conditionnement": "boite",
+    "conditionnement": "boîte",
     "prix": 0.99
-  },
-  {
-    "code": "VC4AECOMM-255909",
-    "nom": "Maïs grillé San Blas",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/255909_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 200,
-    "unite": "g",
-    "conditionnement": "sachet",
-    "prix": 0.97
-  },
-  {
-    "code": "618404744",
-    "nom": "Maïs grillé barbecue Carrefour",
-    "marque": "Carrefour",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/349974_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 140,
-    "unite": "g",
-    "conditionnement": "sachet",
-    "prix": 0.82
   },
   {
     "code": "prod830327",
@@ -1921,7 +1371,7 @@
     "categorie": "nourriture",
     "contenance": 69,
     "unite": "g",
-    "conditionnement": "boite",
+    "conditionnement": "boîte",
     "prix": 1.2
   },
   {
@@ -1967,28 +1417,6 @@
     "unite": "g",
     "conditionnement": "pot",
     "prix": 0.47
-  },
-  {
-    "code": "VC4AECOMM-487986",
-    "nom": "Olives noires Carrefour",
-    "marque": "Carrefour",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/487986_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 200,
-    "unite": "g",
-    "conditionnement": "bocal",
-    "prix": 1.09
-  },
-  {
-    "code": "VC4AECOMM-488032",
-    "nom": "Olives noires dénoyautées Carrefour",
-    "marque": "Carrefour",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/488032_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 150,
-    "unite": "g",
-    "conditionnement": "bocal",
-    "prix": 1.1
   },
   {
     "code": "VC4AECOMM-441966",
@@ -2112,17 +1540,6 @@
     "prix": 1.29
   },
   {
-    "code": "746105069",
-    "nom": "Petits pains sans gluten Panceliac",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/749055_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 80,
-    "unite": "g",
-    "conditionnement": "sachet",
-    "prix": 1.05
-  },
-  {
     "code": "758904356",
     "nom": "Petits pois extra-fins Carrefour",
     "marque": "Carrefour",
@@ -2130,19 +1547,8 @@
     "categorie": "nourriture",
     "contenance": 250,
     "unite": "g",
-    "conditionnement": "boite",
+    "conditionnement": "boîte",
     "prix": 0.9
-  },
-  {
-    "code": "prod1090250",
-    "nom": "Piments du Padrón Carrefour",
-    "marque": "Carrefour",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/147499_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 200,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 1.0
   },
   {
     "code": "prod600079",
@@ -2185,19 +1591,8 @@
     "categorie": "nourriture",
     "contenance": 210,
     "unite": "g",
-    "conditionnement": "boite",
+    "conditionnement": "boîte",
     "prix": 0.63
-  },
-  {
-    "code": "832012860",
-    "nom": "Pois chiches grillés salés Carrefour",
-    "marque": "Carrefour",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/968044_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 125,
-    "unite": "g",
-    "conditionnement": "sachet",
-    "prix": 0.99
   },
   {
     "code": "VC4AECOMM-099178",
@@ -2233,17 +1628,6 @@
     "prix": 0.9
   },
   {
-    "code": "VC4AECOMM-699046",
-    "nom": "Salami en tranches Revilla",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/699046_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 65,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 0.99
-  },
-  {
     "code": "VC4AECOMM-208949",
     "nom": "Sauce piquante piri piri Carrefour",
     "marque": "Carrefour",
@@ -2256,7 +1640,7 @@
   },
   {
     "code": "605901653",
-    "nom": "Sauce tomate a l'huile d'olive Carrefour",
+    "nom": "Sauce tomate à l'huile d'olive Carrefour",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/382986_00_1.jpg",
     "categorie": "nourriture",
@@ -2332,41 +1716,8 @@
     "prix": 0.66
   },
   {
-    "code": "VC4AECOMM-710789",
-    "nom": "Saucisson sec El Pozo",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/710789_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 70,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 0.99
-  },
-  {
-    "code": "VC4AECOMM-699225",
-    "nom": "Saucisson sec en tranches Revilla",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/699225_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 65,
-    "unite": "g",
-    "conditionnement": "barquette",
-    "prix": 0.99
-  },
-  {
-    "code": "prod67237",
-    "nom": "Semoule Gallo",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/200991_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 250,
-    "unite": "g",
-    "conditionnement": "paquet",
-    "prix": 0.92
-  },
-  {
     "code": "VC4AECOMM-099192",
-    "nom": "Semoule a couscous Carrefour",
+    "nom": "Semoule à couscous Carrefour",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/099192_00_1.jpg",
     "categorie": "nourriture",
@@ -2420,17 +1771,6 @@
     "prix": 0.79
   },
   {
-    "code": "663901758",
-    "nom": "Steaks hachés de poulet surgelés Simon's Food",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/293398_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 240,
-    "unite": "g",
-    "conditionnement": "3 x 80 g",
-    "prix": 1.09
-  },
-  {
     "code": "665008995",
     "nom": "Sucettes fraise Chupa Chups",
     "marque": "",
@@ -2451,17 +1791,6 @@
     "unite": "kg",
     "conditionnement": "paquet",
     "prix": 1.1
-  },
-  {
-    "code": "prod460683",
-    "nom": "Thon a l'huile Simpl",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/827718_00_1.jpg",
-    "categorie": "nourriture",
-    "contenance": 73,
-    "unite": "g",
-    "conditionnement": "boite",
-    "prix": 1.08
   },
   {
     "code": "521003798",
@@ -2528,28 +1857,6 @@
     "unite": "ml",
     "conditionnement": "canette",
     "prix": 0.35
-  },
-  {
-    "code": "520660612",
-    "nom": "Boisson a l'orange sans bulles Trina",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/760876_00_1.jpg",
-    "categorie": "soft",
-    "contenance": 330,
-    "unite": "ml",
-    "conditionnement": "canette",
-    "prix": 0.71
-  },
-  {
-    "code": "520660626",
-    "nom": "Boisson au citron sans bulles Trina",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/760875_00_1.jpg",
-    "categorie": "soft",
-    "contenance": 330,
-    "unite": "ml",
-    "conditionnement": "canette",
-    "prix": 0.71
   },
   {
     "code": "520660783",
@@ -2640,17 +1947,6 @@
     "prix": 0.75
   },
   {
-    "code": "VC4AECOMM-102423",
-    "nom": "Camomille en sachets Ship",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/102423_00_1.jpg",
-    "categorie": "soft",
-    "contenance": 0,
-    "unite": "piece",
-    "conditionnement": "25 sachets",
-    "prix": 0.74
-  },
-  {
     "code": "VC4AECOMM-720284",
     "nom": "Cola Carrefour",
     "marque": "Carrefour",
@@ -2707,7 +2003,7 @@
   },
   {
     "code": "520661062",
-    "nom": "Eau minerale Carrefour",
+    "nom": "Eau minérale Carrefour",
     "marque": "Carrefour",
     "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/609744_00_1.jpg",
     "categorie": "soft",
@@ -2715,72 +2011,6 @@
     "unite": "L",
     "conditionnement": "bouteille",
     "prix": 0.39
-  },
-  {
-    "code": "fprod1200025",
-    "nom": "Eau minerale Font Natura",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/251027_00_1.jpg",
-    "categorie": "soft",
-    "contenance": 500,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 0.22
-  },
-  {
-    "code": "761529067",
-    "nom": "Eau minerale Font Natura",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/181307_00_1.jpg",
-    "categorie": "soft",
-    "contenance": 1.5,
-    "unite": "L",
-    "conditionnement": "bouteille",
-    "prix": 0.25
-  },
-  {
-    "code": "761529075",
-    "nom": "Eau minerale Font Natura",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/230196_00_1.jpg",
-    "categorie": "soft",
-    "contenance": 5,
-    "unite": "L",
-    "conditionnement": "bidon",
-    "prix": 0.65
-  },
-  {
-    "code": "731386916",
-    "nom": "Eau minerale Fuente Primavera",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/181141_00_1.jpg",
-    "categorie": "soft",
-    "contenance": 500,
-    "unite": "ml",
-    "conditionnement": "bouteille",
-    "prix": 0.22
-  },
-  {
-    "code": "695701669",
-    "nom": "Eau minerale Fuente Primavera",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/474835_00_1.jpg",
-    "categorie": "soft",
-    "contenance": 1.5,
-    "unite": "L",
-    "conditionnement": "bouteille",
-    "prix": 0.25
-  },
-  {
-    "code": "530014537",
-    "nom": "Eau minerale Fuente Primavera",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/507701_00_1.jpg",
-    "categorie": "soft",
-    "contenance": 5,
-    "unite": "L",
-    "conditionnement": "bidon",
-    "prix": 0.65
   },
   {
     "code": "VC4AECOMM-231781",
@@ -2871,17 +2101,6 @@
     "prix": 0.35
   },
   {
-    "code": "589701676",
-    "nom": "Soda cola La Casera",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/029588_00_1.jpg",
-    "categorie": "soft",
-    "contenance": 330,
-    "unite": "ml",
-    "conditionnement": "canette",
-    "prix": 0.65
-  },
-  {
     "code": "800038847",
     "nom": "Soda orange Carrefour",
     "marque": "Carrefour",
@@ -2904,17 +2123,6 @@
     "prix": 0.35
   },
   {
-    "code": "VC4AECOMM-102426",
-    "nom": "Thé vert en sachets Ship",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/102426_00_1.jpg",
-    "categorie": "soft",
-    "contenance": 0,
-    "unite": "piece",
-    "conditionnement": "25 sachets",
-    "prix": 0.86
-  },
-  {
     "code": "520660438",
     "nom": "Tonic Carrefour",
     "marque": "Carrefour",
@@ -2924,27 +2132,5 @@
     "unite": "ml",
     "conditionnement": "canette",
     "prix": 0.37
-  },
-  {
-    "code": "520660436",
-    "nom": "Tonic Nordic Mist",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/362233_00_1.jpg",
-    "categorie": "soft",
-    "contenance": 250,
-    "unite": "ml",
-    "conditionnement": "canette",
-    "prix": 0.65
-  },
-  {
-    "code": "769403245",
-    "nom": "Tonic Nordic Mist Blue",
-    "marque": "",
-    "imageUrl": "https://static.carrefour.es/hd_350x_/img_pim_food/778181_00_1.jpg",
-    "categorie": "soft",
-    "contenance": 250,
-    "unite": "ml",
-    "conditionnement": "canette",
-    "prix": 0.65
   }
 ]
