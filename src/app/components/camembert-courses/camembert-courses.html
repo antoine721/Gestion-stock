@@ -1,0 +1,49 @@
+<div class="camembert">
+  <div class="anneau">
+    <svg viewBox="0 0 160 160" role="img" aria-label="Repartition du budget des courses par rayon">
+      <g transform="rotate(-90 80 80)">
+        @for (arc of arcs(); track arc.part.categorie) {
+          <circle
+            class="part"
+            [class.estompee]="!estEnAvant(arc.part.categorie)"
+            [attr.cx]="80"
+            [attr.cy]="80"
+            [attr.r]="rayon"
+            [attr.stroke]="'var(--teinte-' + arc.part.teinte + ')'"
+            [attr.stroke-width]="epaisseur"
+            [attr.stroke-dasharray]="arc.longueur + ' ' + arc.reste"
+            [attr.stroke-dashoffset]="arc.decalage"
+            (mouseenter)="survolee.set(arc.part.categorie)"
+            (mouseleave)="survolee.set('')"
+          >
+            <title>{{ arc.part.libelle }} : {{ fmtEuro(arc.part.montant) }}</title>
+          </circle>
+        }
+      </g>
+    </svg>
+    <!-- Le trou de l'anneau porte le total : c'est l'autre chiffre qu'on vient
+         chercher, autant le mettre au centre du regard. -->
+    <div class="centre">
+      <span class="total num">{{ fmtEuro(total()) }}</span>
+      <span class="etiquette muted">de courses</span>
+    </div>
+  </div>
+
+  <ul class="legende">
+    @for (part of parts(); track part.categorie) {
+      <li
+        [class.estompee]="!estEnAvant(part.categorie)"
+        (mouseenter)="survolee.set(part.categorie)"
+        (mouseleave)="survolee.set('')"
+      >
+        <span
+          class="pastille-rayon"
+          [style.background]="'var(--teinte-' + part.teinte + ')'"
+        ></span>
+        <span class="nom">{{ part.libelle }}</span>
+        <span class="montant num">{{ fmtEuro(part.montant) }}</span>
+        <span class="pourcent muted num">{{ fmtNombre(part.part) }} %</span>
+      </li>
+    }
+  </ul>
+</div>

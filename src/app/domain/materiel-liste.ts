@@ -19,6 +19,7 @@ export const CATEGORIES_ARTICLE: readonly {
   { id: 'mobilier', libelle: 'Mobilier', emoji: '🪑' },
   { id: 'cuisine', libelle: 'Cuisine', emoji: '🍳' },
   { id: 'vaisselle', libelle: 'Vaisselle', emoji: '🥤' },
+  { id: 'intendance', libelle: 'Intendance', emoji: '🧻' },
   { id: 'transport', libelle: 'Transport', emoji: '🚚' },
   { id: 'hebergement', libelle: 'Hebergement', emoji: '⛺' },
   { id: 'autre', libelle: 'Autre', emoji: '📦' },
@@ -52,10 +53,13 @@ export function articleVierge(id: string): Article {
     mode: 'achat',
     statut: 'a-prevoir',
     quantite: 1,
+    qteParPersonne: 0,
     prixUnitaire: 0,
     caution: 0,
     payeParId: '',
     notes: '',
+    refCatalogue: '',
+    imageUrl: '',
   };
 }
 

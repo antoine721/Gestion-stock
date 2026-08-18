@@ -1,6 +1,14 @@
-import { Article, ExtraNourriture, LigneAchat, UniteIngredient } from './models';
+import {
+  Article,
+  ArticleCourse,
+  CategorieCourse,
+  ExtraNourriture,
+  LigneAchat,
+  UniteIngredient,
+} from './models';
 import { LigneCuisine } from './nourriture';
 import { coutArticle } from './materiel-liste';
+import { categorieDuProduit } from './categories-courses';
 import { fmtVolume } from './format';
 
 /**
@@ -10,12 +18,13 @@ import { fmtVolume } from './format';
  * rassembler et cocher.
  */
 
-export type GroupeCourses = 'bar' | 'cuisine' | 'grignotage' | 'materiel';
+export type GroupeCourses = 'bar' | 'cuisine' | 'grignotage' | 'rayon' | 'materiel';
 
 export const GROUPES_COURSES: readonly { id: GroupeCourses; libelle: string; emoji: string }[] = [
   { id: 'bar', libelle: 'Bar & boissons', emoji: '🍹' },
   { id: 'cuisine', libelle: 'Cuisine', emoji: '🍳' },
   { id: 'grignotage', libelle: 'Grignotage & divers', emoji: '🥨' },
+  { id: 'rayon', libelle: 'Le rayon', emoji: '🛒' },
   { id: 'materiel', libelle: 'Materiel a acheter', emoji: '🛠️' },
 ];
 
@@ -23,6 +32,8 @@ export interface LigneCourses {
   /** Identifiant stable, prefixe par le groupe : c'est lui qu'on coche. */
   id: string;
   groupe: GroupeCourses;
+  /** Le rayon, qui donne sa couleur a la ligne et sa part au camembert. */
+  categorie: CategorieCourse;
   nom: string;
   /** « 3 × 75 cl », « 2 kg », « 15 piece(s) »... */
   quantite: string;
@@ -30,6 +41,8 @@ export interface LigneCourses {
   detail: string;
   prix: number;
   cochee: boolean;
+  /** La photo du produit, quand on en a une. */
+  imageUrl: string;
 }
 
 function qte(valeur: number, unite: UniteIngredient): string {
@@ -43,6 +56,7 @@ export function listeCoursesUnifiee(
   cuisine: readonly LigneCuisine[],
   grignotage: readonly ExtraNourriture[],
   articles: readonly Article[],
+  rayon: readonly ArticleCourse[],
   cochees: ReadonlySet<string>,
 ): LigneCourses[] {
   const lignes: LigneCourses[] = [];
@@ -53,11 +67,13 @@ export function listeCoursesUnifiee(
     lignes.push({
       id,
       groupe: 'bar',
+      categorie: categorieDuProduit(ligne.produit.categorie),
       nom: ligne.produit.nom,
       quantite: `${ligne.bouteilles} × ${fmtVolume(ligne.produit.contenanceMl)}`,
       detail: ligne.detail.map((x) => x.boissonNom).join(' · '),
       prix: ligne.prixTotal,
       cochee: cochees.has(id),
+      imageUrl: '',
     });
   }
 
@@ -67,6 +83,7 @@ export function listeCoursesUnifiee(
     lignes.push({
       id,
       groupe: 'cuisine',
+      categorie: 'nourriture',
       nom: ligne.nom,
       // Ce qu'on met dans le caddie, pas le besoin theorique : « 2 kg », pas
       // « 1,4 kg ». C'est la ligne qu'on lit au magasin.
@@ -77,6 +94,7 @@ export function listeCoursesUnifiee(
       detail: ligne.plats.join(' · '),
       prix: ligne.prixTotal,
       cochee: cochees.has(id),
+      imageUrl: '',
     });
   }
 
@@ -86,11 +104,30 @@ export function listeCoursesUnifiee(
     lignes.push({
       id,
       groupe: 'grignotage',
+      categorie: 'nourriture',
       nom: extra.nom,
       quantite: `× ${Math.max(0, extra.quantite)}`,
       detail: '',
       prix: Math.max(0, extra.quantite) * Math.max(0, extra.prixUnitaire),
       cochee: cochees.has(id),
+      imageUrl: '',
+    });
+  }
+
+  // Le rayon : ce qu'on est alle chercher soi-meme, avec sa photo et son
+  // rayon choisi a la main.
+  for (const article of rayon) {
+    if (article.nom.trim().length === 0) continue;
+    lignes.push({
+      id: `rayon:${article.id}`,
+      groupe: 'rayon',
+      categorie: article.categorie,
+      nom: article.nom,
+      quantite: `× ${Math.max(0, article.quantite)}`,
+      detail: article.marque,
+      prix: Math.max(0, article.quantite) * Math.max(0, article.prixUnitaire),
+      cochee: article.achete,
+      imageUrl: article.imageUrl,
     });
   }
 
@@ -100,11 +137,13 @@ export function listeCoursesUnifiee(
     lignes.push({
       id: `materiel:${article.id}`,
       groupe: 'materiel',
+      categorie: 'materiel',
       nom: article.nom,
       quantite: `× ${Math.max(0, article.quantite)}`,
       detail: article.notes,
       prix: coutArticle(article),
       cochee: article.statut === 'achete' || article.statut === 'recupere',
+      imageUrl: article.imageUrl,
     });
   }
 

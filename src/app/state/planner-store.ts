@@ -39,6 +39,7 @@ import { infosVierges } from '../domain/evenement';
 import { articleVierge, budgetMateriel } from '../domain/materiel-liste';
 import { budgetGlobal, repartitionGlobale } from '../domain/stats';
 import { listeCoursesUnifiee, resumerCourses } from '../domain/courses';
+import { repartirParCategorie } from '../domain/categories-courses';
 import {
   creneauVierge,
   demandesMusicales,
@@ -52,6 +53,7 @@ import {
 import {
   Ajustement,
   Article,
+  ArticleCourse,
   CategoriePaiement,
   Cibles,
   Creneau,
@@ -133,6 +135,7 @@ export const PARTAGE_INITIAL: Partage = {
   reponsesFormulaire: [],
   categoriesPaiement: [],
   coursesCochees: [],
+  coursesLibres: [],
   programme: { creneaux: [], tracklist: [] },
   djSets: [],
   infos: infosVierges(),
@@ -319,18 +322,25 @@ export class PlannerStore {
     coursesCuisine(this.nourriture(), this.cadre().invites, this.partage().jours),
   );
 
-  /** La liste de courses unifiee : bar + cuisine + grignotage + materiel. */
+  /** Ce qu'on a pose a la main dans le rayon. */
+  readonly coursesLibres = computed(() => this.partage().coursesLibres);
+
+  /** La liste unifiee : bar + cuisine + grignotage + rayon + materiel. */
   readonly listeCourses = computed(() =>
     listeCoursesUnifiee(
       this.panier().lignes,
       this.lignesCuisine(),
       this.nourriture().extras,
       this.articles(),
+      this.coursesLibres(),
       new Set(this.partage().coursesCochees),
     ),
   );
 
   readonly resumeCourses = computed(() => resumerCourses(this.listeCourses()));
+
+  /** Le total des courses rayon par rayon : les parts du camembert. */
+  readonly repartitionCourses = computed(() => repartirParCategorie(this.listeCourses()));
 
   readonly programme = computed(() => this.partage().programme);
 
@@ -435,6 +445,7 @@ export class PlannerStore {
         tracklist: partage.programme.tracklist ?? [],
       },
       djSets: partage.djSets ?? [],
+      coursesLibres: partage.coursesLibres ?? [],
       infos: { ...infosVierges(), ...partage.infos },
       reponsesFormulaire: partage.reponsesFormulaire.map((x) => ({
         ...x,
@@ -921,6 +932,14 @@ export class PlannerStore {
    * cocher une ligne materiel bascule le statut de l'article, pas la liste.
    */
   basculerCourse(ligneId: string): void {
+    // Le rayon porte son propre etat « achete » : c'est lui qui fait foi.
+    if (ligneId.startsWith('rayon:')) {
+      const articleId = ligneId.slice('rayon:'.length);
+      const article = this.coursesLibres().find((x) => x.id === articleId);
+      if (article) this.majCourseLibre(articleId, { achete: !article.achete });
+      return;
+    }
+
     if (ligneId.startsWith('materiel:')) {
       const articleId = ligneId.slice('materiel:'.length);
       const article = this.articles().find((x) => x.id === articleId);
@@ -934,6 +953,31 @@ export class PlannerStore {
     if (cochees.has(ligneId)) cochees.delete(ligneId);
     else cochees.add(ligneId);
     this.majPartage({ coursesCochees: [...cochees] });
+  }
+
+  // -- Le rayon : ce qu'on ajoute a la main a la liste ----------------------
+
+  /**
+   * Pose un article dans le rayon. Le nom et la photo viennent de la
+   * recherche ; la quantite et le prix sont ceux que l'organisateur a saisis —
+   * on ne devine jamais un prix.
+   */
+  ajouterCourseLibre(article: Omit<ArticleCourse, 'id' | 'achete'>): string {
+    const id = identifiant();
+    this.majPartage({
+      coursesLibres: [...this.coursesLibres(), { ...article, id, achete: false }],
+    });
+    return id;
+  }
+
+  majCourseLibre(articleId: string, patch: Partial<Omit<ArticleCourse, 'id'>>): void {
+    this.majPartage({
+      coursesLibres: this.coursesLibres().map((x) => (x.id === articleId ? { ...x, ...patch } : x)),
+    });
+  }
+
+  supprimerCourseLibre(articleId: string): void {
+    this.majPartage({ coursesLibres: this.coursesLibres().filter((x) => x.id !== articleId) });
   }
 
   // -- Programme : planning et tracklist -----------------------------------
