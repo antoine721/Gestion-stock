@@ -82,6 +82,20 @@ describe('invites nommes', () => {
 });
 
 describe('jours sur place', () => {
+  it('ne perd pas le nombre de jours des fiches d’avant', () => {
+    // Ces fiches ne portaient qu'un compte. Le jeter afficherait « — » sur
+    // des invites dont on savait qu'ils restaient deux jours.
+    const ancien = normaliserInvite({ id: 'x', participantId: 'a', joursPresence: 2 } as never);
+    expect(ancien.joursPresents).toEqual([1, 2]);
+
+    // Une fiche deja migree n'est pas retouchee.
+    const migre = normaliserInvite({ id: 'y', participantId: 'a', joursPresents: [2, 3] } as never);
+    expect(migre.joursPresents).toEqual([2, 3]);
+
+    // Et « pas renseigne » reste « pas renseigne ».
+    expect(normaliserInvite({ id: 'z', participantId: 'a' }).joursPresents).toEqual([]);
+  });
+
   it('reconnait « tous les jours » quelle que soit la duree', () => {
     const complet = invite('a', { joursPresents: tousLesJours(3) });
     expect(presenceComplete(complet, 3)).toBe(true);
