@@ -172,16 +172,15 @@
     (fermee)="detailId.set('')"
     (supprimee)="supprimer(article)"
   >
-    <label class="champ">
-      <span>Nom</span>
-      <input
-        type="text"
-        [value]="article.nom"
-        (input)="maj(article, { nom: $any($event.target).value })"
-      />
-    </label>
-
-    <div class="grid-champs">
+    <div class="compact">
+      <label class="champ large">
+        <span>Nom</span>
+        <input
+          type="text"
+          [value]="article.nom"
+          (input)="maj(article, { nom: $any($event.target).value })"
+        />
+      </label>
       <label class="champ">
         <span>Categorie</span>
         <select (change)="maj(article, { categorie: $any($event.target).value })">
@@ -202,21 +201,20 @@
           }
         </select>
       </label>
+      <label class="champ">
+        <span>Statut</span>
+        <select (change)="maj(article, { statut: $any($event.target).value })">
+          @for (statut of statuts; track statut.id) {
+            <option [value]="statut.id" [selected]="statut.id === article.statut">
+              {{ statut.libelle }}
+            </option>
+          }
+        </select>
+      </label>
     </div>
 
-    <label class="champ">
-      <span>Statut</span>
-      <select (change)="maj(article, { statut: $any($event.target).value })">
-        @for (statut of statuts; track statut.id) {
-          <option [value]="statut.id" [selected]="statut.id === article.statut">
-            {{ statut.libelle }}
-          </option>
-        }
-      </select>
-    </label>
-
     <span class="sous-titre">Cout</span>
-    <div class="grid-champs">
+    <div class="compact">
       <label class="champ">
         <span>Quantite</span>
         <input
@@ -237,43 +235,46 @@
           (input)="majNombre(article, 'prixUnitaire', $any($event.target).value)"
         />
       </label>
+      @if (article.mode === 'location') {
+        <label class="champ">
+          <span>Caution</span>
+          <input
+            type="number"
+            min="0"
+            step="5"
+            title="Avancee puis rendue apres l'evenement"
+            [value]="article.caution"
+            (input)="majNombre(article, 'caution', $any($event.target).value)"
+          />
+        </label>
+      }
     </div>
-    @if (article.mode === 'location') {
-      <label class="champ">
-        <span>Caution (rendue apres l'evenement)</span>
-        <input
-          type="number"
-          min="0"
-          step="5"
-          [value]="article.caution"
-          (input)="majNombre(article, 'caution', $any($event.target).value)"
-        />
-      </label>
-    }
     <p class="total-ligne">
       Total de la ligne <strong class="num">{{ fmtEuro(coutArticle(article)) }}</strong>
     </p>
 
     <span class="sous-titre">Qui s'en occupe</span>
-    <label class="champ">
-      <span>Paye par</span>
-      <select (change)="maj(article, { payeParId: $any($event.target).value })">
-        <option value="" [selected]="!article.payeParId">— A decider</option>
-        @for (participant of store.participants(); track participant.id) {
-          <option [value]="participant.id" [selected]="participant.id === article.payeParId">
-            {{ participant.nom }}
-          </option>
-        }
-      </select>
-    </label>
-    <label class="champ">
-      <span>Notes</span>
-      <textarea
-        rows="3"
-        placeholder="Ou, chez qui, reference, horaires de retrait..."
-        [value]="article.notes"
-        (input)="maj(article, { notes: $any($event.target).value })"
-      ></textarea>
-    </label>
+    <div class="compact">
+      <label class="champ">
+        <span>Paye par</span>
+        <select (change)="maj(article, { payeParId: $any($event.target).value })">
+          <option value="" [selected]="!article.payeParId">— A decider</option>
+          @for (participant of store.participants(); track participant.id) {
+            <option [value]="participant.id" [selected]="participant.id === article.payeParId">
+              {{ participant.nom }}
+            </option>
+          }
+        </select>
+      </label>
+      <label class="champ large">
+        <span>Notes</span>
+        <textarea
+          rows="2"
+          placeholder="Ou, chez qui, reference, horaires de retrait..."
+          [value]="article.notes"
+          (input)="maj(article, { notes: $any($event.target).value })"
+        ></textarea>
+      </label>
+    </div>
   </app-panneau>
 }

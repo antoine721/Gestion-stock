@@ -1,0 +1,88 @@
+@if (aCaler().length > 0) {
+  <!-- Sans heure de debut, un bloc n'a pas de place sur la grille : il attend
+       ici plutot que d'atterrir a minuit. -->
+  <div class="a-caler">
+    <span class="etiquette muted">A caler</span>
+    @for (bloc of aCaler(); track bloc.id) {
+      <button
+        type="button"
+        class="jeton-caler"
+        [class.actif]="actif() === bloc.id"
+        (click)="choisi.emit(bloc.id)"
+      >
+        <span class="num">J{{ bloc.jour }}</span> {{ bloc.emoji }} {{ bloc.titre }}
+      </button>
+    }
+  </div>
+}
+
+<div class="grille" [style.--hauteur.px]="hauteurPx()">
+  <div class="axe">
+    @for (heure of heures(); track heure.minute) {
+      <span class="heure num" [style.top.%]="heure.hautPct">
+        @if ($index % pasLibelle() === 0) {
+          {{ heure.libelle }}
+        }
+      </span>
+    }
+  </div>
+
+  <div class="colonnes">
+    @for (journee of journees(); track journee.jour) {
+      <div class="colonne">
+        <div class="tete">
+          <span class="jour-nom">
+            J{{ journee.jour }}
+            @if (journee.date) {
+              <span class="muted date">{{ journee.date }}</span>
+            }
+          </span>
+          <button
+            type="button"
+            class="discret"
+            title="Ajouter ce jour-la"
+            (click)="ajout.emit(journee.jour)"
+          >
+            +
+          </button>
+        </div>
+
+        <div class="piste">
+          @for (heure of heures(); track heure.minute) {
+            <span class="ligne" [style.top.%]="heure.hautPct"></span>
+          }
+
+          @if (journee.poses.length === 0) {
+            <span class="rien muted">{{ videLibelle() }}</span>
+          }
+
+          @for (pose of journee.poses; track pose.bloc.id) {
+            <button
+              type="button"
+              class="bloc"
+              [class]="'bloc ton-' + pose.bloc.ton"
+              [class.actif]="actif() === pose.bloc.id"
+              [style.top.%]="pose.haut"
+              [style.height.%]="pose.hauteur"
+              [style.left.%]="pose.gauche"
+              [style.width.%]="pose.largeur"
+              [title]="
+                pose.bloc.titre +
+                ' · ' +
+                pose.bloc.debut +
+                (pose.bloc.fin ? ' → ' + pose.bloc.fin : '')
+              "
+              (click)="choisi.emit(pose.bloc.id)"
+            >
+              <span class="bloc-heure num">{{ pose.bloc.debut }}</span>
+              <span class="bloc-titre">{{ pose.bloc.emoji }} {{ pose.bloc.titre }}</span>
+              @if (pose.bloc.detail) {
+                <span class="bloc-detail">{{ pose.bloc.detail }}</span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

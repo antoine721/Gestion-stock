@@ -13,17 +13,6 @@
 
 /* -- Le panneau de detail --------------------------------------------------- */
 
-.sous-titre {
-  display: block;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--bord);
-  font-size: 0.6875rem;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--texte-doux);
-}
-
 /* -- Volontaires et demandes ------------------------------------------------ */
 
 .colonnes-dj {

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { PlannerStore } from '../../state/planner-store';
 import { Modale } from '../modale/modale';
 import { Panneau } from '../panneau/panneau';
+import { BlocCalendrier, Calendrier } from '../calendrier/calendrier';
 import {
   STATUTS_DJ_SET,
   libelleVolontariat,
@@ -9,6 +10,7 @@ import {
   trierDjSets,
   volontairesDj,
 } from '../../domain/programme';
+import { dateDuJour } from '../../domain/evenement';
 import { fmtEntier } from '../../domain/format';
 import { DjSet, StatutDjSet } from '../../domain/models';
 
@@ -23,13 +25,16 @@ interface BrouillonSet {
 }
 
 /**
- * Le coin DJ : le tableau horaire des sets et son workflow. Un invite
+ * Le coin DJ : la nuit en calendrier, et le workflow des sets. Un invite
  * demande un creneau, l'orga valide (ou refuse), et le set finit « joue ».
- * La creation passe par une modale, le suivi par le panneau lateral.
+ *
+ * Le calendrier passe devant le tableau parce que c'est la question qu'on se
+ * pose ici : est-ce que la soiree est couverte, et est-ce que deux DJ ne sont
+ * pas programmes en meme temps ? Un tableau trie ne le dit pas.
  */
 @Component({
   selector: 'app-section-dj',
-  imports: [Modale, Panneau],
+  imports: [Calendrier, Modale, Panneau],
   templateUrl: './section-dj.html',
   styleUrl: './section-dj.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,6 +46,36 @@ export class SectionDj {
   protected readonly libelleVolontariat = libelleVolontariat;
 
   protected readonly sets = computed(() => trierDjSets(this.store.djSets()));
+
+  /** Les colonnes du calendrier : un jour du festival, avec sa date. */
+  protected readonly colonnesCalendrier = computed(() => {
+    const format = new Intl.DateTimeFormat('fr-FR', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    });
+    return this.jours().map((jour) => {
+      const date = dateDuJour(this.store.infos().debut, jour);
+      return { jour, date: date ? format.format(date) : '' };
+    });
+  });
+
+  /**
+   * Les sets en blocs. Le statut fait la couleur : un set refuse s'efface, un
+   * set encore en demande reste en alerte tant que personne n'a tranche.
+   */
+  protected readonly blocsCalendrier = computed<BlocCalendrier[]>(() =>
+    this.store.djSets().map((set) => ({
+      id: set.id,
+      jour: set.jour,
+      debut: set.debut,
+      fin: set.fin,
+      titre: set.dj ? this.nomDe(set.dj) : 'DJ a definir',
+      detail: set.style,
+      emoji: '🎧',
+      ton: this.tonStatut(set.statut) || 'neutre',
+    })),
+  );
 
   protected readonly jours = computed(() =>
     Array.from({ length: Math.max(1, this.store.partage().jours) }, (_, i) => i + 1),
@@ -82,9 +117,14 @@ export class SectionDj {
     statut: 'demande',
   });
 
-  protected ouvrirCreation(dj = ''): void {
-    this.brouillon.set({ jour: 1, debut: '', fin: '', dj, style: '', statut: 'demande' });
+  protected ouvrirCreation(dj = '', jour = 1): void {
+    this.brouillon.set({ jour, debut: '', fin: '', dj, style: '', statut: 'demande' });
     this.creationOuverte.set(true);
+  }
+
+  /** Le « + » d'une colonne du calendrier : un set neuf, ce jour-la. */
+  protected ouvrirCreationJour(jour: number): void {
+    this.ouvrirCreation('', jour);
   }
 
   protected majBrouillon(patch: Partial<BrouillonSet>): void {

@@ -401,6 +401,81 @@ button:disabled {
   gap: 0.5rem;
 }
 
+/* -- Le detail : la grammaire commune de tous les panneaux -----------------
+ *
+ * Six ecrans detaillent quelque chose dans le panneau lateral (un invite, un
+ * profil, un article, une mission, un set DJ, une interpretation). Ils
+ * partagent la meme grammaire, definie ici plutot que recopiee six fois : un
+ * chapitre, une grille dense, une rangee de cases a cocher.
+ *
+ * La grille est serree exprès : trois champs courts sur une ligne valent mieux
+ * qu'une colonne de champs pleine largeur qu'il faut faire defiler.
+ */
+
+.compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  align-items: end;
+  gap: 0.5rem 0.75rem;
+}
+
+/* Ce qui ne se laisse pas couper : un nom, une note, une liste de choix. */
+.compact .large {
+  grid-column: 1 / -1;
+}
+
+.compact .champ > span {
+  font-size: 0.625rem;
+}
+
+/* Le chapitre d'une section du panneau. */
+.sous-titre {
+  display: block;
+  margin-bottom: -0.25rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--bord);
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texte-doux);
+}
+
+/* Une rangee de cases a cocher, alignees sur la ligne des champs. */
+.cases-cochees {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+}
+
+.case-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--texte-doux);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.case-mini input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--ok);
+}
+
+.case-mini.regle {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+/* Ce que la personne a declare elle-meme : lecture seule, on ne le saisit pas. */
+.declare {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
 /* -- Controle segmente ---------------------------------------------------- */
 
 .segments {

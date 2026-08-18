@@ -335,6 +335,13 @@ export interface Repas {
   typePlat: TypePlat;
   /** Le plat prevu. Vide = repas pas encore decide. */
   plat: string;
+  /**
+   * On a decide de ne PAS faire ce repas : brunch qui remplace le petit
+   * dejeuner et le midi, dernier soir ou tout le monde est reparti. C'est une
+   * decision prise, pas un oubli — la case ne compte donc plus parmi les repas
+   * a decider.
+   */
+  sansRepas: boolean;
   coutParPersonne: number;
   /** Nombre de convives pour CE repas. 0 = tous les invites. */
   convives: number;

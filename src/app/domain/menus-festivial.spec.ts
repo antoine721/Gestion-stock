@@ -12,6 +12,7 @@ function nourriture(): Nourriture {
       moment: menu.moment,
       typePlat: menu.typePlat,
       plat: menu.plat,
+      sansRepas: false,
       coutParPersonne: 0,
       convives: 0,
       vegetarienPrevu: menu.vegetarienPrevu,
