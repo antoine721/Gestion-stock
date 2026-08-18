@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { listeCoursesUnifiee, resumerCourses } from './courses';
+import { listeCoursesUnifiee, normaliserArticleCourse, resumerCourses } from './courses';
 import { coursesCuisine } from './nourriture';
 import { articleVierge } from './materiel-liste';
 import { LigneAchat, Nourriture, Produit } from './models';
@@ -143,6 +143,53 @@ describe('liste de courses unifiee', () => {
     expect(resume.total).toBe(50);
     expect(resume.restant).toBe(20);
     expect(resume.cochees).toBe(1);
+  });
+});
+
+describe('articles poses avant l’ajout des contenances', () => {
+  /**
+   * Le cas qui a casse l'app en production : un rayon rempli par une version
+   * anterieure, sans conditionnement ni contenance. La liste de courses
+   * alimente l'indicateur de la barre laterale, donc une seule ligne ancienne
+   * emportait la page entiere de l'evenement.
+   */
+  const ancien = {
+    id: 'c1',
+    nom: 'Papier toilette',
+    marque: 'Lotus',
+    code: '',
+    imageUrl: '',
+    categorie: 'intendance',
+    quantite: 3,
+    prixUnitaire: 6.9,
+    achete: false,
+  } as unknown as Parameters<typeof normaliserArticleCourse>[0];
+
+  it('se completent au chargement au lieu de faire tomber la liste', () => {
+    const normalise = normaliserArticleCourse(ancien);
+
+    expect(normalise.contenance).toBe(0);
+    expect(normalise.unite).toBe('piece');
+    expect(normalise.conditionnement).toBe('');
+    // Les valeurs deja enregistrees ne sont pas ecrasees.
+    expect(normalise.quantite).toBe(3);
+    expect(normalise.nom).toBe('Papier toilette');
+  });
+
+  it('donnent une ligne de courses lisible une fois normalises', () => {
+    const lignes = listeCoursesUnifiee(
+      [],
+      [],
+      [],
+      [],
+      [normaliserArticleCourse(ancien)],
+      new Set(),
+    );
+
+    expect(lignes).toHaveLength(1);
+    expect(lignes[0].quantite).toBe('× 3');
+    expect(lignes[0].detail).toBe('Lotus');
+    expect(lignes[0].prix).toBeCloseTo(20.7);
   });
 });
 

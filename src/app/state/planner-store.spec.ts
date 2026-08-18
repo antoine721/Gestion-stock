@@ -215,6 +215,39 @@ describe('PlannerStore', () => {
     expect(store.listeCourses().find((x) => x.id === ligne!.id)?.cochee).toBe(true);
   });
 
+  it('ouvre un evenement dont le rayon date d’avant les contenances', async () => {
+    // Reproduit la panne : un article enregistre par une version anterieure,
+    // sans conditionnement ni contenance. Sans normalisation au chargement,
+    // la liste de courses jette, et avec elle toute la page de l'evenement.
+    api.evenement = {
+      ...api.evenement,
+      partage: {
+        ...api.evenement.partage,
+        coursesLibres: [
+          {
+            id: 'c1',
+            nom: 'Papier toilette',
+            marque: 'Lotus',
+            quantite: 3,
+            prixUnitaire: 6.9,
+            categorie: 'intendance',
+            achete: false,
+          },
+        ] as never,
+      },
+    };
+
+    await store.ouvrir('test1234');
+
+    expect(() => store.listeCourses()).not.toThrow();
+
+    const pq = store.listeCourses().find((x) => x.id === 'rayon:c1');
+    expect(pq?.quantite).toBe('× 3');
+    expect(pq?.detail).toBe('Lotus');
+    // Le rayon retrouve sa part du camembert au lieu de faire tomber la page.
+    expect(store.repartitionCourses().some((x) => x.categorie === 'intendance')).toBe(true);
+  });
+
   it('valider une reponse du formulaire en fait une fiche, gouts compris', () => {
     store.majPartage({
       jours: 2,

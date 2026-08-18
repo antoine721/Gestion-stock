@@ -63,6 +63,11 @@ export function articleVierge(id: string): Article {
   };
 }
 
+/** Meme filet que pour le rayon : les articles d'avant gardent leurs valeurs. */
+export function normaliserArticle(brut: Partial<Article> & { id: string }): Article {
+  return { ...articleVierge(brut.id), ...brut };
+}
+
 export function coutArticle(article: Article): number {
   return Math.max(0, article.quantite) * Math.max(0, article.prixUnitaire);
 }
