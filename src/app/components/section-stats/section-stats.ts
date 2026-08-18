@@ -3,9 +3,10 @@ import { PlannerStore } from '../../state/planner-store';
 import { fmtEntier, fmtEuro, fmtNombre, fmtVolume } from '../../domain/format';
 
 /**
- * La vue d'ensemble chiffree : le budget global par poste, qui paye quoi, et
- * ce qui reste a preparer. C'est la page qu'on ouvre pour repondre a « on en
- * est ou ? » sans refaire le tour de toutes les pieces.
+ * La vue d'ensemble chiffree : le budget global par poste, et qui paye quoi.
+ * C'est la page qu'on ouvre pour repondre a « ca nous coute combien, et qui
+ * doit combien ? ». Ce qui reste a faire vit dans l'accueil, ou chaque piece
+ * porte deja son propre compteur.
  */
 @Component({
   selector: 'app-section-stats',
@@ -32,86 +33,4 @@ export class SectionStats {
   protected readonly avancesPresentes = computed(() =>
     this.store.repartitionGlobale().some((x) => x.avance > 0),
   );
-
-  protected readonly coutParBuveur = computed(() => {
-    const buveurs = this.store.buveurs();
-    return buveurs > 0 ? this.store.panier().coutBase / buveurs : 0;
-  });
-
-  /** Ce qui reste a faire, toutes pieces confondues : la todo de la fete. */
-  protected readonly resteAFaire = computed(() => {
-    const taches: {
-      espace:
-        | 'alcool'
-        | 'nourriture'
-        | 'utilisateurs'
-        | 'materiel'
-        | 'courses'
-        | 'programme'
-        | 'dj'
-        | 'formulaire';
-      texte: string;
-    }[] = [];
-    const nourriture = this.store.budgetNourriture();
-    if (nourriture.repasManquants > 0) {
-      taches.push({
-        espace: 'nourriture',
-        texte: `${nourriture.repasManquants} repas sans plat prevu`,
-      });
-    }
-    const materiel = this.store.budgetMateriel();
-    if (materiel.aPrevoir > 0) {
-      taches.push({
-        espace: 'materiel',
-        texte: `${materiel.aPrevoir} article(s) encore a prevoir`,
-      });
-    }
-    const sansProfil = this.store.invitesNommes().filter((x) => !x.personneTypeId).length;
-    if (sansProfil > 0) {
-      taches.push({ espace: 'utilisateurs', texte: `${sansProfil} invite(s) sans profil alcool` });
-    }
-    const reponses = this.store.reponsesFormulaire().length;
-    if (reponses > 0) {
-      taches.push({
-        espace: 'formulaire',
-        texte: `${reponses} reponse(s) de formulaire a rattacher`,
-      });
-    }
-    const alertes = this.store.alertes().length;
-    if (alertes > 0) {
-      taches.push({ espace: 'alcool', texte: `${alertes} alerte(s) sur la liste de courses` });
-    }
-    const encaissements = this.store.encaissements();
-    if (encaissements.enAttente > 0) {
-      taches.push({
-        espace: 'utilisateurs',
-        texte: `${encaissements.enAttente} paiement(s) en attente`,
-      });
-    }
-    const courses = this.store.resumeCourses();
-    if (courses.lignes > 0 && courses.cochees < courses.lignes) {
-      taches.push({
-        espace: 'courses',
-        texte: `${courses.lignes - courses.cochees} ligne(s) de courses a acheter`,
-      });
-    }
-    const programme = this.store.resumeProgramme();
-    if (programme.creneaux > 0 && programme.joursVides > 0) {
-      taches.push({
-        espace: 'programme',
-        texte: `${programme.joursVides} jour(s) sans creneau au programme`,
-      });
-    }
-    if (programme.sansAssigne > 0) {
-      taches.push({
-        espace: 'programme',
-        texte: `${programme.sansAssigne} mission(s) sans equipe`,
-      });
-    }
-    const dj = this.store.resumeDj();
-    if (dj.demandes > 0) {
-      taches.push({ espace: 'dj', texte: `${dj.demandes} set(s) DJ en attente de validation` });
-    }
-    return taches;
-  });
 }

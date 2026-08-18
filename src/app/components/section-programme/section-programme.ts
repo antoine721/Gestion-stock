@@ -2,7 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { PlannerStore } from '../../state/planner-store';
 import { Modale } from '../modale/modale';
 import { Panneau } from '../panneau/panneau';
-import { TYPES_CRENEAU, nomDeRef, planningDuJour } from '../../domain/programme';
+import {
+  TYPES_CRENEAU,
+  libelleVolontariat,
+  nomDeRef,
+  planningDuJour,
+} from '../../domain/programme';
 import { dateDuJour } from '../../domain/evenement';
 import { fmtEntier } from '../../domain/format';
 import { Creneau, TypeCreneau } from '../../domain/models';
@@ -34,6 +39,7 @@ export class SectionProgramme {
   protected readonly store = inject(PlannerStore);
   protected readonly fmtEntier = fmtEntier;
   protected readonly types = TYPES_CRENEAU;
+  protected readonly libelleVolontariat = libelleVolontariat;
 
   protected readonly journees = computed(() => {
     const programme = this.store.programme();

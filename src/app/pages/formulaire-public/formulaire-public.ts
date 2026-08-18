@@ -4,6 +4,7 @@ import { Api, InfosPubliques } from '../../state/api';
 import { REGIMES, logistiqueVierge, niveauxVierges } from '../../domain/invites';
 import {
   FAMILLES_ALCOOL,
+  GOODIES,
   INTENSITE_MAX,
   LIBELLE_INTENSITE,
   PALIERS_CONSO,
@@ -46,6 +47,7 @@ export class FormulairePublic {
   protected readonly intensiteMax = INTENSITE_MAX;
   protected readonly teams = TEAMS;
   protected readonly services = SERVICES;
+  protected readonly goodiesCatalogue = GOODIES;
   /** Les trois blocs d'alcool, chacun avec ses boissons et sa question. */
   protected readonly familles = FAMILLES_ALCOOL.map((famille) => ({
     ...famille,
@@ -66,7 +68,12 @@ export class FormulairePublic {
   protected readonly prenom = signal('');
   protected readonly nom = signal('');
   protected readonly surnom = signal('');
-  protected readonly invitePar = signal('');
+  /** L'identifiant du co-organisateur coche, pas son prenom : c'est lui qui
+      recuperera la fiche sans qu'on ait a rapprocher deux orthographes. */
+  protected readonly invitParId = signal('');
+
+  /** Les co-organisateurs a cocher. Vide tant que les infos ne sont pas la. */
+  protected readonly organisateurs = computed(() => this.infos()?.organisateurs ?? []);
 
   // -- Ton sejour -----------------------------------------------------------
 
@@ -90,6 +97,8 @@ export class FormulairePublic {
   protected readonly autreAlcool = signal('');
   protected readonly team = signal<TeamBuveur | ''>('');
   protected readonly servicesPreferes = signal<ReadonlySet<string>>(new Set());
+  protected readonly goodies = signal<ReadonlySet<string>>(new Set());
+  protected readonly goodiesAutre = signal('');
   protected readonly materielApporte = signal('');
   protected readonly besoins = signal('');
   protected readonly commentaire = signal('');
@@ -114,9 +123,12 @@ export class FormulairePublic {
 
   // -- Validation : une etape ne se quitte pas incomplete -------------------
 
-  protected readonly identiteValide = computed(
-    () => this.prenom().trim().length > 0 && this.nom().trim().length > 0,
-  );
+  protected readonly identiteValide = computed(() => {
+    if (!this.prenom().trim() || !this.nom().trim()) return false;
+    // Designer son hote est obligatoire — sauf si l'evenement n'a encore aucun
+    // co-organisateur a proposer, auquel cas il n'y a rien a cocher.
+    return this.organisateurs().length === 0 || this.invitParId() !== '';
+  });
 
   protected readonly sejourValide = computed(() => {
     if (this.sejourComplet() === '') return false;
@@ -208,6 +220,11 @@ export class FormulairePublic {
   /** Le chameau ne repond pas aux questions d'alcool : elles disparaissent. */
   protected readonly sansAlcool = computed(() => this.team() === 'chameau');
 
+  /** Le prenom de l'hote coche, garde en clair sur la reponse. */
+  private nomOrganisateur(): string {
+    return this.organisateurs().find((x) => x.id === this.invitParId())?.nom ?? '';
+  }
+
   protected veutService(id: string): boolean {
     return this.servicesPreferes().has(id);
   }
@@ -217,6 +234,17 @@ export class FormulairePublic {
     if (suivants.has(id)) suivants.delete(id);
     else suivants.add(id);
     this.servicesPreferes.set(suivants);
+  }
+
+  protected veutGoodie(id: string): boolean {
+    return this.goodies().has(id);
+  }
+
+  protected basculerGoodie(id: string): void {
+    const suivants = new Set(this.goodies());
+    if (suivants.has(id)) suivants.delete(id);
+    else suivants.add(id);
+    this.goodies.set(suivants);
   }
 
   // -- Envoi -----------------------------------------------------------------
@@ -233,17 +261,14 @@ export class FormulairePublic {
         prenom: this.prenom().trim(),
         nom: this.nom().trim(),
         surnom: this.surnom().trim(),
-        invitePar: this.invitePar().trim(),
-        accompagnants: 0,
+        invitParId: this.invitParId(),
+        invitePar: this.nomOrganisateur(),
         regime: this.regime(),
         allergies: this.aDesAllergies() === 'oui' ? this.allergies().trim() : '',
-        preferencesBoissons: '',
-        envies: '',
-        recommandations: '',
         commentaire: this.commentaire().trim(),
-        consommations: [],
         stylesMusicaux: this.stylesMusicaux().trim(),
-        // Un curseur laisse a zero ne dit rien : on ne l'envoie pas.
+        // Qui ne boit pas n'a pas de profil alcool : ni gouts, ni rythme, ni
+        // alcool oublie. Le vide est sa reponse, pas un trou a combler.
         boissonsAimees: this.sansAlcool()
           ? []
           : [...this.boissonsAimees().entries()]
@@ -253,6 +278,8 @@ export class FormulairePublic {
         autreAlcool: this.sansAlcool() ? '' : this.autreAlcool().trim(),
         team: this.team(),
         servicesPreferes: [...this.servicesPreferes()],
+        goodies: [...this.goodies()],
+        goodiesAutre: this.goodiesAutre().trim(),
         logistique: {
           ...logistiqueVierge(),
           permis: this.permis() === 'oui',
@@ -261,7 +288,6 @@ export class FormulairePublic {
           sejourComplet: complet,
           placesVoiture: this.voiture() === 'oui' ? this.placesVoiture() : 0,
           chercheCovoiturage: this.chercheCovoiturage(),
-          hebergement: this.tente() === 'oui' ? 'tente' : 'a-definir',
           arrivee: complet ? '' : this.arrivee().trim(),
           depart: complet ? '' : this.depart().trim(),
           materielApporte: this.materielApporte().trim(),
@@ -297,6 +323,8 @@ export class FormulairePublic {
     this.autreAlcool.set('');
     this.team.set('');
     this.servicesPreferes.set(new Set());
+    this.goodies.set(new Set());
+    this.goodiesAutre.set('');
     this.materielApporte.set('');
     this.besoins.set('');
     this.commentaire.set('');

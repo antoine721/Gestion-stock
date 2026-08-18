@@ -132,6 +132,18 @@ export class SectionNourriture {
     this.store.definirRepas(repas.jour, repas.moment, { notes });
   }
 
+  /**
+   * On peut decider de sauter un repas : le brunch remplace le petit dejeuner
+   * et le midi, personne ne mange le soir du depart. La case redevient vide,
+   * et ne compte plus ni dans le budget ni dans les repas sans plat.
+   */
+  protected supprimerRepas(repas: Repas): void {
+    const quoi = repas.plat.trim() || 'ce repas';
+    if (confirm(`Retirer ${quoi} du planning ? La case redeviendra libre.`)) {
+      this.store.supprimerRepas(repas.id);
+    }
+  }
+
   protected majIngredientTexte(
     repas: Repas,
     ingredient: IngredientRepas,

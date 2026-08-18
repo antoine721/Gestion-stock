@@ -69,13 +69,6 @@
   text-transform: uppercase;
 }
 
-.app-nom {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
 .marque h1 {
   margin-top: 0.25rem;
   font-size: 1.1875rem;
@@ -181,6 +174,25 @@
   font-size: 0.6875rem;
 }
 
+/*
+ * La pastille des fiches a valider. Elle reste visible sur la barre du bas en
+ * mobile, contrairement a l'indicateur : une reponse en attente est la seule
+ * chose de la sidebar qui reclame vraiment une action.
+ */
+.espaces .pastille {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.3125rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--fond);
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
 .pied {
   display: flex;
   align-items: center;
@@ -268,11 +280,6 @@
   overflow-y: auto;
 }
 
-.retrait {
-  margin-top: 1rem;
-  text-align: right;
-}
-
 @media (max-width: 68rem) {
   .colonnes {
     grid-template-columns: minmax(0, 1fr);
@@ -299,7 +306,6 @@
     border-radius: 12px;
   }
 
-  .app-nom,
   .profil-carte,
   .groupe-titre {
     display: none;
@@ -373,6 +379,16 @@
 
   .espaces .valeur {
     display: none;
+  }
+
+  .espaces button {
+    position: relative;
+  }
+
+  .espaces .pastille {
+    position: absolute;
+    top: 0.125rem;
+    right: 0.25rem;
   }
 
   /* La barre du bas ne doit jamais recouvrir le contenu. */

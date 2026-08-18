@@ -2,15 +2,6 @@
   margin-bottom: 1rem;
 }
 
-.avertissement {
-  margin-bottom: 1rem;
-  padding: 0.5625rem 0.75rem;
-  border-radius: var(--rayon-petit);
-  background: var(--warn-doux);
-  color: var(--warn);
-  font-size: 0.8125rem;
-}
-
 /* -- Le calendrier : une colonne par jour ---------------------------------- */
 
 .calendrier {

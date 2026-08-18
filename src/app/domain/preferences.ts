@@ -256,6 +256,85 @@ export function libelleServices(ids: readonly string[]): string {
     .join(' · ');
 }
 
+// ---------------------------------------------------------------------------
+// Goodies : ce qu'on fait floquer aux couleurs du festival
+// ---------------------------------------------------------------------------
+
+/**
+ * Le catalogue des goodies proposes au formulaire. On peut a peu pres tout
+ * faire floquer : la liste est large exprès, parce qu'une case a cocher coute
+ * moins cher qu'une commande ratee. Elle sert a mesurer l'envie AVANT de
+ * commander, pas a promettre quoi que ce soit — et « Autre » recueille les
+ * idees qu'on n'avait pas vues venir.
+ */
+export interface OptionGoodie {
+  id: string;
+  emoji: string;
+  libelle: string;
+  /** Le rayon : de quoi grouper la liste sans la trier a la main. */
+  famille: 'vetement' | 'accessoire' | 'boisson' | 'souvenir';
+}
+
+export const GOODIES: readonly OptionGoodie[] = [
+  { id: 't-shirt', emoji: '👕', libelle: 'T-shirt', famille: 'vetement' },
+  { id: 'debardeur', emoji: '🎽', libelle: 'Debardeur', famille: 'vetement' },
+  { id: 'sweat', emoji: '🧥', libelle: 'Sweat a capuche', famille: 'vetement' },
+  { id: 'casquette', emoji: '🧢', libelle: 'Casquette', famille: 'vetement' },
+  { id: 'bob', emoji: '🎩', libelle: 'Bob', famille: 'vetement' },
+  { id: 'chaussettes', emoji: '🧦', libelle: 'Chaussettes', famille: 'vetement' },
+  { id: 'bandana', emoji: '🧣', libelle: 'Bandana', famille: 'vetement' },
+  { id: 'poncho', emoji: '☂️', libelle: 'Poncho de pluie', famille: 'vetement' },
+  { id: 'lunettes', emoji: '🕶️', libelle: 'Lunettes de soleil', famille: 'accessoire' },
+  { id: 'briquet', emoji: '🔥', libelle: 'Briquet', famille: 'accessoire' },
+  { id: 'porte-cles', emoji: '🔑', libelle: 'Porte-cles', famille: 'accessoire' },
+  { id: 'bracelet', emoji: '🎗️', libelle: 'Bracelet tissu', famille: 'accessoire' },
+  { id: 'bracelet-led', emoji: '💡', libelle: 'Bracelet lumineux', famille: 'accessoire' },
+  { id: 'eventail', emoji: '🪭', libelle: 'Eventail', famille: 'accessoire' },
+  { id: 'tote-bag', emoji: '🛍️', libelle: 'Tote bag', famille: 'accessoire' },
+  { id: 'badge', emoji: '📛', libelle: "Badge / pin's", famille: 'accessoire' },
+  { id: 'ecocup', emoji: '🥤', libelle: 'Gobelet reutilisable', famille: 'boisson' },
+  { id: 'gourde', emoji: '🍶', libelle: 'Gourde', famille: 'boisson' },
+  { id: 'decapsuleur', emoji: '🍺', libelle: 'Decapsuleur', famille: 'boisson' },
+  { id: 'verre', emoji: '🥃', libelle: 'Verre grave', famille: 'boisson' },
+  { id: 'stickers', emoji: '🏷️', libelle: 'Stickers', famille: 'souvenir' },
+  { id: 'affiche', emoji: '🖼️', libelle: 'Affiche', famille: 'souvenir' },
+  { id: 'photo', emoji: '📸', libelle: 'Photo souvenir', famille: 'souvenir' },
+  { id: 'drapeau', emoji: '🏴', libelle: 'Drapeau', famille: 'souvenir' },
+];
+
+export const LIBELLE_GOODIE = new Map(GOODIES.map((x) => [x.id, `${x.emoji} ${x.libelle}`]));
+
+/** « 👕 T-shirt · 🏷️ Stickers » — les goodies choisis, en clair. */
+export function libelleGoodies(ids: readonly string[]): string {
+  return ids
+    .map((id) => LIBELLE_GOODIE.get(id))
+    .filter((x): x is string => !!x)
+    .join(' · ');
+}
+
+export interface DemandeGoodie {
+  id: string;
+  libelle: string;
+  nombre: number;
+}
+
+/**
+ * Combien de personnes veulent chaque goodie, du plus demande au moins
+ * demande. C'est ce classement qui dit quoi commander : on ne fait floquer
+ * que ce qui interesse assez de monde.
+ */
+export function resumerGoodies(choix: readonly { goodies: string[] }[]): DemandeGoodie[] {
+  const total = new Map<string, number>();
+  for (const personne of choix) {
+    for (const id of new Set(personne.goodies)) {
+      total.set(id, (total.get(id) ?? 0) + 1);
+    }
+  }
+  return GOODIES.filter((x) => (total.get(x.id) ?? 0) > 0)
+    .map((x) => ({ id: x.id, libelle: `${x.emoji} ${x.libelle}`, nombre: total.get(x.id) ?? 0 }))
+    .sort((a, b) => b.nombre - a.nombre || a.libelle.localeCompare(b.libelle));
+}
+
 /** « Biere (je bois que ca) · Rhum (j'aime bien) » — les gouts, en clair. */
 export function libelleBoissonsAimees(gouts: readonly GoutBoisson[]): string {
   return gouts
