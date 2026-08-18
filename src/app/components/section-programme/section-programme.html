@@ -23,8 +23,8 @@
   </div>
 
   <p class="intro muted">
-    Tout le monde participe : chaque creneau est une mission, avec son equipe. Clique sur une carte
-    pour ouvrir son detail et assigner du monde — les equipes changent d'un creneau a l'autre.
+    Chaque creneau est une mission avec son equipe. Clique une carte pour l'ouvrir et y assigner du
+    monde.
   </p>
 
   @if (vue() === 'calendrier') {
@@ -107,9 +107,7 @@
       <h2>🙋 Les volontaires</h2>
       <span class="muted num">{{ fmtEntier(store.volontaires().length) }}</span>
     </div>
-    <p class="intro muted">
-      Ce que les invites ont envie de faire, d'apres leurs fiches : de quoi remplir les missions.
-    </p>
+    <p class="intro muted">Ce que les invites ont coche au formulaire, ou ecrit sur leur fiche.</p>
     <ul class="liste-volontaires">
       @for (invite of store.volontaires(); track invite.id) {
         <li>

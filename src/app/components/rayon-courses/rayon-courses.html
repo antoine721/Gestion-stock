@@ -7,11 +7,12 @@
   </div>
 
   <p class="intro muted">
-    Cherche un produit, pose-le dans la liste. Le nom et la photo viennent d'Open Food Facts ; la
-    quantite et le prix, c'est toi qui les mets — ils dependent du magasin.
+    Le nom, la photo et le conditionnement viennent d'Open Food Facts. La quantite et le prix
+    restent a saisir : ils dependent du magasin.
   </p>
 
-  <!-- La barre de recherche : le geste central de cet ecran. -->
+  <!-- Une pause de 280 ms dans la frappe avant d'interroger OFF : voir le
+       composant. -->
   <div class="barre-recherche">
     <span class="loupe" aria-hidden="true">🔍</span>
     <input
@@ -43,33 +44,44 @@
   @if (resultats().length > 0) {
     <div class="resultats">
       @for (produit of resultats(); track produit.code || produit.nom) {
+        <!-- La carte se deplie au survol et au focus clavier. Elle est en
+             position absolue : elle passe PAR-DESSUS ses voisines au lieu de
+             pousser la grille, sinon tout l'ecran sauterait au moindre survol. -->
         <button type="button" class="produit" (click)="ouvrirAjout(produit)">
-          <span class="vignette">
-            @if (produit.imageUrl) {
-              <img [src]="produit.imageUrl" [alt]="produit.nom" loading="lazy" />
-            } @else {
-              <span class="sans-photo" aria-hidden="true">🛒</span>
+          <span class="carte">
+            <span class="vignette">
+              @if (produit.imageUrl) {
+                <img [src]="produit.imageUrl" [alt]="produit.nom" loading="lazy" />
+              } @else {
+                <span class="sans-photo" aria-hidden="true">🛒</span>
+              }
+            </span>
+            <span class="produit-nom">{{ produit.nom }}</span>
+            <!-- Le conditionnement reste visible sans survol : c'est lui qui
+                 dit combien de rouleaux il y a dans le paquet. -->
+            @if (produit.conditionnement) {
+              <span class="conditionnement-etiquette">{{ produit.conditionnement }}</span>
             }
+            @if (produit.marque) {
+              <span class="produit-marque muted">{{ produit.marque }}</span>
+            }
+            <span class="ajouter">Choisir la quantite</span>
           </span>
-          <span class="produit-nom">{{ produit.nom }}</span>
-          @if (produit.marque) {
-            <span class="produit-marque muted">{{ produit.marque }}</span>
-          }
         </button>
       }
     </div>
     <p class="credit muted">
-      Photos et donnees produits :
-      <a href="https://fr.openfoodfacts.org" target="_blank" rel="noopener">Open Food Facts</a>
-      — donnees sous ODbL, photos sous CC-BY-SA.
+      Photos et donnees :
+      <a href="https://fr.openfoodfacts.org" target="_blank" rel="noopener">Open Food Facts</a>.
+      Donnees sous ODbL, photos sous CC-BY-SA.
     </p>
   }
 
   <!-- Ce qui est deja pose : la meme grammaire que le reste, en plus visuel. -->
   @if (store.coursesLibres().length === 0) {
     <p class="vide">
-      Rien dans le rayon. Cherche un produit ci-dessus — le PQ, les sacs poubelle et le charbon ne
-      sortiront d'aucun autre ecran de l'app.
+      Rien dans le rayon. Le PQ, les sacs poubelle et le charbon ne sortent d'aucun autre ecran :
+      c'est ici qu'on les ajoute.
     </p>
   } @else {
     <ul class="paniers">
@@ -91,6 +103,9 @@
           <span class="identite">
             <span class="nom">{{ article.nom }}</span>
             <span class="secondaire muted">
+              @if (article.conditionnement) {
+                {{ article.conditionnement }} ·
+              }
               @if (article.marque) {
                 {{ article.marque }} ·
               }
@@ -208,6 +223,16 @@
         autocomplete="off"
         [value]="brouillon().nom"
         (input)="majBrouillon({ nom: $any($event.target).value })"
+      />
+    </label>
+
+    <label class="champ">
+      <span>Conditionnement</span>
+      <input
+        type="text"
+        placeholder="12 rouleaux, pack de 6, 185 feuilles..."
+        [value]="brouillon().conditionnement"
+        (input)="majBrouillon({ conditionnement: $any($event.target).value })"
       />
     </label>
 

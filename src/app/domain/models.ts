@@ -421,6 +421,13 @@ export interface ArticleCourse {
    */
   contenance: number;
   unite: UniteAchat;
+  /**
+   * Le conditionnement en toutes lettres, tel que l'etiquette l'ecrit :
+   * « 12 rouleaux 185 feuilles ». Aucun couple contenance + unite ne sait
+   * dire ca, et c'est pourtant ce qu'on veut savoir devant le rayon — un
+   * paquet de PQ ne se choisit pas au poids.
+   */
+  conditionnement: string;
   prixUnitaire: number;
   /** Coche dans la liste de courses. */
   achete: boolean;

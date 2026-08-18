@@ -82,6 +82,7 @@ describe('liste de courses unifiee', () => {
           quantite: 4,
           contenance: 0,
           unite: 'piece',
+          conditionnement: '12 rouleaux 185 feuilles',
           prixUnitaire: 2.5,
           achete: false,
         },
@@ -103,6 +104,8 @@ describe('liste de courses unifiee', () => {
     expect(pq?.categorie).toBe('intendance');
     expect(pq?.prix).toBe(10);
     expect(pq?.quantite).toBe('× 4');
+    // Le conditionnement passe avant la marque : c'est lui qui dit ce qu'on achete.
+    expect(pq?.detail).toBe('12 rouleaux 185 feuilles · Lotus');
     expect(pq?.imageUrl).toBe('https://images.example/pq.jpg');
     // La location ne s'achete pas : elle n'a rien a faire dans les courses.
     expect(lignes.find((x) => x.nom === 'Generateur')).toBeUndefined();

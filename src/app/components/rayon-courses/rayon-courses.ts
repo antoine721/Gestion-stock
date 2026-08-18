@@ -22,6 +22,7 @@ interface Brouillon {
   quantite: number;
   contenance: number;
   unite: UniteAchat;
+  conditionnement: string;
   prixUnitaire: number;
 }
 
@@ -57,6 +58,9 @@ export class RayonCourses {
   protected readonly totalContenance = totalContenance;
 
   // -- La recherche ----------------------------------------------------------
+
+  /** Le produit dont la carte est ouverte : survol a la souris, focus au clavier. */
+  protected readonly survole = signal('');
 
   protected readonly requete = signal('');
   protected readonly resultats = signal<readonly ProduitTrouve[]>([]);
@@ -136,6 +140,7 @@ export class RayonCourses {
       imageUrl: produit.imageUrl,
       contenance,
       unite,
+      conditionnement: produit.conditionnement,
     });
     this.ajoutOuvert.set(true);
   }
@@ -176,6 +181,7 @@ export class RayonCourses {
       quantite: Math.max(1, Math.round(brouillon.quantite)),
       contenance: brouillon.unite === 'piece' ? 0 : Math.max(0, brouillon.contenance),
       unite: brouillon.unite,
+      conditionnement: brouillon.conditionnement.trim(),
       prixUnitaire: Math.max(0, brouillon.prixUnitaire),
     });
     this.ajoutOuvert.set(false);
@@ -227,6 +233,7 @@ function brouillonVierge(): Brouillon {
     quantite: 1,
     contenance: 0,
     unite: 'piece',
+    conditionnement: '',
     prixUnitaire: 0,
   };
 }

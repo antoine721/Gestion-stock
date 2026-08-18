@@ -58,15 +58,15 @@
   }
 
   <p class="hint">
-    Un profil decrit une personne type : ce qu'elle boit, par jour. Les profils sont communs — celui
-    que tu crees, les autres peuvent l'utiliser pour leurs propres invites.
+    Un profil dit ce qu'une personne boit par jour. Ils sont communs a l'evenement : celui que tu
+    crees, les autres peuvent l'attacher a leurs invites.
   </p>
 </section>
 
 @if (creationOuverte()) {
   <app-modale
     titre="Nouveau profil"
-    sousTitre="Nomme la personne type — tu diras ce qu'elle boit juste apres."
+    sousTitre="Le nom suffit pour commencer. Les boissons se reglent dans le detail."
     libelleValider="Creer le profil"
     [valideDesactive]="creationInvalide()"
     (fermee)="creationOuverte.set(false)"
