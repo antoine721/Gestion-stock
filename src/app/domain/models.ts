@@ -375,6 +375,7 @@ export type CategorieArticle =
   | 'mobilier'
   | 'cuisine'
   | 'vaisselle'
+  | 'intendance'
   | 'transport'
   | 'hebergement'
   | 'autre';
@@ -389,13 +390,34 @@ export interface Article {
   categorie: CategorieArticle;
   mode: ModeArticle;
   statut: StatutArticle;
+  /**
+   * La quantite a acheter. Elle est figee, SAUF si `qteParPersonne` est
+   * renseigne : le PQ et les assiettes se dimensionnent au nombre de tetes,
+   * pas a la main.
+   */
   quantite: number;
+  /**
+   * Dosage par personne et par jour. 0 = quantite fixe (une nappe, un
+   * barnum). Meme grammaire que les repas : on dose par personne, et on
+   * arrondit a l'unite d'achat une seule fois, a la fin.
+   */
+  qteParPersonne: number;
   prixUnitaire: number;
   /** Caution de location : avancee puis rendue, donc suivie hors budget. */
   caution: number;
   /** Le participant qui avance l'argent. '' = pas encore decide. */
   payeParId: string;
   notes: string;
+  /**
+   * L'article du catalogue d'intendance dont il est ne. Sert a retrouver son
+   * visuel et a ne pas le poser deux fois. Vide pour un article saisi a la main.
+   */
+  refCatalogue: string;
+  /**
+   * Une vraie photo, si on en a une. Sinon l'app dessine l'illustration de la
+   * forme du produit — il y a toujours quelque chose a montrer.
+   */
+  imageUrl: string;
 }
 
 // ---------------------------------------------------------------------------
