@@ -82,6 +82,18 @@ export function niveauxVierges(): NiveauxParFamille {
  * Complete un invite venu de la base avec les champs apparus depuis sa
  * creation : les evenements anterieurs au suivi de paiement restent lisibles.
  */
+/**
+ * Les fiches d'avant portaient un simple compte de jours (« 2 jours »), pas
+ * les jours eux-memes. Impossible de deviner LESQUELS, mais jeter
+ * l'information serait pire que d'en garder une approximation : on retient les
+ * N premiers jours, que l'organisateur corrige d'un clic si besoin.
+ */
+function joursHerites(brut: Partial<Invite> & { id: string }): number[] {
+  const compte = (brut as { joursPresence?: unknown }).joursPresence;
+  if (typeof compte !== 'number' || !Number.isFinite(compte) || compte <= 0) return [];
+  return tousLesJours(Math.min(30, Math.round(compte)));
+}
+
 export function normaliserInvite(brut: Partial<Invite> & { id: string }): Invite {
   return {
     ...inviteVierge(brut.id, brut.participantId ?? ''),
@@ -90,7 +102,7 @@ export function normaliserInvite(brut: Partial<Invite> & { id: string }): Invite
     boissonsAimees: brut.boissonsAimees ?? [],
     niveaux: { ...niveauxVierges(), ...brut.niveaux },
     servicesPreferes: brut.servicesPreferes ?? [],
-    joursPresents: brut.joursPresents ?? [],
+    joursPresents: brut.joursPresents ?? joursHerites(brut),
     goodies: brut.goodies ?? [],
     goodiesAutre: brut.goodiesAutre ?? '',
   };
