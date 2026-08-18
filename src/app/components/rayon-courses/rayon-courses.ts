@@ -1,14 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
-import { Api, ProduitTrouve } from '../../state/api';
+import { Catalogue } from '../../state/catalogue';
 import { Modale } from '../modale/modale';
 import { CATEGORIES_COURSE } from '../../domain/categories-courses';
 import {
   UNITES_ACHAT,
+  formatContenance,
   libelleQuantite,
-  lireConditionnement,
   totalContenance,
 } from '../../domain/unites-achat';
+import { ProduitCatalogue } from '../../domain/catalogue-produits';
 import { fmtEuro } from '../../domain/format';
 import { ArticleCourse, CategorieCourse, UniteAchat } from '../../domain/models';
 
@@ -26,19 +27,22 @@ interface Brouillon {
   prixUnitaire: number;
 }
 
-/** Le temps qu'on laisse a la frappe avant d'interroger Open Food Facts. */
-const DELAI_FRAPPE = 280;
+/** En dessous de deux lettres, la recherche renverrait la moitie du rayon. */
+const MINIMUM_FRAPPE = 2;
 
 /**
  * Le rayon : on cherche un produit, on le pose dans la liste de courses.
  *
- * La recherche vient d'Open Food Facts et ne donne que l'identite du produit —
- * son nom, sa marque, sa photo. La quantite et le prix restent saisis a la
- * main : ils dependent du magasin et du nombre d'invites, et un prix devine
- * serait pire que pas de prix du tout.
+ * La recherche tape dans un catalogue local — un releve de rayon traduit et
+ * resserre sur ce qui sert a un festival. Elle repond a la frappe, sans
+ * reseau : c'est ce qui permet de s'en servir dans un magasin ou le telephone
+ * ne capte pas.
+ *
+ * Le prix du catalogue pre-remplit le formulaire, la quantite reste a saisir.
+ * Les deux se corrigent : c'est le ticket de caisse qui a le dernier mot.
  *
  * Rien n'oblige a passer par la recherche : le meme formulaire accepte un
- * produit tape a la main, pour ce qu'aucune base ne connait.
+ * produit tape a la main, pour ce que le catalogue ne connait pas.
  */
 @Component({
   selector: 'app-rayon-courses',
@@ -49,7 +53,7 @@ const DELAI_FRAPPE = 280;
 })
 export class RayonCourses {
   protected readonly store = inject(PlannerStore);
-  private readonly api = inject(Api);
+  protected readonly catalogue = inject(Catalogue);
 
   protected readonly fmtEuro = fmtEuro;
   protected readonly categories = CATEGORIES_COURSE;
@@ -57,67 +61,58 @@ export class RayonCourses {
   protected readonly libelleQuantite = libelleQuantite;
   protected readonly totalContenance = totalContenance;
 
+  constructor() {
+    // Le catalogue arrive en une fois, au premier affichage du rayon.
+    void this.catalogue.charger();
+  }
+
   // -- La recherche ----------------------------------------------------------
 
   /** Le produit dont la carte est ouverte : survol a la souris, focus au clavier. */
   protected readonly survole = signal('');
 
   protected readonly requete = signal('');
-  protected readonly resultats = signal<readonly ProduitTrouve[]>([]);
-  protected readonly recherche = signal(false);
-  protected readonly erreur = signal('');
 
-  private minuteur?: ReturnType<typeof setTimeout>;
-  /** La requete en vol, annulee des que la suivante part. */
-  private enVol?: AbortController;
+  protected readonly resultats = computed(() =>
+    this.requete().trim().length < MINIMUM_FRAPPE ? [] : this.catalogue.chercher(this.requete()),
+  );
+
+  protected readonly sansResultat = computed(
+    () => this.requete().trim().length >= MINIMUM_FRAPPE && this.resultats().length === 0,
+  );
 
   protected majRequete(valeur: string): void {
     this.requete.set(valeur);
-    this.erreur.set('');
-    if (this.minuteur) clearTimeout(this.minuteur);
-
-    if (valeur.trim().length < 2) {
-      this.enVol?.abort();
-      this.resultats.set([]);
-      this.recherche.set(false);
-      return;
-    }
-
-    // On attend une pause dans la frappe : une requete par lettre epuiserait
-    // le debit autorise par Open Food Facts en trois mots.
-    this.recherche.set(true);
-    this.minuteur = setTimeout(() => void this.lancer(valeur.trim()), DELAI_FRAPPE);
-  }
-
-  private async lancer(requete: string): Promise<void> {
-    this.enVol?.abort();
-    const controleur = new AbortController();
-    this.enVol = controleur;
-    try {
-      const resultats = await this.api.rechercherProduits(requete, controleur.signal);
-      // Une reponse qui arrive apres que l'utilisateur a retape n'a plus rien
-      // a dire : elle ne doit pas ecraser la liste affichee.
-      if (controleur.signal.aborted) return;
-      this.resultats.set(resultats);
-      this.erreur.set(resultats.length === 0 ? 'Aucun produit trouve.' : '');
-    } catch (erreur) {
-      if (controleur.signal.aborted) return;
-      this.resultats.set([]);
-      this.erreur.set(
-        erreur instanceof Error ? erreur.message : 'Recherche indisponible pour le moment.',
-      );
-    } finally {
-      if (!controleur.signal.aborted) this.recherche.set(false);
-    }
   }
 
   protected viderRecherche(): void {
-    if (this.minuteur) clearTimeout(this.minuteur);
-    this.enVol?.abort();
     this.requete.set('');
-    this.resultats.set([]);
-    this.erreur.set('');
-    this.recherche.set(false);
+  }
+
+  /**
+   * Les photos sont hebergees chez l'enseigne : certaines disparaissent, et
+   * une image cassee est plus laide que pas d'image du tout. On retient
+   * celles qui ont echoue et on retombe sur l'icone.
+   */
+  private readonly imagesCassees = signal<ReadonlySet<string>>(new Set());
+
+  /**
+   * L'etiquette d'une vignette : ce qu'il y a dedans et sous quelle forme —
+   * « 330 ml · canette », « 12 rouleaux ». C'est la reponse a « combien j'en
+   * ai pour un » sans avoir a ouvrir la fiche.
+   */
+  protected etiquette(produit: ProduitCatalogue): string {
+    return [formatContenance(produit.contenance, produit.unite), produit.conditionnement]
+      .filter((x) => x !== '')
+      .join(' · ');
+  }
+
+  protected imageVisible(cle: string, imageUrl: string): boolean {
+    return imageUrl !== '' && !this.imagesCassees().has(cle);
+  }
+
+  protected signalerImageCassee(cle: string): void {
+    this.imagesCassees.set(new Set(this.imagesCassees()).add(cle));
   }
 
   // -- Poser un produit dans la liste ---------------------------------------
@@ -127,20 +122,19 @@ export class RayonCourses {
 
   protected readonly ajoutInvalide = computed(() => this.brouillon().nom.trim() === '');
 
-  /** Un resultat de recherche : nom, marque et photo sont deja remplis. */
-  protected ouvrirAjout(produit: ProduitTrouve): void {
-    // Le conditionnement de l'etiquette pre-remplit le contenant : « 1,5 L »
-    // devient une contenance et son unite, prets a corriger si besoin.
-    const { contenance, unite } = lireConditionnement(produit.conditionnement);
+  /** Un produit du catalogue : tout est deja rempli, il reste la quantite. */
+  protected ouvrirAjout(produit: ProduitCatalogue): void {
     this.brouillon.set({
       ...brouillonVierge(),
       nom: produit.nom,
       marque: produit.marque,
       code: produit.code,
       imageUrl: produit.imageUrl,
-      contenance,
-      unite,
+      categorie: produit.categorie,
+      contenance: produit.contenance,
+      unite: produit.unite,
       conditionnement: produit.conditionnement,
+      prixUnitaire: produit.prix,
     });
     this.ajoutOuvert.set(true);
   }

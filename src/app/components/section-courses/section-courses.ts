@@ -54,4 +54,12 @@ export class SectionCourses {
   protected libelleDe(categorie: CategorieCourse): string {
     return CATEGORIE_COURSE_PAR_ID.get(categorie)?.libelle ?? 'Autre';
   }
+
+  /**
+   * La miniature vient d'un hebergeur tiers : si elle tombe, la ligne se lit
+   * tres bien sans, et une image cassee ne doit pas la defigurer.
+   */
+  protected masquerImage(evenement: Event): void {
+    (evenement.target as HTMLElement).style.display = 'none';
+  }
 }

@@ -77,7 +77,7 @@
  */
 .produit {
   position: relative;
-  min-height: 13.5rem;
+  min-height: 15rem;
   padding: 0;
   border: 0;
   background: none;
@@ -118,6 +118,9 @@
 }
 
 .produit-nom {
+  /* Les lignes de texte ne se laissent pas comprimer : sans ca, le nom sur
+     deux lignes deborde sur l'etiquette juste en dessous. */
+  flex: none;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -138,6 +141,7 @@
 
 /* Le conditionnement, toujours lisible : « 12 rouleaux 185 feuilles ». */
 .conditionnement-etiquette {
+  flex: none;
   padding: 0.0625rem 0.4375rem;
   border-radius: 999px;
   background: var(--accent-doux);
@@ -148,7 +152,14 @@
 }
 
 .produit-marque {
+  flex: none;
   font-size: 0.6875rem;
+}
+
+.prix-releve {
+  flex: none;
+  font-size: 0.75rem;
+  font-weight: 680;
 }
 
 /* L'invitation a cliquer n'apparait qu'au survol : sur les autres cartes,
@@ -171,9 +182,9 @@
  * La photo produit vient d'un tiers : cadre fixe, fond neutre, jamais rognee
  * ni deformee.
  *
- * Le cadre est plus HAUT que large parce que les photos d'Open Food Facts sont
- * des produits debout — une bouteille dans un cadre carre se reduit a un trait
- * au milieu de deux bandes vides.
+ * Le cadre est plus HAUT que large parce que les photos du catalogue sont des
+ * produits debout — une bouteille dans un cadre carre se reduit a un trait au
+ * milieu de deux bandes vides.
  */
 .vignette {
   display: grid;

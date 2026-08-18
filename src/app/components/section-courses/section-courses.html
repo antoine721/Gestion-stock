@@ -61,7 +61,13 @@
                 [title]="libelleDe(ligne.categorie)"
               ></span>
               @if (ligne.imageUrl) {
-                <img class="miniature" [src]="ligne.imageUrl" alt="" loading="lazy" />
+                <img
+                  class="miniature"
+                  [src]="ligne.imageUrl"
+                  alt=""
+                  loading="lazy"
+                  (error)="masquerImage($event)"
+                />
               }
               <span class="contenu">
                 <span class="nom">{{ ligne.nom }}</span>

@@ -397,19 +397,19 @@ export type CategorieCourse =
   'alcool' | 'soft' | 'nourriture' | 'intendance' | 'jetable' | 'materiel' | 'autre';
 
 /**
- * Un article pose a la main dans la liste de courses, en general trouve par
- * la recherche Open Food Facts.
+ * Un article pose a la main dans la liste de courses, en general choisi dans
+ * le catalogue du rayon.
  *
- * Le nom et la photo viennent d'Open Food Facts ; la quantite et le prix, non
- * — ils dependent du magasin et du nombre d'invites, donc c'est l'organisateur
- * qui les pose. Aucun prix n'est jamais devine.
+ * Le nom, la photo et le conditionnement viennent du catalogue ; la quantite
+ * vient de l'organisateur, et le prix du catalogue n'est qu'un point de
+ * depart : c'est le magasin qui decide.
  */
 export interface ArticleCourse {
   id: string;
   nom: string;
-  /** La marque, quand la recherche l'a donnee : « Lotus », « Sopalin ». */
+  /** La marque, quand le catalogue la donne : « Lotus », « Sopalin ». */
   marque: string;
-  /** Le code-barres Open Food Facts, vide si l'article a ete saisi a la main. */
+  /** La reference du catalogue, vide si l'article a ete saisi a la main. */
   code: string;
   imageUrl: string;
   categorie: CategorieCourse;
