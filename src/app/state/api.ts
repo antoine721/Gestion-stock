@@ -33,6 +33,7 @@ export interface ReponsePublique {
   stylesMusicaux: string;
   logistique: Logistique;
   surnom: string;
+  telephone: string;
   boissonsAimees: GoutBoisson[];
   niveaux: NiveauxParFamille;
   autreAlcool: string;

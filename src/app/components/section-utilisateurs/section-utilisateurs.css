@@ -2,62 +2,43 @@
   margin-bottom: 1rem;
 }
 
-/* -- Propositions du formulaire, a valider --------------------------------- */
+/* -- Propositions du formulaire, a valider ---------------------------------
+   Une ligne par reponse, et rien de plus : le detail vit dans la modale de
+   relecture, pas dans une carte qu'il faut parcourir des yeux. */
 
-.proposition {
-  padding: 0.875rem;
+.propositions {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.propositions li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
   border: 1px dashed var(--bord-fort);
   border-radius: var(--rayon-petit);
   background: var(--surface-2);
 }
 
-.proposition + .proposition {
-  margin-top: 0.75rem;
+.propositions .identite {
+  flex: 1;
+  min-width: 0;
 }
 
-.proposition-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  gap: 0.5rem 1rem;
-  margin: 0.75rem 0 0;
-}
-
-.details .large {
-  grid-column: 1 / -1;
-}
-
-.details dt {
-  font-size: 0.625rem;
+.propositions .principal {
+  display: block;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--texte-doux);
-}
-
-.details dd {
-  margin: 0.125rem 0 0;
   font-size: 0.8125rem;
 }
 
-.proposition-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: 0.75rem;
-  margin-top: 0.875rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--bord);
-}
-
-.proposition-actions .champ {
-  min-width: 11rem;
+.propositions .secondaire {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--texte-doux);
 }
 
 /* -- Co-organisateurs ------------------------------------------------------ */

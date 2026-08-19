@@ -64,6 +64,7 @@ export function inviteVierge(id: string, participantId: string): Invite {
     stylesMusicaux: '',
     logistique: logistiqueVierge(),
     surnom: '',
+    telephone: '',
     boissonsAimees: [],
     niveaux: niveauxVierges(),
     autreAlcool: '',
@@ -104,6 +105,7 @@ export function normaliserInvite(brut: Partial<Invite> & { id: string }): Invite
     niveaux: { ...niveauxVierges(), ...brut.niveaux },
     servicesPreferes: brut.servicesPreferes ?? [],
     joursPresents: brut.joursPresents ?? joursHerites(brut),
+    telephone: brut.telephone ?? '',
     goodies: brut.goodies ?? [],
     goodiesAutre: brut.goodiesAutre ?? '',
   };

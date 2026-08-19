@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { PlannerStore } from '../../state/planner-store';
 import { Modale } from '../modale/modale';
 import { Panneau } from '../panneau/panneau';
+import { ValidationFiche } from '../validation-fiche/validation-fiche';
 import {
   LIBELLE_REGIME,
   REGIMES,
@@ -48,7 +49,7 @@ interface BrouillonInvite {
  */
 @Component({
   selector: 'app-section-utilisateurs',
-  imports: [Modale, Panneau],
+  imports: [Modale, Panneau, ValidationFiche],
   templateUrl: './section-utilisateurs.html',
   styleUrl: './section-utilisateurs.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -203,9 +204,11 @@ export class SectionUtilisateurs {
     return declare?.id ?? this.porteurParDefaut();
   }
 
-  protected valider(reponse: ReponseFormulaire): void {
-    const porteur = this.porteurDe(reponse);
-    if (porteur) this.store.importerReponse(reponse.id, porteur);
+  /** La fiche ouverte dans la modale de relecture, s'il y en a une. */
+  protected readonly ficheAValider = signal<ReponseFormulaire | undefined>(undefined);
+
+  protected examiner(reponse: ReponseFormulaire): void {
+    this.ficheAValider.set(reponse);
   }
 
   protected ignorer(reponse: ReponseFormulaire): void {

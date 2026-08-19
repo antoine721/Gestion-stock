@@ -6,133 +6,37 @@
     </div>
 
     <p class="intro muted">
-      Chaque reponse porte le co-organisateur que l'invite a coche. Valider la transforme en fiche,
-      rattachee a cette personne.
+      « Examiner » deroule la fiche etape par etape : qui c'est, son sejour, sa consommation, ce
+      qu'il apporte. Elle n'entre dans les invites qu'une fois la derniere etape validee.
     </p>
 
-    @for (reponse of store.reponsesFormulaire(); track reponse.id) {
-      <article class="proposition">
-        <div class="proposition-head">
-          <div>
-            <strong>{{ reponse.prenom }} {{ reponse.nom }}</strong>
-            @if (reponse.surnom) {
-              <span class="muted"> « {{ reponse.surnom }} »</span>
-            }
-            @if (reponse.invitePar) {
-              <span class="tag accent">invite par {{ reponse.invitePar }}</span>
-            }
-          </div>
-          <span class="muted num">{{ dateDe(reponse) }}</span>
-        </div>
-
-        <dl class="details">
-          <div>
-            <dt>Regime</dt>
-            <dd>{{ libelleRegime[reponse.regime] }}</dd>
-          </div>
-          @if (reponse.allergies) {
-            <div>
-              <dt>Allergies</dt>
-              <dd>{{ reponse.allergies }}</dd>
-            </div>
-          }
-          <div>
-            <dt>Sejour</dt>
-            <dd>
-              @if (reponse.logistique.sejourComplet) {
-                Du debut a la fin
-              } @else {
-                {{ reponse.logistique.arrivee || '?' }} → {{ reponse.logistique.depart || '?' }}
+    <ul class="propositions">
+      @for (reponse of store.reponsesFormulaire(); track reponse.id) {
+        <li>
+          <span class="identite">
+            <span class="principal">{{ reponse.prenom }} {{ reponse.nom }}</span>
+            <span class="secondaire">
+              @if (reponse.invitePar) {
+                invite par {{ reponse.invitePar }} ·
               }
-            </dd>
-          </div>
-          <div>
-            <dt>Tente</dt>
-            <dd>
-              {{ reponse.logistique.tente ? 'Amene la sienne' : 'A loger sous une autre tente' }}
-            </dd>
-          </div>
-          @if (resumeVoiture(reponse.logistique); as voiture) {
-            @if (voiture) {
-              <div>
-                <dt>Voiture</dt>
-                <dd>{{ voiture }}</dd>
-              </div>
-            }
-          }
-          @if (reponse.stylesMusicaux) {
-            <div>
-              <dt>Musique</dt>
-              <dd>{{ reponse.stylesMusicaux }}</dd>
-            </div>
-          }
-          @if (libelleServices(reponse.servicesPreferes); as services) {
-            @if (services) {
-              <div class="large">
-                <dt>Coups de main</dt>
-                <dd>{{ services }}</dd>
-              </div>
-            }
-          }
-          @if (libelleGoodies(reponse.goodies); as goodies) {
-            @if (goodies) {
-              <div class="large">
-                <dt>Goodies</dt>
-                <dd>{{ goodies }}</dd>
-              </div>
-            }
-          }
-          @if (reponse.goodiesAutre) {
-            <div>
-              <dt>Idee de goodie</dt>
-              <dd>{{ reponse.goodiesAutre }}</dd>
-            </div>
-          }
-          @if (reponse.logistique.materielApporte) {
-            <div>
-              <dt>Apporte / prete</dt>
-              <dd>{{ reponse.logistique.materielApporte }}</dd>
-            </div>
-          }
-          @if (reponse.logistique.besoins) {
-            <div>
-              <dt>Besoins particuliers</dt>
-              <dd>{{ reponse.logistique.besoins }}</dd>
-            </div>
-          }
-          @if (reponse.commentaire) {
-            <div>
-              <dt>Commentaire</dt>
-              <dd>{{ reponse.commentaire }}</dd>
-            </div>
-          }
-        </dl>
-
-        <div class="proposition-actions">
-          <label class="champ">
-            <span>Amene par</span>
-            <select (change)="choisirPorteur(reponse.id, $any($event.target).value)">
-              @for (participant of store.participants(); track participant.id) {
-                <option [value]="participant.id" [selected]="participant.id === porteurDe(reponse)">
-                  {{ participant.nom }}
-                </option>
-              }
-            </select>
-          </label>
-          <button type="button" class="primaire" (click)="valider(reponse)">
-            Valider la fiche
-          </button>
+              recue le {{ dateDe(reponse) }}
+            </span>
+          </span>
+          <button type="button" class="primaire" (click)="examiner(reponse)">Examiner</button>
           <button type="button" class="discret" (click)="ignorer(reponse)">Ignorer</button>
-        </div>
-      </article>
-    }
+        </li>
+      }
+    </ul>
 
     <p class="hint">
-      Valider une fiche lui attache un profil de consommation : ce sont ses quantites qui entrent
-      dans le calcul, pas la declaration elle-meme. C'est ici qu'on repere une reponse fantaisiste
-      avant qu'elle ne parte dans les courses.
+      La consommation relue a l'etape « Sa consommation » est celle qui part dans les courses. C'est
+      le moment de rattraper une reponse fantaisiste.
     </p>
   </section>
+}
+
+@if (ficheAValider(); as fiche) {
+  <app-validation-fiche [reponse]="fiche" (fermee)="ficheAValider.set(undefined)" />
 }
 
 <section class="card">
@@ -299,7 +203,7 @@
       </select>
     </label>
     <label class="champ">
-      <span>Profil de conso</span>
+      <span>Consommation</span>
       <select (change)="filtreProfil.set($any($event.target).value)">
         <option value="" [selected]="filtreProfil() === ''">Tous</option>
         <option value="sans" [selected]="filtreProfil() === 'sans'">Sans profil</option>
@@ -337,8 +241,9 @@
 
   @if (sansProfil() > 0) {
     <p class="avertissement">
-      <span class="num">{{ sansProfil() }}</span> invite(s) sans profil de consommation : ils
-      comptent comme des tetes a nourrir, mais ne boivent rien dans le calcul du bar.
+      <span class="num">{{ sansProfil() }}</span> invite(s) sans consommation : ils comptent comme
+      des tetes a nourrir, mais ne boivent rien dans le calcul du bar. Leur consommation se pose en
+      validant leur fiche.
     </p>
   }
 
@@ -445,8 +350,8 @@
   }
 
   <p class="hint">
-    Les profils de consommation se creent et se reglent dans l'espace Bar &amp; boissons, section «
-    Les profils ». Ici, tu les attaches a des personnes.
+    Chaque fiche porte sa propre consommation, posee en la validant. L'espace Bar &amp; boissons,
+    section « Les consommations », les met toutes cote a cote.
   </p>
 </section>
 
@@ -609,6 +514,15 @@
           type="text"
           [value]="invite.surnom"
           (input)="maj(invite, { surnom: $any($event.target).value })"
+        />
+      </label>
+      <label class="champ">
+        <span>Telephone</span>
+        <input
+          type="tel"
+          placeholder="06 12 34 56 78"
+          [value]="invite.telephone"
+          (input)="maj(invite, { telephone: $any($event.target).value })"
         />
       </label>
       <label class="champ">

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { PlannerStore } from '../../state/planner-store';
 import { Panneau } from '../panneau/panneau';
 import { BOISSON_PAR_ID } from '../../domain/catalogue';
-import { aDeclareQuelqueChose, interpreter } from '../../domain/interpretation';
+import { alerterSurEstimation } from '../../domain/interpretation';
 import {
   FAMILLES_ALCOOL,
   LIBELLE_NIVEAU,
@@ -10,18 +10,17 @@ import {
   libelleBoissonsAimees,
 } from '../../domain/preferences';
 import { fmtEntier, fmtNombre } from '../../domain/format';
-import { Invite } from '../../domain/models';
+import { ConsommationType, Invite } from '../../domain/models';
 
 /**
- * L'interpretation des declarations du formulaire.
+ * Les consommations des fiches validees.
  *
- * Chaque invite qui a rempli ses gouts se voit traduit en verres par jour,
- * puis rapproche du profil de consommation le plus proche. Un clic valide la
- * proposition ; sinon on reevalue a la main, profil par profil.
+ * Chaque fiche entre dans l'evenement avec SA consommation, relue a la
+ * validation. Cet ecran les met cote a cote : qui boit quoi, combien par
+ * jour, et ce qui detonne. On y corrige un chiffre sans rouvrir la fiche.
  *
- * C'est une aide a la decision, jamais une decision : rien ne s'applique sans
- * le clic, et les estimations douteuses (trop basses, trop hautes,
- * incoherentes avec l'equipe declaree) sont signalees avant d'etre validees.
+ * Il n'y a plus de bibliotheque de profils a entretenir : la consommation
+ * d'une personne appartient a cette personne.
  */
 @Component({
   selector: 'app-interpretation-conso',
@@ -36,21 +35,33 @@ export class InterpretationConso {
   protected readonly fmtNombre = fmtNombre;
   protected readonly libelleBoissonsAimees = libelleBoissonsAimees;
 
-  /** Ne montrer que ceux qui n'ont pas encore de profil, par defaut. */
-  protected readonly seulementSansProfil = signal(true);
+  /** Masquer les fiches a zero : elles n'apprennent rien sur le bar. */
+  protected readonly seulementBuveurs = signal(false);
 
-  /** Les fiches qui ont declare quelque chose, avec leur interpretation. */
   protected readonly lignes = computed(() => {
     const profils = this.store.personnesTypes();
     return this.store
       .invitesNommes()
-      .filter(aDeclareQuelqueChose)
-      .filter((x) => !this.seulementSansProfil() || !x.personneTypeId)
-      .map((invite) => ({ invite, resultat: interpreter(invite, profils) }));
+      .map((invite) => {
+        const consommation =
+          profils.find((x) => x.id === invite.personneTypeId)?.consommation ?? [];
+        const total = consommation.reduce((somme, x) => somme + x.verresParJour, 0);
+        return {
+          invite,
+          consommation,
+          total,
+          alertes: alerterSurEstimation(invite, consommation),
+        };
+      })
+      .filter((x) => !this.seulementBuveurs() || x.total > 0);
   });
 
-  protected readonly aTraiter = computed(
-    () => this.lignes().filter((x) => !x.invite.personneTypeId).length,
+  protected readonly totalGeneral = computed(() =>
+    this.lignes().reduce((somme, x) => somme + x.total, 0),
+  );
+
+  protected readonly sansConsommation = computed(
+    () => this.store.invitesNommes().filter((x) => !x.personneTypeId).length,
   );
 
   protected nomComplet(invite: Invite): string {
@@ -78,39 +89,20 @@ export class InterpretationConso {
     return BOISSON_PAR_ID.get(boissonId)?.nom ?? boissonId;
   }
 
-  protected profilActuel(invite: Invite): string {
-    const profil = this.store.personnesTypes().find((x) => x.id === invite.personneTypeId);
-    return profil ? `${profil.emoji} ${profil.nom}` : '';
+  /** « 2 bieres · 1 rhum coca » — la consommation en une ligne. */
+  protected resumeConso(consommation: readonly ConsommationType[]): string {
+    return consommation
+      .map((x) => `${fmtNombre(x.verresParJour)} ${this.nomBoisson(x.boissonId)}`)
+      .join(' · ');
   }
 
-  /** Valider : le profil propose devient celui de la fiche. */
-  protected validerProfil(invite: Invite, personneTypeId: string): void {
-    this.store.majInvite(invite.id, { personneTypeId });
-    if (this.detailId() === invite.id) this.detailId.set('');
+  protected majVerres(invite: Invite, boissonId: string, valeur: string): void {
+    const nombre = Number(valeur);
+    if (!Number.isFinite(nombre) || !invite.personneTypeId) return;
+    this.store.majConsommation(invite.personneTypeId, boissonId, Math.max(0, nombre));
   }
 
-  /**
-   * Reevaluer : on cree un profil taille sur mesure pour cette personne, a
-   * partir de l'estimation. Utile quand personne dans la bibliotheque ne
-   * ressemble a ce qu'elle a declare.
-   */
-  protected creerProfilSurMesure(invite: Invite): void {
-    const resultat = interpreter(invite, this.store.personnesTypes());
-    if (resultat.consommation.length === 0) return;
-    const id = this.store.creerPersonneType();
-    this.store.majPersonneType(id, {
-      nom: `Comme ${invite.prenom || 'cet invite'}`,
-      description: `Cree depuis la declaration de ${this.nomComplet(invite)}.`,
-      emoji: '🍹',
-    });
-    for (const ligne of resultat.consommation) {
-      this.store.majConsommation(id, ligne.boissonId, ligne.verresParJour);
-    }
-    this.store.majInvite(invite.id, { personneTypeId: id });
-    this.detailId.set('');
-  }
-
-  // -- Le panneau de reevaluation --------------------------------------------
+  // -- Le panneau de correction ----------------------------------------------
 
   protected readonly detailId = signal('');
 

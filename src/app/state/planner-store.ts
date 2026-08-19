@@ -56,6 +56,7 @@ import {
   ArticleCourse,
   CategoriePaiement,
   Cibles,
+  ConsommationType,
   Creneau,
   DjSet,
   ExtraNourriture,
@@ -74,12 +75,11 @@ import {
 import { Api, EvenementDistant } from './api';
 
 /** Sections de l'espace Bar & boissons. */
-export type Section = 'courses' | 'profils' | 'interpretation' | 'extras' | 'reglages' | 'bilan';
+export type Section = 'courses' | 'interpretation' | 'extras' | 'reglages' | 'bilan';
 
 export const SECTIONS: readonly { id: Section; libelle: string }[] = [
   { id: 'courses', libelle: 'Liste de courses' },
-  { id: 'profils', libelle: 'Les profils' },
-  { id: 'interpretation', libelle: 'Interpretation' },
+  { id: 'interpretation', libelle: 'Les consommations' },
   { id: 'extras', libelle: 'Extras' },
   { id: 'bilan', libelle: 'Bilan' },
   { id: 'reglages', libelle: 'Reglages' },
@@ -468,6 +468,7 @@ export class PlannerStore {
         stylesMusicaux: x.stylesMusicaux ?? '',
         logistique: { ...logistiqueVierge(), ...x.logistique },
         surnom: x.surnom ?? '',
+        telephone: x.telephone ?? '',
         boissonsAimees: normaliserGouts(x.boissonsAimees),
         niveaux: { ...niveauxVierges(), ...x.niveaux },
         autreAlcool: x.autreAlcool ?? '',
@@ -1079,15 +1080,16 @@ export class PlannerStore {
    * Transforme une reponse de formulaire en invite nomme rattache a un
    * co-organisateur : le formulaire alimente la liste, il ne la remplace pas.
    */
-  importerReponse(reponseId: string, participantId: string): void {
+  importerReponse(reponseId: string, participantId: string): string {
     const reponse = this.reponsesFormulaire().find((x) => x.id === reponseId);
-    if (!reponse) return;
+    if (!reponse) return '';
 
+    const inviteId = identifiant();
     this.majPartage({
       invites: [
         ...this.invitesNommes(),
         {
-          ...inviteVierge(identifiant(), participantId),
+          ...inviteVierge(inviteId, participantId),
           prenom: reponse.prenom,
           nom: reponse.nom,
           regime: reponse.regime,
@@ -1099,6 +1101,7 @@ export class PlannerStore {
           // se decrit en texte libre, donc l'organisateur tranchera lui-meme.
           joursPresents: reponse.logistique.sejourComplet ? tousLesJours(this.partage().jours) : [],
           surnom: reponse.surnom,
+          telephone: reponse.telephone,
           // Les gouts declares suivent : ils orientent le profil, sans jamais
           // le decider a la place de l'organisateur.
           boissonsAimees: [...reponse.boissonsAimees],
@@ -1112,6 +1115,38 @@ export class PlannerStore {
       ],
       reponsesFormulaire: this.reponsesFormulaire().filter((x) => x.id !== reponseId),
     });
+    return inviteId;
+  }
+
+  /**
+   * Valide une fiche de bout en bout : la personne entre dans les invites, et
+   * la consommation relue par l'organisateur devient SA consommation.
+   *
+   * Chaque fiche validee porte la sienne. Il n'y a plus de bibliotheque de
+   * profils a entretenir : le formulaire declare, l'organisateur relit et
+   * corrige, et c'est cette consommation-la qui part dans le calcul.
+   */
+  validerFiche(
+    reponseId: string,
+    participantId: string,
+    consommation: readonly ConsommationType[],
+  ): void {
+    const reponse = this.reponsesFormulaire().find((x) => x.id === reponseId);
+    if (!reponse) return;
+    const inviteId = this.importerReponse(reponseId, participantId);
+    if (!inviteId) return;
+
+    const retenues = consommation.filter((x) => x.verresParJour > 0);
+    if (retenues.length === 0) return;
+
+    const profilId = this.creerPersonneType();
+    this.majPersonneType(profilId, {
+      nom: `${reponse.prenom} ${reponse.nom}`.trim() || 'Fiche validee',
+      description: 'Consommation relue et validee a partir de sa declaration.',
+      emoji: '🍹',
+      consommation: retenues.map((x) => ({ ...x })),
+    });
+    this.majInvite(inviteId, { personneTypeId: profilId });
   }
 
   // -- Sauvegarde differee -------------------------------------------------

@@ -38,6 +38,11 @@ const SEUIL_BON_MATCH = 70;
  */
 const BOISSONS_PAR_GOUT: Record<string, string[]> = {
   biere: ['biere'],
+  // Blonde, blanche ou rouge : le catalogue ne connait qu'une biere, et c'est
+  // elle qu'on achete dans les trois cas.
+  'biere-blonde': ['biere'],
+  'biere-blanche': ['biere'],
+  'biere-rouge': ['biere'],
   'vin-rouge': ['vin-rouge'],
   'vin-blanc': ['vin-blanc'],
   'vin-rose': ['rose'],

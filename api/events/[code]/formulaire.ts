@@ -144,6 +144,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     commentaire: champ(corps['commentaire']),
     stylesMusicaux: champ(corps['stylesMusicaux']),
     surnom: champ(corps['surnom']),
+    telephone: champ(corps['telephone']).slice(0, 30),
     boissonsAimees: gouts(corps['boissonsAimees']),
     niveaux: niveaux(corps['niveaux']),
     autreAlcool: champ(corps['autreAlcool']),
