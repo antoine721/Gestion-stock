@@ -144,8 +144,9 @@ export class FormulairePublic {
   protected readonly goutsValides = computed(() => {
     if (this.aDesAllergies() === '') return false;
     if (this.aDesAllergies() === 'oui' && !this.allergies().trim()) return false;
-    if (this.team() === '') return false;
-    return this.materielApporte().trim().length > 0;
+    // Ce qu'on peut preter ne se commande pas : personne ne doit rester
+    // bloque au bout du formulaire parce qu'il n'a rien a amener.
+    return this.team() !== '';
   });
 
   constructor() {
