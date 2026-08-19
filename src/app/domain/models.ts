@@ -263,6 +263,8 @@ export interface Invite {
   logistique: Logistique;
   /** Le petit nom, quand tout le monde l'appelle autrement. */
   surnom: string;
+  /** Pour joindre la personne le jour J. Facultatif. */
+  telephone: string;
   /** Ce qu'elle aime boire, avec l'intensite du gout — declaratif. */
   boissonsAimees: GoutBoisson[];
   /** Ce qu'elle dit boire sur une soiree, famille par famille. */
@@ -562,6 +564,8 @@ export interface ReponseFormulaire {
   logistique: Logistique;
   /** Le petit nom, quand tout le monde l'appelle autrement. */
   surnom: string;
+  /** Pour joindre la personne le jour J. Facultatif. */
+  telephone: string;
   /** Ce qu'il aime boire, avec l'intensite du gout — declaratif. */
   boissonsAimees: GoutBoisson[];
   niveaux: NiveauxParFamille;

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { goutsIntraduisibles } from './interpretation';
 import {
   BOISSONS_AIMEES,
   alcoolPrefere,
@@ -103,5 +104,15 @@ describe('alcoolPrefere', () => {
     expect(alcoolPrefere([{ boissonId: 'biere', intensite: 0 }])).toBeUndefined();
     // Un gout inconnu du catalogue ne peut pas etre affiche.
     expect(alcoolPrefere([{ boissonId: 'absinthe', intensite: 90 }])).toBeUndefined();
+  });
+});
+
+describe('les bieres declinees', () => {
+  it('se traduisent toutes en biere du catalogue', () => {
+    // Sans cette traduction, declarer « biere blonde » ne mettait aucune biere
+    // dans les courses : le gout etait juste signale comme intraduisible.
+    expect(goutsIntraduisibles([{ boissonId: 'biere-blonde', intensite: 70 }])).toEqual([]);
+    expect(goutsIntraduisibles([{ boissonId: 'biere-blanche', intensite: 70 }])).toEqual([]);
+    expect(goutsIntraduisibles([{ boissonId: 'biere-rouge', intensite: 70 }])).toEqual([]);
   });
 });

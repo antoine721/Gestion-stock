@@ -104,6 +104,7 @@ describe('musique', () => {
     stylesMusicaux: 'Daft Punk',
     logistique: logistiqueVierge(),
     surnom: '',
+    telephone: '06 12 34 56 78',
     boissonsAimees: [],
     niveaux: { biere: 'aucun' as const, vin: 'aucun' as const, spiritueux: 'aucun' as const },
     autreAlcool: '',

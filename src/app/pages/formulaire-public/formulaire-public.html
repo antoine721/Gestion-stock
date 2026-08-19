@@ -57,15 +57,27 @@
                 />
               </label>
             </div>
-            <label class="champ">
-              <span>Surnom</span>
-              <input
-                type="text"
-                placeholder="Comment on t'appelle vraiment"
-                [value]="surnom()"
-                (input)="surnom.set($any($event.target).value)"
-              />
-            </label>
+            <div class="duo">
+              <label class="champ">
+                <span>Surnom</span>
+                <input
+                  type="text"
+                  placeholder="Comment on t'appelle vraiment"
+                  [value]="surnom()"
+                  (input)="surnom.set($any($event.target).value)"
+                />
+              </label>
+              <label class="champ">
+                <span>Telephone</span>
+                <input
+                  type="tel"
+                  autocomplete="tel"
+                  placeholder="06 12 34 56 78"
+                  [value]="telephone()"
+                  (input)="telephone.set($any($event.target).value)"
+                />
+              </label>
+            </div>
             @if (organisateurs().length > 0) {
               <div class="question">
                 <span class="intitule">Qui t'invite ? *</span>

@@ -264,6 +264,7 @@ describe('PlannerStore', () => {
           stylesMusicaux: 'techno',
           logistique: { ...logistiqueVierge(), vehicule: true, placesVoiture: 3 },
           surnom: 'Chlo',
+          telephone: '06 12 34 56 78',
           boissonsAimees: [{ boissonId: 'biere', intensite: 4 }],
           niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' },
           autreAlcool: 'Limoncello',

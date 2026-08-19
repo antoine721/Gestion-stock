@@ -70,6 +70,8 @@ export class FormulairePublic {
   protected readonly prenom = signal('');
   protected readonly nom = signal('');
   protected readonly surnom = signal('');
+  /** Facultatif : de quoi joindre la personne le jour J. */
+  protected readonly telephone = signal('');
   /** L'identifiant du co-organisateur coche, pas son prenom : c'est lui qui
       recuperera la fiche sans qu'on ait a rapprocher deux orthographes. */
   protected readonly invitParId = signal('');
@@ -272,6 +274,7 @@ export class FormulairePublic {
         prenom: this.prenom().trim(),
         nom: this.nom().trim(),
         surnom: this.surnom().trim(),
+        telephone: this.telephone().trim(),
         invitParId: this.invitParId(),
         invitePar: this.nomOrganisateur(),
         regime: this.regime(),
@@ -318,6 +321,7 @@ export class FormulairePublic {
     this.prenom.set('');
     this.nom.set('');
     this.surnom.set('');
+    this.telephone.set('');
     this.sejourComplet.set('');
     this.arrivee.set('');
     this.depart.set('');

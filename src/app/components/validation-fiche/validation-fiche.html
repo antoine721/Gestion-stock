@@ -1,0 +1,219 @@
+<app-modale
+  [titre]="nomComplet() || 'Fiche a valider'"
+  [sousTitre]="'Etape ' + (index() + 1) + ' sur ' + etapes.length + ' · ' + etape().titre"
+  [libelleValider]="libelleValider()"
+  [valideDesactive]="bloquee()"
+  (fermee)="fermee.emit()"
+  (validee)="suivant()"
+>
+  <!-- Le fil des etapes : on doit savoir ou on en est et ce qui reste. -->
+  <ol class="fil">
+    @for (pas of etapes; track pas.id; let i = $index) {
+      <li [class.faite]="i < index()" [class.active]="i === index()">
+        <span class="num">{{ i + 1 }}</span>
+        <span>{{ pas.titre }}</span>
+      </li>
+    }
+  </ol>
+
+  @switch (etape().id) {
+    @case ('qui') {
+      <dl class="resume">
+        <div>
+          <dt>Prenom et nom</dt>
+          <dd>{{ nomComplet() || '—' }}</dd>
+        </div>
+        @if (reponse().surnom) {
+          <div>
+            <dt>Surnom</dt>
+            <dd>{{ reponse().surnom }}</dd>
+          </div>
+        }
+        <div>
+          <dt>Telephone</dt>
+          <dd>{{ reponse().telephone || 'Non communique' }}</dd>
+        </div>
+        <div>
+          <dt>Regime</dt>
+          <dd>{{ libelleRegime() }}</dd>
+        </div>
+        <div class="large">
+          <dt>Allergies</dt>
+          <dd>{{ reponse().allergies || 'Aucune declaree' }}</dd>
+        </div>
+      </dl>
+
+      <label class="champ">
+        <span>Qui l'amene ?</span>
+        <select (change)="majPorteur($any($event.target).value)">
+          @for (participant of store.participants(); track participant.id) {
+            <option [value]="participant.id" [selected]="participant.id === porteurId()">
+              {{ participant.nom }}
+            </option>
+          }
+        </select>
+      </label>
+    }
+
+    @case ('sejour') {
+      <dl class="resume">
+        <div>
+          <dt>Sejour</dt>
+          <dd>
+            {{ reponse().logistique.sejourComplet ? 'Du debut a la fin' : 'Une partie seulement' }}
+          </dd>
+        </div>
+        @if (!reponse().logistique.sejourComplet) {
+          <div>
+            <dt>Arrivee</dt>
+            <dd>{{ reponse().logistique.arrivee || '—' }}</dd>
+          </div>
+          <div>
+            <dt>Depart</dt>
+            <dd>{{ reponse().logistique.depart || '—' }}</dd>
+          </div>
+        }
+        <div>
+          <dt>Tente</dt>
+          <dd>{{ reponse().logistique.tente ? 'Amene la sienne' : 'A loger' }}</dd>
+        </div>
+        <div>
+          <dt>Voiture</dt>
+          <dd>
+            {{ reponse().logistique.vehicule ? 'Oui' : 'Non' }}
+            @if (reponse().logistique.placesVoiture > 0) {
+              · {{ reponse().logistique.placesVoiture }} place(s) offerte(s)
+            }
+            @if (reponse().logistique.chercheCovoiturage) {
+              · cherche une place
+            }
+          </dd>
+        </div>
+        @if (reponse().logistique.besoins) {
+          <div class="large">
+            <dt>Besoins particuliers</dt>
+            <dd>{{ reponse().logistique.besoins }}</dd>
+          </div>
+        }
+      </dl>
+    }
+
+    @case ('alcool') {
+      <dl class="resume">
+        <div>
+          <dt>Equipe</dt>
+          <dd>{{ libelleTeam() }}</dd>
+        </div>
+        <div class="large">
+          <dt>Ce qu'il aime</dt>
+          <dd>{{ libelleBoissonsAimees(reponse().boissonsAimees) || 'Rien de declare' }}</dd>
+        </div>
+        <div class="large">
+          <dt>Son rythme</dt>
+          <dd>{{ libelleRythme() }}</dd>
+        </div>
+      </dl>
+
+      @if (resultat().alertes.length > 0) {
+        <div class="alertes">
+          @for (alerte of resultat().alertes; track alerte.texte) {
+            <p class="alerte" [class.grave]="alerte.gravite === 'attention'">
+              {{ alerte.gravite === 'attention' ? '⚠' : 'ℹ' }} {{ alerte.texte }}
+            </p>
+          }
+        </div>
+      }
+
+      <span class="sous-titre">Ce qu'on lui prevoit, par jour</span>
+      @if (consommation().length === 0) {
+        <p class="vide">
+          Rien a prevoir : aucun alcool declare, ou une equipe sans alcool. La fiche entrera sans
+          consommation.
+        </p>
+      } @else {
+        <table class="tableau">
+          <thead>
+            <tr>
+              <th>Boisson</th>
+              <th class="droite">Verres / jour</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ligne of consommation(); track ligne.boissonId) {
+              <tr>
+                <td class="principal">{{ nomBoisson(ligne.boissonId) }}</td>
+                <td class="droite">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    [value]="ligne.verresParJour"
+                    [attr.aria-label]="'Verres par jour de ' + nomBoisson(ligne.boissonId)"
+                    (change)="majVerres(ligne.boissonId, $any($event.target).value)"
+                  />
+                </td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="principal">Total</td>
+              <td class="droite num">{{ fmtNombre(totalVerres()) }} verre(s) / jour</td>
+            </tr>
+          </tfoot>
+        </table>
+      }
+
+      <label class="case-mini" [class.regle]="consoValidee()">
+        <input
+          type="checkbox"
+          [checked]="consoValidee()"
+          (change)="consoValidee.set(!consoValidee())"
+        />
+        <span>Cette consommation me parait correcte</span>
+      </label>
+    }
+
+    @case ('coup-de-main') {
+      <dl class="resume">
+        <div class="large">
+          <dt>Ce qu'il peut amener</dt>
+          <dd>{{ reponse().logistique.materielApporte || 'Rien de propose' }}</dd>
+        </div>
+        <div class="large">
+          <dt>Coups de main</dt>
+          <dd>{{ libelleServices(reponse().servicesPreferes) || 'Rien de coche' }}</dd>
+        </div>
+        <div class="large">
+          <dt>Goodies</dt>
+          <dd>
+            {{ libelleGoodies(reponse().goodies) || 'Rien de coche' }}
+            @if (reponse().goodiesAutre) {
+              · idee : {{ reponse().goodiesAutre }}
+            }
+          </dd>
+        </div>
+        @if (reponse().stylesMusicaux) {
+          <div class="large">
+            <dt>Musique</dt>
+            <dd>{{ reponse().stylesMusicaux }}</dd>
+          </div>
+        }
+        @if (reponse().commentaire) {
+          <div class="large">
+            <dt>Un mot</dt>
+            <dd>{{ reponse().commentaire }}</dd>
+          </div>
+        }
+      </dl>
+      <p class="hint">
+        Valider ajoute {{ nomComplet() || 'cette personne' }} aux invites, avec la consommation
+        relue a l'etape precedente. Tout reste modifiable ensuite sur sa fiche.
+      </p>
+    }
+  }
+
+  @if (index() > 0) {
+    <button type="button" class="discret retour" (click)="precedent()">← Etape precedente</button>
+  }
+</app-modale>

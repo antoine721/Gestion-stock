@@ -1,0 +1,96 @@
+/* Le fil des etapes : trois traits et un numero, pas une barre de progression
+   animee. On veut savoir ou on en est, pas regarder un chargement. */
+.fil {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.6875rem;
+  color: var(--texte-doux);
+}
+
+.fil li {
+  display: flex;
+  align-items: center;
+  gap: 0.3125rem;
+}
+
+.fil .num {
+  display: grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-weight: 650;
+}
+
+.fil .faite .num {
+  background: var(--accent-doux);
+  color: var(--accent);
+}
+
+.fil .active {
+  color: var(--texte);
+  font-weight: 650;
+}
+
+.fil .active .num {
+  background: var(--accent);
+  color: var(--surface);
+}
+
+.resume {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.625rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.resume .large {
+  grid-column: 1 / -1;
+}
+
+.resume dt {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texte-doux);
+}
+
+.resume dd {
+  margin: 0.125rem 0 0;
+  font-size: 0.8125rem;
+}
+
+.alertes {
+  display: grid;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.alerte {
+  margin: 0;
+  padding: 0.4375rem 0.625rem;
+  border-radius: var(--rayon-petit);
+  background: var(--surface-2);
+  font-size: 0.75rem;
+}
+
+.alerte.grave {
+  background: var(--alerte-doux, var(--surface-2));
+  color: var(--alerte, var(--texte));
+}
+
+/* La saisie des verres reste etroite : ce sont des unites, pas des montants. */
+.tableau input[type='number'] {
+  width: 4.5rem;
+  text-align: right;
+}
+
+.retour {
+  margin-top: 0.75rem;
+}

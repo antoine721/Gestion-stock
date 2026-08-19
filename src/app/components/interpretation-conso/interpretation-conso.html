@@ -1,30 +1,30 @@
 <section class="card">
   <div class="barre-tableau">
-    <h2>Interpretation des declarations</h2>
+    <h2>Les consommations validees</h2>
     <span class="muted num">{{ fmtEntier(lignes().length) }} fiche(s)</span>
-    @if (aTraiter() > 0) {
-      <span class="pill warn">{{ fmtEntier(aTraiter()) }} sans profil</span>
+    @if (sansConsommation() > 0) {
+      <span class="pill warn">{{ fmtEntier(sansConsommation()) }} sans consommation</span>
     }
     <label class="filtre pousse">
       <input
         type="checkbox"
-        [checked]="seulementSansProfil()"
-        (change)="seulementSansProfil.set(!seulementSansProfil())"
+        [checked]="seulementBuveurs()"
+        (change)="seulementBuveurs.set(!seulementBuveurs())"
       />
-      <span>Seulement celles sans profil</span>
+      <span>Seulement ceux qui boivent</span>
     </label>
   </div>
 
   <p class="intro muted">
-    Ce que les invites ont declare au formulaire, traduit en verres par jour. On te propose le
-    profil le plus proche : est-ce qu'il te parait correct ? Valide-le, choisis-en un autre, ou
-    corrige les valeurs declarees dans le tableau juste au-dessus. Rien ne s'applique tout seul.
+    Ce que chaque fiche validee consomme par jour. C'est cette liste qui alimente le bar : la
+    corriger ici corrige les courses. Une fiche sans consommation n'a pas encore ete validee, ou ne
+    boit pas.
   </p>
 
   @if (lignes().length === 0) {
     <p class="vide">
-      Personne n'a encore rempli ses gouts, ou tout le monde a deja son profil. Partage le lien du
-      formulaire depuis l'espace Formulaire.
+      Aucune fiche pour l'instant. Les declarations arrivent par le formulaire, et se valident dans
+      l'espace Invites.
     </p>
   } @else {
     <div class="boite-tableau">
@@ -33,62 +33,44 @@
           <tr>
             <th>Invite</th>
             <th>Ce qu'il declare</th>
-            <th class="droite">Estimation</th>
-            <th>Profil propose</th>
-            <th class="droite">Action</th>
+            <th>Ce qu'on lui prevoit</th>
+            <th class="droite">Verres / jour</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
           @for (ligne of lignes(); track ligne.invite.id) {
-            <tr class="cliquable" [class.active]="detailId() === ligne.invite.id">
-              <td (click)="detailId.set(ligne.invite.id)">
+            <tr
+              class="cliquable"
+              [class.active]="detailId() === ligne.invite.id"
+              (click)="detailId.set(ligne.invite.id)"
+            >
+              <td>
                 <span class="principal">{{ nomComplet(ligne.invite) }}</span>
                 @if (libelleTeam(ligne.invite)) {
                   <span class="secondaire">{{ libelleTeam(ligne.invite) }}</span>
                 }
               </td>
-              <td (click)="detailId.set(ligne.invite.id)">
+              <td>
                 <span class="declare">{{
                   libelleBoissonsAimees(ligne.invite.boissonsAimees) || 'Aucun alcool declare'
                 }}</span>
                 <span class="secondaire">{{ rythme(ligne.invite) }}</span>
               </td>
-              <td class="droite" (click)="detailId.set(ligne.invite.id)">
-                <span class="principal num">{{ fmtNombre(ligne.resultat.verresParJour) }}</span>
-                <span class="secondaire">verres / jour</span>
-              </td>
-              <td (click)="detailId.set(ligne.invite.id)">
-                @if (ligne.invite.personneTypeId) {
-                  <span class="pill ok">{{ profilActuel(ligne.invite) }}</span>
-                } @else if (ligne.resultat.meilleur; as meilleur) {
-                  {{ meilleur.personneType.emoji }} {{ meilleur.personneType.nom }}
-                  <span class="secondaire num">{{ meilleur.score }} % de correspondance</span>
+              <td>
+                @if (ligne.consommation.length > 0) {
+                  {{ resumeConso(ligne.consommation) }}
                 } @else {
-                  <span class="pill warn">Aucun profil ne colle</span>
+                  <span class="pill warn">Rien de prevu</span>
                 }
               </td>
-              <td class="droite">
-                @if (!ligne.invite.personneTypeId && ligne.resultat.meilleur; as meilleur) {
-                  <button
-                    type="button"
-                    class="primaire"
-                    (click)="validerProfil(ligne.invite, meilleur.personneType.id)"
-                  >
-                    Valider
-                  </button>
-                } @else if (!ligne.invite.personneTypeId) {
-                  <button type="button" (click)="detailId.set(ligne.invite.id)">Reevaluer</button>
-                } @else {
-                  <span class="muted">—</span>
-                }
-              </td>
-              <td class="chevron droite" (click)="detailId.set(ligne.invite.id)">›</td>
+              <td class="droite num">{{ fmtNombre(ligne.total) }}</td>
+              <td class="chevron droite">›</td>
             </tr>
-            @if (ligne.resultat.alertes.length > 0) {
+            @if (ligne.alertes.length > 0) {
               <tr class="ligne-alertes">
-                <td colspan="6">
-                  @for (alerte of ligne.resultat.alertes; track alerte.texte) {
+                <td colspan="5">
+                  @for (alerte of ligne.alertes; track alerte.texte) {
                     <span class="alerte" [class.grave]="alerte.gravite === 'attention'">
                       {{ alerte.gravite === 'attention' ? '⚠' : 'ℹ' }} {{ alerte.texte }}
                     </span>
@@ -98,14 +80,20 @@
             }
           }
         </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" class="principal">Tout le monde</td>
+            <td class="droite num">{{ fmtNombre(totalGeneral()) }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   }
 
   <p class="hint">
-    Les estimations prennent le milieu de chaque fourchette et respectent le plafond de l'equipe
-    declaree : mieux vaut reevaluer une fiche que gonfler les courses sur une declaration poussee
-    trop vite.
+    Les quantites a acheter partent de ces verres par jour, multiplies par les jours de presence de
+    chacun. Corriger une ligne ici se voit immediatement dans la liste de courses.
   </p>
 </section>
 
@@ -113,8 +101,8 @@
   <app-panneau
     [titre]="nomComplet(ligne.invite)"
     [sousTitre]="
-      fmtNombre(ligne.resultat.verresParJour) +
-      ' verre(s) / jour estimes · ' +
+      fmtNombre(ligne.total) +
+      ' verre(s) / jour · ' +
       (libelleTeam(ligne.invite) || 'equipe non declaree')
     "
     (fermee)="detailId.set('')"
@@ -131,9 +119,9 @@
       </div>
     </dl>
 
-    @if (ligne.resultat.alertes.length > 0) {
+    @if (ligne.alertes.length > 0) {
       <div class="alertes-panneau">
-        @for (alerte of ligne.resultat.alertes; track alerte.texte) {
+        @for (alerte of ligne.alertes; track alerte.texte) {
           <p class="alerte" [class.grave]="alerte.gravite === 'attention'">
             {{ alerte.gravite === 'attention' ? '⚠' : 'ℹ' }} {{ alerte.texte }}
           </p>
@@ -141,9 +129,12 @@
       </div>
     }
 
-    <span class="sous-titre">Consommation estimee</span>
-    @if (ligne.resultat.consommation.length === 0) {
-      <p class="vide">Rien a estimer : aucun alcool declare, ou une equipe sans alcool.</p>
+    <span class="sous-titre">Sa consommation, par jour</span>
+    @if (ligne.consommation.length === 0) {
+      <p class="vide">
+        Rien de prevu pour cette fiche. Sa consommation se pose a la validation, dans l'espace
+        Invites.
+      </p>
     } @else {
       <table class="tableau">
         <thead>
@@ -153,35 +144,26 @@
           </tr>
         </thead>
         <tbody>
-          @for (item of ligne.resultat.consommation; track item.boissonId) {
+          @for (item of ligne.consommation; track item.boissonId) {
             <tr>
               <td class="principal">{{ nomBoisson(item.boissonId) }}</td>
-              <td class="droite num">{{ fmtNombre(item.verresParJour) }}</td>
+              <td class="droite">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  [value]="item.verresParJour"
+                  [attr.aria-label]="'Verres par jour de ' + nomBoisson(item.boissonId)"
+                  (change)="majVerres(ligne.invite, item.boissonId, $any($event.target).value)"
+                />
+              </td>
             </tr>
           }
         </tbody>
       </table>
-    }
-
-    <span class="sous-titre">Ce profil te parait correct ?</span>
-    <div class="correspondances">
-      @for (corr of ligne.resultat.correspondances; track corr.personneType.id) {
-        <button
-          type="button"
-          class="correspondance"
-          [class.actif]="ligne.invite.personneTypeId === corr.personneType.id"
-          (click)="validerProfil(ligne.invite, corr.personneType.id)"
-        >
-          <span class="corr-nom"> {{ corr.personneType.emoji }} {{ corr.personneType.nom }} </span>
-          <span class="corr-score num" [class.bon]="corr.score >= 70">{{ corr.score }} %</span>
-        </button>
-      }
-    </div>
-
-    @if (ligne.resultat.consommation.length > 0) {
-      <button type="button" class="primaire" (click)="creerProfilSurMesure(ligne.invite)">
-        Aucun ne convient : creer un profil sur mesure
-      </button>
+      <p class="hint">
+        Ces chiffres n'appartiennent qu'a cette fiche : les corriger ne touche personne d'autre.
+      </p>
     }
   </app-panneau>
 }
