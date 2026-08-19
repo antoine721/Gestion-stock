@@ -13,7 +13,12 @@ import {
   presenceComplete,
   tousLesJours,
 } from '../../domain/invites';
-import { boissonsBues, libelleGoodies, libelleServices } from '../../domain/preferences';
+import {
+  boissonsBues,
+  libelleBoissonsAimees,
+  libelleGoodies,
+  libelleServices,
+} from '../../domain/preferences';
 import { dateDuJour } from '../../domain/evenement';
 import { fmtEntier, fmtEuro, fmtNombre } from '../../domain/format';
 import {
@@ -59,6 +64,7 @@ export class SectionUtilisateurs {
   protected readonly libelleGoodies = libelleGoodies;
   protected readonly taches = TACHES_INVITE;
   protected readonly neBoitPas = neBoitPas;
+  protected readonly libelleBoissonsAimees = libelleBoissonsAimees;
 
   /** « Permis · Voiture (3 places) · Cherche covoiturage » en une ligne. */
   protected resumeVoiture(logistique: Logistique): string {
@@ -172,8 +178,8 @@ export class SectionUtilisateurs {
     return `${fmtNombre(total)} verre(s) / jour`;
   }
 
-  /** Ce que la personne a coche au formulaire. */
-  protected boissonsBues(invite: Invite): string[] {
+  /** Ce qu'elle boit, la plus grosse part en tete. */
+  protected boissonsBues(invite: Invite): { libelle: string; part: number }[] {
     return boissonsBues(invite.boissonsAimees);
   }
 

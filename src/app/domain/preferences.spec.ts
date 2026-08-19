@@ -2,45 +2,126 @@ import { describe, expect, it } from 'vitest';
 import { goutsIntraduisibles } from './interpretation';
 import {
   BOISSONS_AIMEES,
-  basculerGout,
   boissonsBues,
-  boitCa,
+  repartirGouts,
   boissonsDeFamille,
   libelleBoissonsAimees,
   normaliserGouts,
 } from './preferences';
 
-describe('les gouts se cochent', () => {
-  it('ramene toute ancienne nuance a une case cochee', () => {
-    // Les fiches d'avant portaient un dosage : 0 a 4, puis un pourcentage.
-    expect(normaliserGouts([{ boissonId: 'biere', intensite: 3 }])).toEqual([
-      { boissonId: 'biere', intensite: 100 },
+describe('repartirGouts', () => {
+  const somme = (parts: Map<string, number>) => [...parts.values()].reduce((a, b) => a + b, 0);
+
+  it('donne tout a la premiere boisson servie', () => {
+    expect(repartirGouts(new Map(), 'biere-blonde', 40)).toEqual(new Map([['biere-blonde', 100]]));
+  });
+
+  it('prend aux autres ce qu on donne a l un', () => {
+    const parts = new Map([
+      ['biere-blonde', 50],
+      ['biere-blanche', 50],
     ]);
-    expect(normaliserGouts([{ boissonId: 'gin', intensite: 45 }])).toEqual([
-      { boissonId: 'gin', intensite: 100 },
+    const apres = repartirGouts(parts, 'biere-blonde', 80);
+
+    expect(apres.get('biere-blonde')).toBe(80);
+    expect(apres.get('biere-blanche')).toBe(20);
+    expect(somme(apres)).toBe(100);
+  });
+
+  it('rend aux autres ce qu on retire a l un', () => {
+    const parts = new Map([
+      ['biere-blonde', 60],
+      ['biere-blanche', 20],
+      ['biere-rouge', 20],
+    ]);
+    const apres = repartirGouts(parts, 'biere-blonde', 20);
+
+    expect(apres.get('biere-blonde')).toBe(20);
+    // Les deux autres se partagent les 80 restants, a parts egales.
+    expect(apres.get('biere-blanche')).toBe(40);
+    expect(apres.get('biere-rouge')).toBe(40);
+    expect(somme(apres)).toBe(100);
+  });
+
+  it('avance par crans de 5, jamais par miettes', () => {
+    const parts = new Map([
+      ['biere-blonde', 34],
+      ['biere-blanche', 33],
+      ['biere-rouge', 33],
+    ]);
+    const apres = repartirGouts(parts, 'biere-blonde', 52);
+
+    expect(apres.get('biere-blonde')).toBe(50);
+    for (const part of apres.values()) expect(part % 5).toBe(0);
+    expect(somme(apres)).toBe(100);
+  });
+
+  it('tombe a zero sous le premier cran', () => {
+    const parts = new Map([
+      ['biere-blonde', 50],
+      ['biere-blanche', 50],
+    ]);
+    const apres = repartirGouts(parts, 'biere-blonde', 2);
+
+    expect(apres.has('biere-blonde')).toBe(false);
+    expect(apres.get('biere-blanche')).toBe(100);
+  });
+
+  it('ne laisse pas une poussiere de part a une boisson', () => {
+    // Une part qui tomberait sous 5 % passe a zero, sa place va au plus gros.
+    const parts = new Map([
+      ['rhum', 90],
+      ['gin', 5],
+      ['vodka', 5],
+    ]);
+    const apres = repartirGouts(parts, 'rhum', 95);
+
+    expect(apres.get('rhum')).toBe(95);
+    expect(somme(apres)).toBe(100);
+    for (const part of apres.values()) expect(part).toBeGreaterThanOrEqual(5);
+  });
+
+  it('vide la famille quand le dernier curseur tombe a zero', () => {
+    expect(repartirGouts(new Map([['rhum', 100]]), 'rhum', 0).size).toBe(0);
+  });
+
+  it('sature a 100', () => {
+    const apres = repartirGouts(
+      new Map([
+        ['rhum', 50],
+        ['gin', 50],
+      ]),
+      'rhum',
+      100,
+    );
+    expect(apres).toEqual(new Map([['rhum', 100]]));
+  });
+});
+
+describe('normaliserGouts', () => {
+  it('remonte les vieilles notes de 0 a 4', () => {
+    expect(normaliserGouts([{ boissonId: 'biere', intensite: 3 }])).toEqual([
+      { boissonId: 'biere', intensite: 75 },
     ]);
   });
 
-  it('laisse tomber ce qui est a zero', () => {
+  it('laisse les parts telles quelles', () => {
+    expect(normaliserGouts([{ boissonId: 'gin', intensite: 45 }])).toEqual([
+      { boissonId: 'gin', intensite: 45 },
+    ]);
     expect(normaliserGouts([{ boissonId: 'gin', intensite: 0 }])).toEqual([]);
     expect(normaliserGouts(undefined)).toEqual([]);
-  });
-
-  it('coche et decoche', () => {
-    const apres = basculerGout([], 'rhum');
-    expect(boitCa(apres, 'rhum')).toBe(true);
-    expect(boitCa(basculerGout(apres, 'rhum'), 'rhum')).toBe(false);
   });
 });
 
 describe('libelleBoissonsAimees', () => {
-  it('liste ce qui est coche, dans l ordre de la liste', () => {
+  it('liste les parts, la plus grosse en tete', () => {
     const texte = libelleBoissonsAimees([
-      { boissonId: 'rhum', intensite: 2 },
+      { boissonId: 'rhum', intensite: 25 },
       { boissonId: 'vin-rouge', intensite: 0 },
       { boissonId: 'biere-blonde', intensite: 75 },
     ]);
-    expect(texte).toBe('Biere blonde · Rhum');
+    expect(texte).toBe('Biere blonde 75 % · Rhum 25 %');
   });
 });
 
@@ -61,17 +142,20 @@ describe('les bieres', () => {
 });
 
 describe('boissonsBues', () => {
-  it('rend les boissons cochees, les inconnues en moins', () => {
+  it('classe par part et ecarte les inconnues', () => {
     expect(
       boissonsBues([
-        { boissonId: 'rhum', intensite: 100 },
+        { boissonId: 'rhum', intensite: 30 },
         { boissonId: 'absinthe', intensite: 100 },
-        { boissonId: 'biere-blonde', intensite: 100 },
+        { boissonId: 'biere-blonde', intensite: 70 },
       ]),
-    ).toEqual(['Biere blonde', 'Rhum']);
+    ).toEqual([
+      { libelle: 'Biere blonde', part: 70 },
+      { libelle: 'Rhum', part: 30 },
+    ]);
   });
 
-  it('ne rend rien quand rien n est coche', () => {
+  it('ne rend rien sans declaration', () => {
     expect(boissonsBues([])).toEqual([]);
   });
 });

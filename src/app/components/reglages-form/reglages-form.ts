@@ -29,7 +29,7 @@ export class ReglagesForm {
     { champ: 'alcoolPurClParBuveurParJour', label: 'Alcool pur (cl) / buveur / jour', pas: 0.5 },
     { champ: 'softLParNonBuveurParJour', label: 'Sans alcool (L) / non-buveur / jour', pas: 0.1 },
     { champ: 'liquideLParPersonneParJour', label: 'Liquide (L) / personne / jour', pas: 0.05 },
-    { champ: 'ratioDiluantSpiritueux', label: 'Diluant / spiritueux (mini)', pas: 0.5 },
+    { champ: 'ratioDiluantSpiritueux', label: 'Diluant / alcool fort (mini)', pas: 0.5 },
     { champ: 'partDominanteMaxPct', label: 'Part boisson dominante (maxi %)', pas: 5 },
     { champ: 'restePctMax', label: 'Reste sur les bras (maxi %)', pas: 5 },
     { champ: 'referencesMax', label: 'References a acheter (maxi)', pas: 1 },

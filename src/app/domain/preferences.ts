@@ -50,10 +50,10 @@ export const FAMILLES_ALCOOL: readonly OptionFamille[] = [
   },
   {
     id: 'spiritueux',
-    libelle: 'Les spiritueux',
+    libelle: 'Les alcools forts',
     emoji: '🥃',
-    gouts: 'Quels spiritueux tu aimes ?',
-    question: 'En general, tu bois combien de verres de spiritueux dans une soiree ?',
+    gouts: 'Quels alcools forts tu aimes ?',
+    question: 'En general, tu bois combien de verres d’alcool fort dans une soiree ?',
     repere: 'On compte en doses de 4 cl : le verre servi au bar.',
   },
 ];
@@ -191,31 +191,87 @@ export const PLAFOND_TEAM: Record<TeamBuveur, number> = {
 };
 
 /**
- * Un gout se coche : j'en bois, ou je n'en bois pas.
+ * Les gouts d'une famille se partagent 100 %.
  *
- * Les verres d'une famille se partagent ensuite a parts egales entre les
- * cases cochees. Un dosage en pourcentage demandait une precision que
- * personne n'a, et 10 % sur un vin rouge finissait par acheter une bouteille
- * pour rien.
- *
- * La valeur reste un nombre : les fiches deja enregistrees restent lisibles.
+ * Un curseur ne dit pas « combien je bois » — ca, c'est la question de
+ * rythme. Il dit quelle part des verres de la famille va a cette boisson.
+ * Les curseurs d'une meme famille sont donc lies : ce qu'on donne a l'un,
+ * on le prend aux autres.
  */
-export const GOUT_COCHE = 100;
+export const PAS_GOUT = 5;
 
-/** Tout ce qui etait au-dessus de zero devient une case cochee. */
+/** En dessous d'un cran, une part ne veut plus rien dire : elle tombe a zero. */
+function arrondirPart(valeur: number): number {
+  const cran = Math.round(valeur / PAS_GOUT) * PAS_GOUT;
+  const borne = Math.min(100, Math.max(0, cran));
+  return borne < PAS_GOUT ? 0 : borne;
+}
+
+/**
+ * Repartit 100 % sur une famille apres qu'un curseur a bouge.
+ *
+ * Ce qui reste va aux autres boissons cochees, au prorata de ce qu'elles
+ * avaient deja, par crans de 5 %. Une part qui tomberait sous le cran passe
+ * a zero et laisse sa place aux autres : mieux vaut trois boissons nettes
+ * qu'une poussiere de six.
+ */
+export function repartirGouts(
+  parts: ReadonlyMap<string, number>,
+  boissonId: string,
+  valeur: number,
+): Map<string, number> {
+  const cible = arrondirPart(valeur);
+  const autres = [...parts.entries()].filter(([id, part]) => id !== boissonId && part > 0);
+  const sortie = new Map<string, number>();
+
+  // Personne d'autre a servir : la boisson prend tout, ou la famille est vide.
+  if (autres.length === 0) {
+    if (cible > 0) sortie.set(boissonId, 100);
+    return sortie;
+  }
+
+  if (cible >= 100) return new Map([[boissonId, 100]]);
+  if (cible > 0) sortie.set(boissonId, cible);
+
+  const reste = 100 - cible;
+  const total = autres.reduce((somme, [, part]) => somme + part, 0);
+
+  // Chacun garde son rang : on descend les parts au cran inferieur, puis on
+  // rend les crans manquants aux plus gros restes. La somme fait 100, pile.
+  const bruts = autres.map(([id, part]) => ({ id, exact: (part / total) * reste }));
+  const arrondis = bruts.map((x) => ({
+    ...x,
+    cran: Math.floor(x.exact / PAS_GOUT) * PAS_GOUT,
+  }));
+  let distribue = arrondis.reduce((somme, x) => somme + x.cran, 0);
+  const ordre = [...arrondis].sort((a, b) => b.exact - b.cran - (a.exact - a.cran));
+  for (const x of ordre) {
+    if (distribue >= reste) break;
+    x.cran += PAS_GOUT;
+    distribue += PAS_GOUT;
+  }
+
+  // Les miettes sous le cran ne survivent pas : leur part revient au plus gros.
+  const gardes = arrondis.filter((x) => x.cran >= PAS_GOUT);
+  const perdu = arrondis.filter((x) => x.cran < PAS_GOUT).reduce((s, x) => s + x.cran, 0);
+  if (gardes.length > 0 && perdu > 0) {
+    gardes.sort((a, b) => b.cran - a.cran)[0].cran += perdu;
+  }
+  for (const x of gardes) sortie.set(x.id, x.cran);
+  return sortie;
+}
+
+/**
+ * Ce que les fiches d'avant portaient : d'abord une note de 0 a 4, puis une
+ * case cochee a 100. Les deux restent lisibles comme des parts.
+ */
 export function normaliserGouts(gouts: readonly GoutBoisson[] | undefined): GoutBoisson[] {
   return (gouts ?? [])
     .filter((x) => x.intensite > 0)
-    .map((x) => ({ boissonId: x.boissonId, intensite: GOUT_COCHE }));
-}
-
-export function boitCa(gouts: readonly GoutBoisson[], boissonId: string): boolean {
-  return gouts.some((x) => x.boissonId === boissonId && x.intensite > 0);
-}
-
-export function basculerGout(gouts: readonly GoutBoisson[], boissonId: string): GoutBoisson[] {
-  const sans = gouts.filter((x) => x.boissonId !== boissonId);
-  return boitCa(gouts, boissonId) ? sans : [...sans, { boissonId, intensite: GOUT_COCHE }];
+    .map((x) => ({
+      boissonId: x.boissonId,
+      intensite: Math.min(100, x.intensite <= 4 ? x.intensite * 25 : x.intensite),
+    }));
 }
 
 /** Les quatre equipes de buveurs, du chameau au bateau ivre. */
@@ -375,16 +431,24 @@ export function resumerGoodies(choix: readonly { goodies: string[] }[]): Demande
     .sort((a, b) => b.nombre - a.nombre || a.libelle.localeCompare(b.libelle));
 }
 
-/** Ce que la personne a coche, dans l'ordre de la liste. */
-export function boissonsBues(gouts: readonly GoutBoisson[]): string[] {
+/** Ce qu'elle boit, la plus grosse part en tete. */
+export function boissonsBues(gouts: readonly GoutBoisson[]): { libelle: string; part: number }[] {
   const ordre = new Map(BOISSONS_AIMEES.map((x, i) => [x.id, i]));
   return normaliserGouts(gouts)
     .filter((x) => LIBELLE_BOISSON_AIMEE.has(x.boissonId))
-    .sort((a, b) => (ordre.get(a.boissonId) ?? 0) - (ordre.get(b.boissonId) ?? 0))
-    .map((x) => LIBELLE_BOISSON_AIMEE.get(x.boissonId) ?? '');
+    .sort(
+      (a, b) =>
+        b.intensite - a.intensite || (ordre.get(a.boissonId) ?? 0) - (ordre.get(b.boissonId) ?? 0),
+    )
+    .map((x) => ({
+      libelle: LIBELLE_BOISSON_AIMEE.get(x.boissonId) ?? '',
+      part: Math.round(x.intensite),
+    }));
 }
 
-/** « Biere blonde · Rhum » : ce qu'elle boit, en une ligne. */
+/** « Biere blonde 60 % · Rhum 40 % » : ce qu'elle boit, en une ligne. */
 export function libelleBoissonsAimees(gouts: readonly GoutBoisson[]): string {
-  return boissonsBues(gouts).join(' · ');
+  return boissonsBues(gouts)
+    .map((x) => `${x.libelle} ${x.part} %`)
+    .join(' · ');
 }

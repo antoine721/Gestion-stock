@@ -220,53 +220,47 @@ h2 {
 }
 
 /* Un gout : son nom, son curseur, et l'avis en toutes lettres a droite. */
-/* Une boisson est une pastille qu'on active : meme grammaire que les goodies
-   et les coups de main, plus rapide au pouce qu'une colonne de cases. */
+/* Un gout : son nom, son curseur, sa part. Les curseurs d'une famille sont
+   lies — ce qu'on donne a l'un, on le prend aux autres — donc ils se lisent
+   en colonne, alignes, pour voir le partage d'un coup d'oeil. */
 .gouts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
+  display: grid;
+  gap: 0.25rem;
 }
 
 .gout {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 8.5rem 1fr 2.75rem;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.6875rem;
-  border: 1px solid var(--bord);
-  border-radius: 999px;
-  background: var(--surface);
+  gap: 0.625rem;
+  padding: 0.125rem 0;
   cursor: pointer;
-  transition:
-    border-color 0.12s ease,
-    background 0.12s ease;
-}
-
-.gout:hover {
-  border-color: var(--famille-teinte);
-}
-
-.gout input {
-  width: 0.875rem;
-  height: 0.875rem;
-  margin: 0;
-  accent-color: var(--famille-teinte);
 }
 
 .gout-nom {
   font-size: 0.8125rem;
   color: var(--texte-doux);
-  white-space: nowrap;
-}
-
-.gout.choisi {
-  border-color: var(--famille-teinte);
-  background: var(--surface-2);
 }
 
 .gout.choisi .gout-nom {
   font-weight: 620;
   color: var(--texte);
+}
+
+.gout input[type='range'] {
+  width: 100%;
+  accent-color: var(--famille-teinte);
+}
+
+.gout-part {
+  font-size: 0.75rem;
+  text-align: right;
+  color: var(--texte-doux);
+}
+
+.gout.choisi .gout-part {
+  font-weight: 650;
+  color: var(--famille-teinte);
 }
 
 /* Le chameau n'a rien a remplir : on le lui dit clairement. */
