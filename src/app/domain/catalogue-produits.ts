@@ -29,10 +29,15 @@ export interface ProduitCatalogue {
 
 /** Sans accents ni majuscules : on cherche « biere » et on trouve « Bière ». */
 export function normaliserTexte(texte: string): string {
-  return texte
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
+  return (
+    texte
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      // « œufs » se cherche « oeufs » : personne ne tape la ligature.
+      .replace(/\u0153/g, 'oe')
+      .replace(/\u00e6/g, 'ae')
+  );
 }
 
 /**
