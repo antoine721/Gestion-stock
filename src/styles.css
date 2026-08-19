@@ -282,14 +282,15 @@ input[type='number'],
 input[type='text'],
 input[type='password'],
 input[type='date'],
+input[type='search'],
 textarea,
 select {
   width: 100%;
   /* Assez haut pour se cliquer au pouce, pas plus : un formulaire de dix
      champs ne doit pas remplir l'ecran a lui seul. */
-  padding: 0.4375rem 0.6875rem;
+  padding: 0.3125rem 0.5625rem;
   font-family: var(--corps);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--texte);
   background: var(--surface);
   border: 1px solid var(--bord-champ);
@@ -304,6 +305,7 @@ select {
 [data-theme='sombre'] input[type='text'],
 [data-theme='sombre'] input[type='password'],
 [data-theme='sombre'] input[type='date'],
+[data-theme='sombre'] input[type='search'],
 [data-theme='sombre'] textarea,
 [data-theme='sombre'] select {
   background: var(--surface-2);
@@ -312,7 +314,7 @@ select {
 /* Le texte long se redimensionne a la verticale seulement. */
 textarea {
   resize: vertical;
-  min-height: 3.5rem;
+  min-height: 3rem;
 }
 
 /* Toute saisie chiffree s'aligne en colonnes. */
@@ -841,10 +843,13 @@ summary::-webkit-details-marker {
   input[type='text'],
   input[type='password'],
   input[type='date'],
+  input[type='search'],
   textarea,
   select {
+    /* 16 px minimum sur mobile : en dessous, iOS zoome sur chaque champ
+       touche. Seule la hauteur se resserre. */
     font-size: 1rem;
-    padding: 0.5rem 0.625rem;
+    padding: 0.375rem 0.5625rem;
   }
 
   /* Des cibles tactiles dignes d'un pouce, sauf les petites croix discretes. */
