@@ -636,6 +636,20 @@
       </label>
     </div>
 
+    <!-- Le detail montre l'essentiel ; le tableau montre les dix-sept alcools
+         cote a cote, et se corrige sur place. -->
+    <p class="declare">
+      Alcool prefere :
+      @if (alcoolPrefere(invite); as prefere) {
+        <b>{{ prefere.libelle }}</b> ({{ prefere.part }} %)
+      } @else {
+        <span class="muted">rien de declare</span>
+      }
+      <button type="button" class="discret" (click)="voirDansLeTableau(invite)">
+        Voir dans le tableau des declarations →
+      </button>
+    </p>
+
     <span class="sous-titre">Paiement</span>
     <div class="compact">
       <label class="champ large">

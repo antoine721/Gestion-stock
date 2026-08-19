@@ -408,6 +408,20 @@ export class PlannerStore {
     }
   }
 
+  /**
+   * La fiche qu'on vient de demander a voir dans le tableau des declarations.
+   *
+   * Le detail d'un invite et le tableau vivent dans deux composants voisins :
+   * ce signal est le fil entre les deux, pour que « voir dans le tableau »
+   * amene sur la bonne ligne au lieu d'un tableau de trente lignes ouvert au
+   * hasard.
+   */
+  readonly inviteEnAvant = signal('');
+
+  mettreEnAvant(inviteId: string): void {
+    this.inviteEnAvant.set(inviteId);
+  }
+
   /** Toute navigation entre espaces passe par ici : le retour sait d'ou l'on vient. */
   allerA(espace: Espace): void {
     if (espace === this.espace()) return;

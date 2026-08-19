@@ -17,7 +17,8 @@
 
   <p class="intro muted">
     Ce que les invites ont declare au formulaire, traduit en verres par jour. On te propose le
-    profil le plus proche : tu valides, ou tu reevalues a la main. Rien ne s'applique tout seul.
+    profil le plus proche : est-ce qu'il te parait correct ? Valide-le, choisis-en un autre, ou
+    corrige les valeurs declarees dans le tableau juste au-dessus. Rien ne s'applique tout seul.
   </p>
 
   @if (lignes().length === 0) {
@@ -162,7 +163,7 @@
       </table>
     }
 
-    <span class="sous-titre">Les profils, du plus proche au plus loin</span>
+    <span class="sous-titre">Ce profil te parait correct ?</span>
     <div class="correspondances">
       @for (corr of ligne.resultat.correspondances; track corr.personneType.id) {
         <button

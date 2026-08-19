@@ -16,6 +16,7 @@ import { SectionProfil } from '../../components/section-profil/section-profil';
 import { SectionProgramme } from '../../components/section-programme/section-programme';
 import { SectionStats } from '../../components/section-stats/section-stats';
 import { SectionUtilisateurs } from '../../components/section-utilisateurs/section-utilisateurs';
+import { TableauConso } from '../../components/tableau-conso/tableau-conso';
 import { ValidationPanel } from '../../components/validation-panel/validation-panel';
 import { VisiteGuidee } from '../../components/visite-guidee/visite-guidee';
 import { Logo } from '../../components/logo/logo';
@@ -53,6 +54,7 @@ const CLE_VISITE = 'vialcrm.visite';
     SectionProgramme,
     SectionStats,
     SectionUtilisateurs,
+    TableauConso,
     ValidationPanel,
     VisiteGuidee,
     Logo,
