@@ -270,6 +270,12 @@ export class SectionUtilisateurs {
     this.store.invitesNommes().find((x) => x.id === this.detailId()),
   );
 
+  /** Ferme la fiche et pose l'oeil sur la ligne correspondante du tableau. */
+  protected voirDansLeTableau(invite: Invite): void {
+    this.store.mettreEnAvant(invite.id);
+    this.detailId.set('');
+  }
+
   protected ouvrirDetail(invite: Invite): void {
     this.detailId.set(invite.id);
   }

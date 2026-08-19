@@ -355,4 +355,19 @@ describe('PlannerStore', () => {
     store.basculerCourse(`materiel:${id}`);
     expect(store.articles().find((x) => x.id === id)?.statut).toBe('a-prevoir');
   });
+
+  it('corriger un gout dans le tableau ecrit sur la fiche', () => {
+    const id = store.ajouterInvite('antoine');
+    store.majInvite(id, { boissonsAimees: [{ boissonId: 'biere-blonde', intensite: 60 }] });
+
+    const invite = store.invitesNommes().find((x) => x.id === id);
+    expect(invite?.boissonsAimees).toEqual([{ boissonId: 'biere-blonde', intensite: 60 }]);
+  });
+
+  it('met une fiche en avant, puis la relache', () => {
+    store.mettreEnAvant('abc');
+    expect(store.inviteEnAvant()).toBe('abc');
+    store.mettreEnAvant('');
+    expect(store.inviteEnAvant()).toBe('');
+  });
 });
