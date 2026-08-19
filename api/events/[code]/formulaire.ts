@@ -29,7 +29,7 @@ function champ(valeur: unknown): string {
   return typeof valeur === 'string' ? valeur.trim().slice(0, MAX_CHAMP) : '';
 }
 
-const NIVEAUX = new Set(['aucun', 'peu', 'moyen', 'beaucoup', 'abuse']);
+const NIVEAUX = new Set(['aucun', 'peu', 'moyen', 'beaucoup', 'abuse', 'sans-limite']);
 
 const TEAMS = new Set(['chameau', 'degustation', 'croisiere', 'bateau-ivre']);
 

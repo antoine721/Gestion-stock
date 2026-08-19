@@ -155,7 +155,7 @@ export type Regime =
   'omnivore' | 'vegetarien' | 'vegan' | 'sans-gluten' | 'sans-lactose' | 'halal' | 'casher';
 
 /** Paliers declaratifs de consommation, du « rien » a « abuse ». */
-export type NiveauConso = 'aucun' | 'peu' | 'moyen' | 'beaucoup' | 'abuse';
+export type NiveauConso = 'aucun' | 'peu' | 'moyen' | 'beaucoup' | 'abuse' | 'sans-limite';
 
 /**
  * Les trois familles d'alcool DECLAREES au formulaire, a ne pas confondre avec

@@ -119,14 +119,18 @@ export function neBoitPas(invite: Pick<Invite, 'team'>): boolean {
 }
 
 /**
- * Les quatre choses a faire sur une fiche avant qu'elle soit prete. C'est la
+ * Les trois choses a faire sur une fiche avant qu'elle soit prete. C'est la
  * checklist de l'organisateur : tant qu'une case manque, il reste une
  * decision a prendre sur cette personne.
+ *
+ * Le profil alcool n'en fait plus partie : chacun declare ses gouts dans le
+ * formulaire, et c'est l'ecran de validation qui transforme cette declaration
+ * en profil. En laisser la charge a l'organisateur affichait des fiches
+ * incompletes pour un travail que l'app fait deja.
  */
 export const TACHES_INVITE = [
   { id: 'tarif', libelle: 'Attribuer un tarif' },
   { id: 'paiement', libelle: 'Encaisser le paiement' },
-  { id: 'profil', libelle: 'Definir un profil alcool' },
   { id: 'presence', libelle: 'Preciser les jours sur place' },
 ] as const;
 
@@ -135,16 +139,15 @@ export type TacheInvite = (typeof TACHES_INVITE)[number]['id'];
 export interface EtatTachesInvite {
   tarif: boolean;
   paiement: boolean;
-  profil: boolean;
   presence: boolean;
-  /** Combien de cases sur quatre sont faites. */
+  /** Combien de cases sur trois sont faites. */
   faites: number;
 }
 
 /**
- * Ou en est une fiche, tache par tache. Deux raccourcis assumes : un tarif
- * gratuit n'attend aucun paiement, et un non-buveur n'attend aucun profil
- * alcool — sinon ces fiches resteraient eternellement incompletes.
+ * Ou en est une fiche, tache par tache. Un raccourci assume : un tarif
+ * gratuit n'attend aucun paiement, sinon ces fiches resteraient
+ * eternellement incompletes.
  */
 export function etatTaches(
   invite: Invite,
@@ -153,12 +156,11 @@ export function etatTaches(
   const categorie = categories.find((x) => x.id === invite.categoriePaiementId);
   const tarif = categorie !== undefined;
   const paiement = invite.paye || (tarif && categorie.montant === 0);
-  const profil = invite.personneTypeId !== '' || neBoitPas(invite);
   // « Tous les jours » se stocke comme la liste complete : une liste vide
   // signifie qu'on n'a pas encore pose la question.
   const presence = invite.joursPresents.length > 0;
-  const faites = [tarif, paiement, profil, presence].filter(Boolean).length;
-  return { tarif, paiement, profil, presence, faites };
+  const faites = [tarif, paiement, presence].filter(Boolean).length;
+  return { tarif, paiement, presence, faites };
 }
 
 /** Tous les jours de l'evenement, dans l'ordre : la presence par defaut. */

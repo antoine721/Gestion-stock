@@ -128,9 +128,18 @@ export const PALIERS_CONSO: readonly PalierConso[] = [
     id: 'abuse',
     libelle: 'Abuse',
     reperes: {
-      biere: '10 pintes et plus',
-      vin: '10 verres et plus',
-      spiritueux: '7 verres et plus',
+      biere: '10 a 14 pintes',
+      vin: '10 a 14 verres',
+      spiritueux: '7 a 9 verres',
+    },
+  },
+  {
+    id: 'sans-limite',
+    libelle: 'Sans limite',
+    reperes: {
+      biere: '15 pintes ou plus',
+      vin: '15 verres ou plus',
+      spiritueux: '10 verres ou plus',
     },
   },
 ];
@@ -148,7 +157,8 @@ const VERRES_LONGS: Record<NiveauConso, number> = {
   peu: 1.5,
   moyen: 4,
   beaucoup: 7.5,
-  abuse: 11,
+  abuse: 12,
+  'sans-limite': 16,
 };
 
 const VERRES_FORTS: Record<NiveauConso, number> = {
@@ -157,6 +167,7 @@ const VERRES_FORTS: Record<NiveauConso, number> = {
   moyen: 2.5,
   beaucoup: 5,
   abuse: 8,
+  'sans-limite': 11,
 };
 
 export const VERRES_PAR_FAMILLE: Record<FamilleAlcool, Record<NiveauConso, number>> = {
@@ -377,6 +388,39 @@ export function resumerGoodies(choix: readonly { goodies: string[] }[]): Demande
   return GOODIES.filter((x) => (total.get(x.id) ?? 0) > 0)
     .map((x) => ({ id: x.id, libelle: `${x.emoji} ${x.libelle}`, nombre: total.get(x.id) ?? 0 }))
     .sort((a, b) => b.nombre - a.nombre || a.libelle.localeCompare(b.libelle));
+}
+
+export interface AlcoolPrefere {
+  boissonId: string;
+  libelle: string;
+  /** La part declaree, en pourcentage. */
+  part: number;
+}
+
+/**
+ * L'alcool prefere : celui qui porte la plus grosse part des gouts declares.
+ *
+ * C'est ce qu'on montre a l'organisateur sur la ligne d'un invite. Un profil
+ * de consommation dit combien acheter ; l'alcool prefere dit quoi mettre au
+ * bar pour cette personne-la — et il vient de sa propre main, pas d'une
+ * estimation.
+ */
+export function alcoolPrefere(gouts: readonly GoutBoisson[]): AlcoolPrefere | undefined {
+  const ordre = new Map(BOISSONS_AIMEES.map((x, i) => [x.id, i]));
+  const meilleur = normaliserGouts(gouts)
+    .filter((x) => x.intensite > 0 && LIBELLE_BOISSON_AIMEE.has(x.boissonId))
+    // A egalite, l'ordre du catalogue tranche : deux fois la meme reponse
+    // doit donner deux fois le meme resultat.
+    .sort(
+      (a, b) =>
+        b.intensite - a.intensite || (ordre.get(a.boissonId) ?? 0) - (ordre.get(b.boissonId) ?? 0),
+    )[0];
+  if (!meilleur) return undefined;
+  return {
+    boissonId: meilleur.boissonId,
+    libelle: LIBELLE_BOISSON_AIMEE.get(meilleur.boissonId) ?? meilleur.boissonId,
+    part: Math.round(meilleur.intensite),
+  };
 }
 
 /** « Biere blonde (75 %) · Rhum (25 %) » — les gouts, en clair. */

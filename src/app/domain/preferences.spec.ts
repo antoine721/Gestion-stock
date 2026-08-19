@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   BOISSONS_AIMEES,
+  alcoolPrefere,
   boissonsDeFamille,
   libelleBoissonsAimees,
   libelleIntensite,
@@ -71,5 +72,36 @@ describe('les bieres', () => {
   it('ne laisse aucun identifiant en double', () => {
     const ids = BOISSONS_AIMEES.map((x) => x.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
+describe('alcoolPrefere', () => {
+  it('sort la boisson qui porte la plus grosse part', () => {
+    expect(
+      alcoolPrefere([
+        { boissonId: 'biere-blonde', intensite: 40 },
+        { boissonId: 'rhum', intensite: 80 },
+        { boissonId: 'gin', intensite: 0 },
+      ]),
+    ).toEqual({ boissonId: 'rhum', libelle: 'Rhum', part: 80 });
+  });
+
+  it('lit aussi les fiches notees de 0 a 4', () => {
+    expect(alcoolPrefere([{ boissonId: 'biere', intensite: 2 }])?.part).toBe(50);
+  });
+
+  it('tranche les egalites par l’ordre du catalogue', () => {
+    const premier = alcoolPrefere([
+      { boissonId: 'vodka', intensite: 50 },
+      { boissonId: 'biere-blonde', intensite: 50 },
+    ]);
+    expect(premier?.boissonId).toBe('biere-blonde');
+  });
+
+  it('ne renvoie rien quand rien n’est declare', () => {
+    expect(alcoolPrefere([])).toBeUndefined();
+    expect(alcoolPrefere([{ boissonId: 'biere', intensite: 0 }])).toBeUndefined();
+    // Un gout inconnu du catalogue ne peut pas etre affiche.
+    expect(alcoolPrefere([{ boissonId: 'absinthe', intensite: 90 }])).toBeUndefined();
   });
 });

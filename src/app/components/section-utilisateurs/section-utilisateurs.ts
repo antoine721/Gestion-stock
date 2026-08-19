@@ -12,7 +12,12 @@ import {
   presenceComplete,
   tousLesJours,
 } from '../../domain/invites';
-import { libelleGoodies, libelleServices } from '../../domain/preferences';
+import {
+  AlcoolPrefere,
+  alcoolPrefere,
+  libelleGoodies,
+  libelleServices,
+} from '../../domain/preferences';
 import { dateDuJour } from '../../domain/evenement';
 import { fmtEntier, fmtEuro } from '../../domain/format';
 import {
@@ -161,6 +166,11 @@ export class SectionUtilisateurs {
 
   protected tarifDe(invite: Invite): CategoriePaiement | undefined {
     return this.store.categoriesPaiement().find((x) => x.id === invite.categoriePaiementId);
+  }
+
+  /** Ce que la personne a declare aimer le plus, si elle a rempli le formulaire. */
+  protected alcoolPrefere(invite: Invite): AlcoolPrefere | undefined {
+    return alcoolPrefere(invite.boissonsAimees);
   }
 
   protected nomDuProfil(personneTypeId: string): string {
