@@ -36,7 +36,8 @@ const TEAMS = new Set(['chameau', 'degustation', 'croisiere', 'bateau-ivre']);
 const FAMILLES = ['biere', 'vin', 'spiritueux'] as const;
 
 /** L'echelle du curseur de gout : 0 « j'en bois pas » a 4 « je bois que ca ». */
-const INTENSITE_MAX = 4;
+/** Le curseur de gout est un pourcentage : voir domain/preferences.ts. */
+const INTENSITE_MAX = 100;
 
 /** Les coups de main : une liste d'identifiants courts, bornee. */
 function identifiants(valeur: unknown, max: number): string[] {

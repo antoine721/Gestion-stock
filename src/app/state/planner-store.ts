@@ -24,7 +24,7 @@ import {
   resumerLogistique,
   tousLesJours,
 } from '../domain/invites';
-import { resumerGoodies } from '../domain/preferences';
+import { normaliserGouts, resumerGoodies } from '../domain/preferences';
 import {
   budgetNourriture,
   coursesCuisine,
@@ -454,7 +454,7 @@ export class PlannerStore {
         stylesMusicaux: x.stylesMusicaux ?? '',
         logistique: { ...logistiqueVierge(), ...x.logistique },
         surnom: x.surnom ?? '',
-        boissonsAimees: x.boissonsAimees ?? [],
+        boissonsAimees: normaliserGouts(x.boissonsAimees),
         niveaux: { ...niveauxVierges(), ...x.niveaux },
         autreAlcool: x.autreAlcool ?? '',
         team: x.team ?? '',

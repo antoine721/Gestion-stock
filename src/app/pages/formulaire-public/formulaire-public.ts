@@ -6,7 +6,8 @@ import {
   FAMILLES_ALCOOL,
   GOODIES,
   INTENSITE_MAX,
-  LIBELLE_INTENSITE,
+  PAS_INTENSITE,
+  libelleIntensite,
   PALIERS_CONSO,
   SERVICES,
   TEAMS,
@@ -45,6 +46,7 @@ export class FormulairePublic {
   protected readonly regimes = REGIMES;
   protected readonly paliers = PALIERS_CONSO;
   protected readonly intensiteMax = INTENSITE_MAX;
+  protected readonly pasIntensite = PAS_INTENSITE;
   protected readonly teams = TEAMS;
   protected readonly services = SERVICES;
   protected readonly goodiesCatalogue = GOODIES;
@@ -185,36 +187,44 @@ export class FormulairePublic {
   }
 
   protected libelleIntensiteDe(id: string): string {
-    return LIBELLE_INTENSITE.get(this.intensiteDe(id)) ?? '';
+    return libelleIntensite(this.intensiteDe(id));
   }
 
   protected niveauDe(famille: FamilleAlcool): NiveauConso {
     return this.niveaux()[famille];
   }
 
+  /**
+   * Les familles dont le rythme a vraiment ete repondu.
+   *
+   * « Rien du tout » est la valeur de depart du modele : l'afficher comme
+   * choisie ferait passer un silence pour une reponse. Tant que personne n'a
+   * clique, aucun palier n'est allume.
+   */
+  private readonly rythmesRepondus = signal<ReadonlySet<FamilleAlcool>>(new Set());
+
+  protected palierChoisi(famille: FamilleAlcool, niveau: NiveauConso): boolean {
+    return this.rythmesRepondus().has(famille) && this.niveaux()[famille] === niveau;
+  }
+
   protected majNiveau(famille: FamilleAlcool, niveau: NiveauConso): void {
     this.niveaux.set({ ...this.niveaux(), [famille]: niveau });
+    this.rythmesRepondus.set(new Set(this.rythmesRepondus()).add(famille));
   }
 
   /**
-   * Le curseur bouge, le rythme de la famille suit.
+   * Le curseur de gout ne touche PAS au rythme.
    *
-   * Passer un premier alcool au-dessus de zero alors qu'on est encore a « rien
-   * du tout » n'a pas de sens, et retomber a zero partout laisse un rythme
-   * declare sans rien pour le porter. On evite ainsi de faire remonter des
-   * fiches contradictoires a l'interpretation.
+   * Il le faisait — bouger un curseur posait « moyen », soit trois verres que
+   * personne n'avait declares. Deux questions differentes : ce qu'on aime, et
+   * combien on en boit. C'est a la personne de repondre aux deux.
    */
-  protected majIntensite(id: string, famille: FamilleAlcool, valeur: string): void {
+  protected majIntensite(id: string, valeur: string): void {
     const cran = Number(valeur);
     if (!Number.isFinite(cran)) return;
     const suivantes = new Map(this.boissonsAimees());
     suivantes.set(id, Math.min(INTENSITE_MAX, Math.max(0, Math.round(cran))));
     this.boissonsAimees.set(suivantes);
-
-    const aimees = boissonsDeFamille(famille).some((x) => (suivantes.get(x.id) ?? 0) > 0);
-    const niveau = this.niveaux()[famille];
-    if (aimees && niveau === 'aucun') this.majNiveau(famille, 'moyen');
-    else if (!aimees && niveau !== 'aucun') this.majNiveau(famille, 'aucun');
   }
 
   /** Le chameau ne repond pas aux questions d'alcool : elles disparaissent. */

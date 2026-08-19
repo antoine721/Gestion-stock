@@ -1,3 +1,4 @@
+import { normaliserGouts } from './preferences';
 import {
   CategoriePaiement,
   Effectif,
@@ -99,7 +100,7 @@ export function normaliserInvite(brut: Partial<Invite> & { id: string }): Invite
     ...inviteVierge(brut.id, brut.participantId ?? ''),
     ...brut,
     logistique: { ...logistiqueVierge(), ...brut.logistique },
-    boissonsAimees: brut.boissonsAimees ?? [],
+    boissonsAimees: normaliserGouts(brut.boissonsAimees),
     niveaux: { ...niveauxVierges(), ...brut.niveaux },
     servicesPreferes: brut.servicesPreferes ?? [],
     joursPresents: brut.joursPresents ?? joursHerites(brut),

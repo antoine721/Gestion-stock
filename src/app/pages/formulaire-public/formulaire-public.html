@@ -347,8 +347,8 @@
               </p>
             } @else if (team() !== '') {
               <p class="intro muted">
-                Laisse a zero ce que tu ne bois pas. Ces curseurs servent seulement a savoir quoi
-                mettre au bar, ils n'engagent a rien.
+                Deux questions par famille : ce que tu aimes, puis combien tu en bois. La premiere
+                dit quoi acheter, la seconde combien. Laisse a zero ce que tu ne bois pas.
               </p>
 
               @for (famille of familles; track famille.id) {
@@ -360,6 +360,12 @@
                     <span aria-hidden="true">{{ famille.emoji }}</span> {{ famille.libelle }}
                   </span>
 
+                  <span class="intitule famille-question">{{ famille.gouts }}</span>
+                  <p class="muted aide">
+                    Le curseur dit la part qui va a chaque boisson, pas la quantite. Bouger un
+                    curseur ne change rien au compte : c'est la question suivante qui le fixe.
+                  </p>
+
                   <div class="gouts">
                     @for (boisson of famille.boissons; track boisson.id) {
                       <label class="gout" [class.choisi]="intensiteDe(boisson.id) > 0">
@@ -368,23 +374,28 @@
                           type="range"
                           min="0"
                           [attr.max]="intensiteMax"
-                          step="1"
+                          [attr.step]="pasIntensite"
                           [value]="intensiteDe(boisson.id)"
                           [attr.aria-label]="'A quel point tu aimes ' + boisson.libelle"
-                          (input)="majIntensite(boisson.id, famille.id, $any($event.target).value)"
+                          [attr.aria-valuetext]="intensiteDe(boisson.id) + ' pour cent'"
+                          (input)="majIntensite(boisson.id, $any($event.target).value)"
                         />
-                        <span class="gout-avis">{{ libelleIntensiteDe(boisson.id) }}</span>
+                        <span class="gout-avis">
+                          <b class="gout-part num">{{ intensiteDe(boisson.id) }} %</b>
+                          {{ libelleIntensiteDe(boisson.id) }}
+                        </span>
                       </label>
                     }
                   </div>
 
                   <span class="intitule famille-question">{{ famille.question }}</span>
+                  <p class="muted aide">{{ famille.repere }}</p>
                   <div class="paliers">
                     @for (palier of paliers; track palier.id) {
                       <button
                         type="button"
                         class="palier"
-                        [attr.aria-pressed]="niveauDe(famille.id) === palier.id"
+                        [attr.aria-pressed]="palierChoisi(famille.id, palier.id)"
                         (click)="majNiveau(famille.id, palier.id)"
                       >
                         <span class="palier-nom">{{ palier.libelle }}</span>
