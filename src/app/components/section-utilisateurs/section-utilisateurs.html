@@ -294,10 +294,13 @@
                   <span class="pill">🐫 Ne boit pas</span>
                 } @else if (boissonsBues(invite); as bues) {
                   @if (bues.length > 0) {
-                    <span class="principal">{{ bues[0] }}</span>
-                    @if (bues.length > 1) {
-                      <span class="secondaire">+ {{ bues.length - 1 }} autre(s)</span>
-                    }
+                    <span class="principal">{{ bues[0].libelle }}</span>
+                    <span class="secondaire num">
+                      {{ bues[0].part }} %
+                      @if (bues.length > 1) {
+                        · + {{ bues.length - 1 }}
+                      }
+                    </span>
                   } @else {
                     <span class="muted">Rien de declare</span>
                   }
@@ -525,7 +528,7 @@
       @if (neBoitPas(invite)) {
         <b>rien, il est chameau</b>
       } @else if (boissonsBues(invite).length > 0) {
-        <b>{{ boissonsBues(invite).join(' · ') }}</b>
+        <b>{{ libelleBoissonsAimees(invite.boissonsAimees) }}</b>
       } @else {
         <span class="muted">rien de declare</span>
       }

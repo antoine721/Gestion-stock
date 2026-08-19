@@ -371,18 +371,24 @@
 
                   <span class="intitule famille-question">{{ famille.gouts }}</span>
                   <p class="muted aide">
-                    Tes verres se partageront a parts egales entre les cases cochees.
+                    Les curseurs font 100 % a eux tous : ce que tu donnes a l'un, tu le prends aux
+                    autres.
                   </p>
 
                   <div class="gouts">
                     @for (boisson of famille.boissons; track boisson.id) {
-                      <label class="gout" [class.choisi]="boitCa(boisson.id)">
-                        <input
-                          type="checkbox"
-                          [checked]="boitCa(boisson.id)"
-                          (change)="basculerGout(boisson.id)"
-                        />
+                      <label class="gout" [class.choisi]="partDe(boisson.id) > 0">
                         <span class="gout-nom">{{ boisson.libelle }}</span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          [attr.step]="pasGout"
+                          [value]="partDe(boisson.id)"
+                          [attr.aria-label]="'Part de ' + boisson.libelle"
+                          (input)="majPart(famille.id, boisson.id, $any($event.target).value)"
+                        />
+                        <span class="gout-part num">{{ partDe(boisson.id) }} %</span>
                       </label>
                     }
                   </div>

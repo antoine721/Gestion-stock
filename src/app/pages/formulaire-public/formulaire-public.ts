@@ -8,7 +8,8 @@ import {
   PALIERS_CONSO,
   SERVICES,
   TEAMS,
-  GOUT_COCHE,
+  PAS_GOUT,
+  repartirGouts,
   boissonsDeFamille,
 } from '../../domain/preferences';
 import {
@@ -182,8 +183,26 @@ export class FormulairePublic {
       this.placesVoiture.set(Math.min(9, Math.max(0, Math.round(places))));
   }
 
-  protected boitCa(id: string): boolean {
-    return (this.boissonsAimees().get(id) ?? 0) > 0;
+  protected readonly pasGout = PAS_GOUT;
+
+  protected partDe(id: string): number {
+    return this.boissonsAimees().get(id) ?? 0;
+  }
+
+  /**
+   * Bouger un curseur redistribue sa famille : ce qu'on donne a l'un, on le
+   * prend aux autres. Le rythme, lui, ne bouge pas — c'est la question
+   * d'apres.
+   */
+  protected majPart(famille: FamilleAlcool, boissonId: string, valeur: string): void {
+    const brut = Number(valeur);
+    if (!Number.isFinite(brut)) return;
+    const ids = boissonsDeFamille(famille).map((x) => x.id);
+    const parts = new Map(ids.map((id) => [id, this.boissonsAimees().get(id) ?? 0] as const));
+    const suivantes = new Map(this.boissonsAimees());
+    for (const id of ids) suivantes.delete(id);
+    for (const [id, part] of repartirGouts(parts, boissonId, brut)) suivantes.set(id, part);
+    this.boissonsAimees.set(suivantes);
   }
 
   protected niveauDe(famille: FamilleAlcool): NiveauConso {
@@ -206,20 +225,6 @@ export class FormulairePublic {
   protected majNiveau(famille: FamilleAlcool, niveau: NiveauConso): void {
     this.niveaux.set({ ...this.niveaux(), [famille]: niveau });
     this.rythmesRepondus.set(new Set(this.rythmesRepondus()).add(famille));
-  }
-
-  /**
-   * Cocher une boisson ne touche PAS au rythme.
-   *
-   * Deux questions differentes : ce qu'on boit, et combien on en boit. Les
-   * verres declares a la question suivante se partageront a parts egales
-   * entre les cases cochees.
-   */
-  protected basculerGout(id: string): void {
-    const suivantes = new Map(this.boissonsAimees());
-    if (suivantes.get(id)) suivantes.delete(id);
-    else suivantes.set(id, GOUT_COCHE);
-    this.boissonsAimees.set(suivantes);
   }
 
   /** Le chameau ne repond pas aux questions d'alcool : elles disparaissent. */

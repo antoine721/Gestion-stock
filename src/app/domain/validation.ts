@@ -149,7 +149,7 @@ export function calculerRatios(cadre: Cadre, cibles: Cibles, panier: Panier): Ra
     ratio({
       id: 'diluant',
       groupe: 'equilibre',
-      label: 'Diluant / spiritueux',
+      label: 'Diluant / alcool fort',
       aide: "S'il est trop bas, tu manqueras de coca et de jus a 1h du matin. Le piege classique.",
       valeur:
         panier.volumeSpiritueuxMl > 0 ? panier.volumeDiluantMl / panier.volumeSpiritueuxMl : 0,

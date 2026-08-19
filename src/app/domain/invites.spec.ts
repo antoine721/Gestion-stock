@@ -169,11 +169,11 @@ describe('encaissements', () => {
 });
 
 describe('les gouts des fiches d’avant', () => {
-  it('deviennent des cases cochees', () => {
+  it('passent de la note 0-4 a une part en pourcentage', () => {
     const invite = normaliserInvite({
       id: 'i1',
       boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
     });
-    expect(invite.boissonsAimees).toEqual([{ boissonId: 'biere', intensite: 100 }]);
+    expect(invite.boissonsAimees).toEqual([{ boissonId: 'biere', intensite: 75 }]);
   });
 });
