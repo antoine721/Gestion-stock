@@ -5,12 +5,10 @@ import { REGIMES, logistiqueVierge, niveauxVierges } from '../../domain/invites'
 import {
   FAMILLES_ALCOOL,
   GOODIES,
-  INTENSITE_MAX,
-  PAS_INTENSITE,
-  libelleIntensite,
   PALIERS_CONSO,
   SERVICES,
   TEAMS,
+  GOUT_COCHE,
   boissonsDeFamille,
 } from '../../domain/preferences';
 import {
@@ -45,8 +43,7 @@ export class FormulairePublic {
 
   protected readonly regimes = REGIMES;
   protected readonly paliers = PALIERS_CONSO;
-  protected readonly intensiteMax = INTENSITE_MAX;
-  protected readonly pasIntensite = PAS_INTENSITE;
+
   protected readonly teams = TEAMS;
   protected readonly services = SERVICES;
   protected readonly goodiesCatalogue = GOODIES;
@@ -185,12 +182,8 @@ export class FormulairePublic {
       this.placesVoiture.set(Math.min(9, Math.max(0, Math.round(places))));
   }
 
-  protected intensiteDe(id: string): number {
-    return this.boissonsAimees().get(id) ?? 0;
-  }
-
-  protected libelleIntensiteDe(id: string): string {
-    return libelleIntensite(this.intensiteDe(id));
+  protected boitCa(id: string): boolean {
+    return (this.boissonsAimees().get(id) ?? 0) > 0;
   }
 
   protected niveauDe(famille: FamilleAlcool): NiveauConso {
@@ -216,17 +209,16 @@ export class FormulairePublic {
   }
 
   /**
-   * Le curseur de gout ne touche PAS au rythme.
+   * Cocher une boisson ne touche PAS au rythme.
    *
-   * Il le faisait — bouger un curseur posait « moyen », soit trois verres que
-   * personne n'avait declares. Deux questions differentes : ce qu'on aime, et
-   * combien on en boit. C'est a la personne de repondre aux deux.
+   * Deux questions differentes : ce qu'on boit, et combien on en boit. Les
+   * verres declares a la question suivante se partageront a parts egales
+   * entre les cases cochees.
    */
-  protected majIntensite(id: string, valeur: string): void {
-    const cran = Number(valeur);
-    if (!Number.isFinite(cran)) return;
+  protected basculerGout(id: string): void {
     const suivantes = new Map(this.boissonsAimees());
-    suivantes.set(id, Math.min(INTENSITE_MAX, Math.max(0, Math.round(cran))));
+    if (suivantes.get(id)) suivantes.delete(id);
+    else suivantes.set(id, GOUT_COCHE);
     this.boissonsAimees.set(suivantes);
   }
 

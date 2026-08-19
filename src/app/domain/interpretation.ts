@@ -6,7 +6,7 @@ import {
   PLAFOND_TEAM,
   VERRES_PAR_FAMILLE,
 } from './preferences';
-import { ConsommationType, GoutBoisson, Invite, PersonneType } from './models';
+import { ConsommationType, GoutBoisson, Invite } from './models';
 
 /**
  * Interpreter une declaration.
@@ -27,9 +27,6 @@ const SEUIL_BAS = 1;
 
 /** Au-dessus, la declaration devient invraisemblable sur une seule soiree. */
 const SEUIL_HAUT = 12;
-
-/** Correspondance jugee bonne : au-dela, le profil colle vraiment. */
-const SEUIL_BON_MATCH = 70;
 
 /**
  * Les boissons du catalogue qui portent chaque gout declare. Un gout sans
@@ -81,32 +78,12 @@ export interface AlerteInterpretation {
 }
 
 export interface Interpretation {
-  /** La consommation estimee, prete a devenir un profil. */
+  /** Ce qu'on prevoit de servir, par jour et par boisson. */
   consommation: ConsommationType[];
   /** Total de verres par jour, tous alcools confondus. */
   verresParJour: number;
   /** Ce qui merite un oeil humain avant de valider. */
   alertes: AlerteInterpretation[];
-  /** Les profils existants, du plus proche au plus lointain. */
-  correspondances: Correspondance[];
-  /** Le meilleur profil, s'il colle assez pour etre propose. */
-  meilleur?: Correspondance;
-}
-
-export interface Correspondance {
-  personneType: PersonneType;
-  /** 0 a 100 : a quel point le profil colle a l'estimation. */
-  score: number;
-}
-
-/** Une declaration vide ne s'interprete pas : rien a proposer. */
-export function aDeclareQuelqueChose(invite: Invite): boolean {
-  return (
-    invite.team !== '' ||
-    invite.autreAlcool.trim() !== '' ||
-    invite.boissonsAimees.some((x) => x.intensite > 0) ||
-    FAMILLES_ALCOOL.some((famille) => invite.niveaux[famille.id] !== 'aucun')
-  );
 }
 
 /**
@@ -158,32 +135,6 @@ export function estimerConsommation(invite: Invite): ConsommationType[] {
 
 function arrondi(valeur: number): number {
   return Math.round(valeur * 2) / 2;
-}
-
-/**
- * Compare l'estimation a un profil existant. Le score tombe quand les volumes
- * different ET quand les boissons ne sont pas les memes : deux personnes qui
- * boivent cinq verres de choses opposees ne se ressemblent pas.
- */
-export function scorerProfil(
-  estimation: readonly ConsommationType[],
-  personneType: PersonneType,
-): number {
-  const attendu = new Map(estimation.map((x) => [x.boissonId, x.verresParJour]));
-  const propose = new Map(personneType.consommation.map((x) => [x.boissonId, x.verresParJour]));
-  const toutes = new Set([...attendu.keys(), ...propose.keys()]);
-  if (toutes.size === 0) return 100;
-
-  let ecart = 0;
-  let volume = 0;
-  for (const boissonId of toutes) {
-    const a = attendu.get(boissonId) ?? 0;
-    const b = propose.get(boissonId) ?? 0;
-    ecart += Math.abs(a - b);
-    volume += Math.max(a, b);
-  }
-  if (volume === 0) return 100;
-  return Math.max(0, Math.round((1 - ecart / volume) * 100));
 }
 
 /** Les garde-fous : ce qui doit passer sous les yeux d'un humain. */
@@ -254,29 +205,14 @@ export function alerterSurEstimation(
   return alertes;
 }
 
-/**
- * L'interpretation complete d'une fiche : ce qu'on estime, ce qui cloche, et
- * les profils qui s'en approchent. `meilleur` n'est rempli que si un profil
- * colle assez pour meriter un bouton « valider ».
- */
-export function interpreter(
-  invite: Invite,
-  personnesTypes: readonly PersonneType[],
-): Interpretation {
+/** Ce qu'on prevoit pour une fiche, et ce qui cloche dedans. */
+export function interpreter(invite: Invite): Interpretation {
   const consommation = estimerConsommation(invite);
-  const verresParJour = arrondi(consommation.reduce((somme, x) => somme + x.verresParJour, 0));
-  const correspondances = personnesTypes
-    .map((personneType) => ({ personneType, score: scorerProfil(consommation, personneType) }))
-    .sort((a, b) => b.score - a.score);
-
-  const meilleur = correspondances[0];
   return {
     consommation,
-    verresParJour,
+    verresParJour: arrondi(consommation.reduce((somme, x) => somme + x.verresParJour, 0)),
     alertes: alerterSurEstimation(invite, consommation),
-    correspondances,
-    meilleur: meilleur && meilleur.score >= SEUIL_BON_MATCH ? meilleur : undefined,
   };
 }
 
-export { SEUIL_BAS, SEUIL_HAUT, SEUIL_BON_MATCH };
+export { SEUIL_BAS, SEUIL_HAUT };

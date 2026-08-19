@@ -86,13 +86,12 @@ describe('resoudre', () => {
 });
 
 describe('calculerPanier', () => {
-  it('eclate une recette en ses ingredients', () => {
-    // 10 verres de spritz : 900 ml de prosecco, 600 ml d'Aperol, 300 ml d'eau gazeuse.
+  it('eclate une recette en ses ingredients alcoolises', () => {
+    // 10 verres de spritz : 900 ml de prosecco, 600 ml d'Aperol.
     const panier = calculerPanier(entree([{ boissonId: 'spritz', verres: 10 }]));
 
     expect(ligne(panier, 'prosecco')?.mlNecessaire).toBe(900);
     expect(ligne(panier, 'aperol')?.mlNecessaire).toBe(600);
-    expect(ligne(panier, 'eau-gazeuse')?.mlNecessaire).toBe(300);
   });
 
   it('agrege un ingredient partage entre plusieurs boissons', () => {
@@ -120,11 +119,14 @@ describe('calculerPanier', () => {
     expect(whisky?.resteMl).toBe(600);
   });
 
-  it('applique une marge plus large sur les diluants', () => {
+  it('n achete pas les diluants', () => {
+    // On sait qu'il faut du coca avec le whisky, mais le format et la marque
+    // se decident devant le rayon : le calcul ne prend que l'alcool.
     const panier = calculerPanier(entree([{ boissonId: 'whisky-coca', verres: 10 }]));
 
-    // 1500 ml de coca + 25 % = 1875 ml -> 2 bouteilles de 1,5 L.
-    expect(ligne(panier, 'coca')?.bouteilles).toBe(2);
+    expect(ligne(panier, 'whisky')?.bouteilles).toBeGreaterThan(0);
+    expect(ligne(panier, 'coca')).toBeUndefined();
+    expect(ligne(panier, 'eau-gazeuse')).toBeUndefined();
   });
 
   it('suit le prix corrige a la main', () => {
@@ -153,7 +155,13 @@ describe('calculerPanier', () => {
       ['whisky', { plaisir: true, strategie: { type: 'auto' } }],
     ]);
     const panier = calculerPanier(
-      entree([{ boissonId: 'whisky-coca', verres: 20 }], { ajustements }),
+      entree(
+        [
+          { boissonId: 'whisky-coca', verres: 20 },
+          { boissonId: 'biere', verres: 10 },
+        ],
+        { ajustements },
+      ),
     );
 
     expect(panier.coutPlaisir).toBeCloseTo(2 * 17.9);
@@ -252,8 +260,10 @@ describe('calculerPanier', () => {
   it('mesure le reste sur les bras', () => {
     const panier = calculerPanier(entree([{ boissonId: 'whisky-coca', verres: 20 }]));
 
-    // 2 bouteilles de 70 cl achetees pour 80 cl de besoin : 60 cl de reste.
-    expect(panier.volumeAcheteMl).toBeGreaterThan(panier.volumeServiMl);
+    // 2 bouteilles de 70 cl achetees pour 80 cl de whisky : 60 cl de reste.
+    // On compare a l'alcool servi, pas au volume total : le coca ne s'achete
+    // pas ici, il se decide devant le rayon.
+    expect(panier.volumeAcheteMl).toBeGreaterThan(panier.volumeAlcoolMl);
     expect(panier.volumeResteMl).toBeGreaterThan(0);
   });
 

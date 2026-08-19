@@ -16,16 +16,12 @@
   </div>
 
   <p class="intro muted">
-    Ce que chaque fiche validee consomme par jour. C'est cette liste qui alimente le bar : la
-    corriger ici corrige les courses. Une fiche sans consommation n'a pas encore ete validee, ou ne
-    boit pas.
+    Ce que chaque fiche consomme par jour. C'est ce qui alimente le bar : corriger ici corrige les
+    courses.
   </p>
 
   @if (lignes().length === 0) {
-    <p class="vide">
-      Aucune fiche pour l'instant. Les declarations arrivent par le formulaire, et se valident dans
-      l'espace Invites.
-    </p>
+    <p class="vide">Aucune fiche. Les declarations arrivent par le formulaire.</p>
   } @else {
     <div class="boite-tableau">
       <table class="tableau">
@@ -92,8 +88,7 @@
   }
 
   <p class="hint">
-    Les quantites a acheter partent de ces verres par jour, multiplies par les jours de presence de
-    chacun. Corriger une ligne ici se voit immediatement dans la liste de courses.
+    Verres par jour x jours de presence = quantites a acheter. Seul l'alcool est calcule.
   </p>
 </section>
 
@@ -161,9 +156,7 @@
           }
         </tbody>
       </table>
-      <p class="hint">
-        Ces chiffres n'appartiennent qu'a cette fiche : les corriger ne touche personne d'autre.
-      </p>
+      <p class="hint">Ces chiffres n'appartiennent qu'a cette fiche.</p>
     }
   </app-panneau>
 }

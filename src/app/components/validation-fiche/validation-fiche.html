@@ -126,10 +126,7 @@
 
       <span class="sous-titre">Ce qu'on lui prevoit, par jour</span>
       @if (consommation().length === 0) {
-        <p class="vide">
-          Rien a prevoir : aucun alcool declare, ou une equipe sans alcool. La fiche entrera sans
-          consommation.
-        </p>
+        <p class="vide">Rien a prevoir : la fiche entrera sans consommation.</p>
       } @else {
         <table class="tableau">
           <thead>
@@ -206,10 +203,7 @@
           </div>
         }
       </dl>
-      <p class="hint">
-        Valider ajoute {{ nomComplet() || 'cette personne' }} aux invites, avec la consommation
-        relue a l'etape precedente. Tout reste modifiable ensuite sur sa fiche.
-      </p>
+      <p class="hint">Valider l'ajoute aux invites, avec sa consommation. Tout reste modifiable.</p>
     }
   }
 

@@ -191,47 +191,31 @@ export const PLAFOND_TEAM: Record<TeamBuveur, number> = {
 };
 
 /**
- * Le curseur de gout, en pourcentage.
+ * Un gout se coche : j'en bois, ou je n'en bois pas.
  *
- * Il ne dit pas « combien tu bois » — ca, c'est la question de rythme juste
- * en dessous. Il dit quelle PART de cette famille va a cette boisson-la :
- * quelqu'un qui met 80 % sur la blonde et 20 % sur la blanche boit autant
- * qu'avant, on sait juste quoi acheter. Un curseur a cinq crans donnait
- * l'impression d'un interrupteur ; en pourcentage, la nuance se voit.
+ * Les verres d'une famille se partagent ensuite a parts egales entre les
+ * cases cochees. Un dosage en pourcentage demandait une precision que
+ * personne n'a, et 10 % sur un vin rouge finissait par acheter une bouteille
+ * pour rien.
  *
- * Zero est le defaut : tous les curseurs sont affiches d'emblee, et ne rien
- * toucher revient a dire « je n'en bois pas ».
+ * La valeur reste un nombre : les fiches deja enregistrees restent lisibles.
  */
-export const INTENSITE_MAX = 100;
+export const GOUT_COCHE = 100;
 
-/** Le curseur avance par crans de 5 % : assez fin pour nuancer, assez gros
- *  pour ne pas jouer au millimetre. */
-export const PAS_INTENSITE = 5;
-
-const PALIERS_INTENSITE: readonly { seuil: number; libelle: string }[] = [
-  { seuil: 75, libelle: 'Je bois que ca' },
-  { seuil: 50, libelle: 'Je suis fan' },
-  { seuil: 25, libelle: "J'aime bien" },
-  { seuil: 1, libelle: 'De temps en temps' },
-  { seuil: 0, libelle: "J'en bois pas" },
-];
-
-/** Le mot qui va avec le pourcentage : « 60 % · Je suis fan ». */
-export function libelleIntensite(valeur: number): string {
-  const propre = Math.min(INTENSITE_MAX, Math.max(0, Math.round(valeur)));
-  return PALIERS_INTENSITE.find((x) => propre >= x.seuil)?.libelle ?? '';
+/** Tout ce qui etait au-dessus de zero devient une case cochee. */
+export function normaliserGouts(gouts: readonly GoutBoisson[] | undefined): GoutBoisson[] {
+  return (gouts ?? [])
+    .filter((x) => x.intensite > 0)
+    .map((x) => ({ boissonId: x.boissonId, intensite: GOUT_COCHE }));
 }
 
-/**
- * Les fiches d'avant notaient le gout de 0 a 4. Les valeurs 1 a 4 ne peuvent
- * pas etre des pourcentages saisis aujourd'hui — le curseur avance de 5 en 5
- * — donc on les reconnait a coup sur et on les remonte a l'echelle actuelle.
- */
-export function normaliserGouts(gouts: readonly GoutBoisson[] | undefined): GoutBoisson[] {
-  return (gouts ?? []).map((x) => ({
-    boissonId: x.boissonId,
-    intensite: x.intensite > 0 && x.intensite <= 4 ? x.intensite * 25 : x.intensite,
-  }));
+export function boitCa(gouts: readonly GoutBoisson[], boissonId: string): boolean {
+  return gouts.some((x) => x.boissonId === boissonId && x.intensite > 0);
+}
+
+export function basculerGout(gouts: readonly GoutBoisson[], boissonId: string): GoutBoisson[] {
+  const sans = gouts.filter((x) => x.boissonId !== boissonId);
+  return boitCa(gouts, boissonId) ? sans : [...sans, { boissonId, intensite: GOUT_COCHE }];
 }
 
 /** Les quatre equipes de buveurs, du chameau au bateau ivre. */
@@ -391,48 +375,16 @@ export function resumerGoodies(choix: readonly { goodies: string[] }[]): Demande
     .sort((a, b) => b.nombre - a.nombre || a.libelle.localeCompare(b.libelle));
 }
 
-export interface AlcoolPrefere {
-  boissonId: string;
-  libelle: string;
-  /** La part declaree, en pourcentage. */
-  part: number;
-}
-
-/**
- * L'alcool prefere : celui qui porte la plus grosse part des gouts declares.
- *
- * C'est ce qu'on montre a l'organisateur sur la ligne d'un invite. Un profil
- * de consommation dit combien acheter ; l'alcool prefere dit quoi mettre au
- * bar pour cette personne-la — et il vient de sa propre main, pas d'une
- * estimation.
- */
-export function alcoolPrefere(gouts: readonly GoutBoisson[]): AlcoolPrefere | undefined {
+/** Ce que la personne a coche, dans l'ordre de la liste. */
+export function boissonsBues(gouts: readonly GoutBoisson[]): string[] {
   const ordre = new Map(BOISSONS_AIMEES.map((x, i) => [x.id, i]));
-  const meilleur = normaliserGouts(gouts)
-    .filter((x) => x.intensite > 0 && LIBELLE_BOISSON_AIMEE.has(x.boissonId))
-    // A egalite, l'ordre du catalogue tranche : deux fois la meme reponse
-    // doit donner deux fois le meme resultat.
-    .sort(
-      (a, b) =>
-        b.intensite - a.intensite || (ordre.get(a.boissonId) ?? 0) - (ordre.get(b.boissonId) ?? 0),
-    )[0];
-  if (!meilleur) return undefined;
-  return {
-    boissonId: meilleur.boissonId,
-    libelle: LIBELLE_BOISSON_AIMEE.get(meilleur.boissonId) ?? meilleur.boissonId,
-    part: Math.round(meilleur.intensite),
-  };
+  return normaliserGouts(gouts)
+    .filter((x) => LIBELLE_BOISSON_AIMEE.has(x.boissonId))
+    .sort((a, b) => (ordre.get(a.boissonId) ?? 0) - (ordre.get(b.boissonId) ?? 0))
+    .map((x) => LIBELLE_BOISSON_AIMEE.get(x.boissonId) ?? '');
 }
 
-/** « Biere blonde (75 %) · Rhum (25 %) » — les gouts, en clair. */
+/** « Biere blonde · Rhum » : ce qu'elle boit, en une ligne. */
 export function libelleBoissonsAimees(gouts: readonly GoutBoisson[]): string {
-  return normaliserGouts(gouts)
-    .filter((x) => x.intensite > 0)
-    .map((x) => {
-      const nom = LIBELLE_BOISSON_AIMEE.get(x.boissonId);
-      if (!nom) return '';
-      return `${nom} (${Math.round(x.intensite)} %)`;
-    })
-    .filter((x) => x.length > 0)
-    .join(' · ');
+  return boissonsBues(gouts).join(' · ');
 }

@@ -358,10 +358,7 @@
                 Parfait, on te prevoit du sans-alcool. Rien d'autre a remplir ici !
               </p>
             } @else if (team() !== '') {
-              <p class="intro muted">
-                Deux questions par famille : ce que tu aimes, puis combien tu en bois. La premiere
-                dit quoi acheter, la seconde combien. Laisse a zero ce que tu ne bois pas.
-              </p>
+              <p class="intro muted">Coche ce que tu bois, dis combien. Rien de plus.</p>
 
               @for (famille of familles; track famille.id) {
                 <!-- Une famille = une couleur, ses boissons, et SA question de
@@ -374,28 +371,18 @@
 
                   <span class="intitule famille-question">{{ famille.gouts }}</span>
                   <p class="muted aide">
-                    Le curseur dit la part qui va a chaque boisson, pas la quantite. Bouger un
-                    curseur ne change rien au compte : c'est la question suivante qui le fixe.
+                    Tes verres se partageront a parts egales entre les cases cochees.
                   </p>
 
                   <div class="gouts">
                     @for (boisson of famille.boissons; track boisson.id) {
-                      <label class="gout" [class.choisi]="intensiteDe(boisson.id) > 0">
-                        <span class="gout-nom">{{ boisson.libelle }}</span>
+                      <label class="gout" [class.choisi]="boitCa(boisson.id)">
                         <input
-                          type="range"
-                          min="0"
-                          [attr.max]="intensiteMax"
-                          [attr.step]="pasIntensite"
-                          [value]="intensiteDe(boisson.id)"
-                          [attr.aria-label]="'A quel point tu aimes ' + boisson.libelle"
-                          [attr.aria-valuetext]="intensiteDe(boisson.id) + ' pour cent'"
-                          (input)="majIntensite(boisson.id, $any($event.target).value)"
+                          type="checkbox"
+                          [checked]="boitCa(boisson.id)"
+                          (change)="basculerGout(boisson.id)"
                         />
-                        <span class="gout-avis">
-                          <b class="gout-part num">{{ intensiteDe(boisson.id) }} %</b>
-                          {{ libelleIntensiteDe(boisson.id) }}
-                        </span>
+                        <span class="gout-nom">{{ boisson.libelle }}</span>
                       </label>
                     }
                   </div>

@@ -13,14 +13,9 @@ import {
   presenceComplete,
   tousLesJours,
 } from '../../domain/invites';
-import {
-  AlcoolPrefere,
-  alcoolPrefere,
-  libelleGoodies,
-  libelleServices,
-} from '../../domain/preferences';
+import { boissonsBues, libelleGoodies, libelleServices } from '../../domain/preferences';
 import { dateDuJour } from '../../domain/evenement';
-import { fmtEntier, fmtEuro } from '../../domain/format';
+import { fmtEntier, fmtEuro, fmtNombre } from '../../domain/format';
 import {
   CategoriePaiement,
   Invite,
@@ -108,7 +103,7 @@ export class SectionUtilisateurs {
     return this.store.invitesNommes().filter((invite) => {
       if (participant && invite.participantId !== participant) return false;
       if (profil === 'sans' && invite.personneTypeId) return false;
-      if (profil && profil !== 'sans' && invite.personneTypeId !== profil) return false;
+      if (profil === 'avec' && !invite.personneTypeId) return false;
 
       const etat = etats.get(invite.id);
       if (!etat || tache === 'tous') return true;
@@ -169,9 +164,17 @@ export class SectionUtilisateurs {
     return this.store.categoriesPaiement().find((x) => x.id === invite.categoriePaiementId);
   }
 
-  /** Ce que la personne a declare aimer le plus, si elle a rempli le formulaire. */
-  protected alcoolPrefere(invite: Invite): AlcoolPrefere | undefined {
-    return alcoolPrefere(invite.boissonsAimees);
+  /** « 2 bieres, 1 rhum coca par jour » : sa consommation validee. */
+  protected consommationDe(invite: Invite): string {
+    const profil = this.store.personnesTypes().find((x) => x.id === invite.personneTypeId);
+    if (!profil || profil.consommation.length === 0) return '';
+    const total = profil.consommation.reduce((somme, x) => somme + x.verresParJour, 0);
+    return `${fmtNombre(total)} verre(s) / jour`;
+  }
+
+  /** Ce que la personne a coche au formulaire. */
+  protected boissonsBues(invite: Invite): string[] {
+    return boissonsBues(invite.boissonsAimees);
   }
 
   protected nomDuProfil(personneTypeId: string): string {
@@ -272,12 +275,6 @@ export class SectionUtilisateurs {
   protected readonly detail = computed(() =>
     this.store.invitesNommes().find((x) => x.id === this.detailId()),
   );
-
-  /** Ferme la fiche et pose l'oeil sur la ligne correspondante du tableau. */
-  protected voirDansLeTableau(invite: Invite): void {
-    this.store.mettreEnAvant(invite.id);
-    this.detailId.set('');
-  }
 
   protected ouvrirDetail(invite: Invite): void {
     this.detailId.set(invite.id);
