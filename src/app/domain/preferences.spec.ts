@@ -1,0 +1,75 @@
+import { describe, expect, it } from 'vitest';
+import {
+  BOISSONS_AIMEES,
+  boissonsDeFamille,
+  libelleBoissonsAimees,
+  libelleIntensite,
+  normaliserGouts,
+} from './preferences';
+
+describe('le curseur de gout, en pourcentage', () => {
+  it('met un mot sur chaque tranche', () => {
+    expect(libelleIntensite(0)).toBe("J'en bois pas");
+    expect(libelleIntensite(5)).toBe('De temps en temps');
+    expect(libelleIntensite(25)).toBe("J'aime bien");
+    expect(libelleIntensite(60)).toBe('Je suis fan');
+    expect(libelleIntensite(100)).toBe('Je bois que ca');
+  });
+
+  it('borne ce qui sort de l’echelle', () => {
+    expect(libelleIntensite(-10)).toBe("J'en bois pas");
+    expect(libelleIntensite(500)).toBe('Je bois que ca');
+  });
+});
+
+describe('normaliserGouts', () => {
+  it('remonte les fiches notees de 0 a 4 a l’echelle en pourcentage', () => {
+    expect(normaliserGouts([{ boissonId: 'biere', intensite: 4 }])).toEqual([
+      { boissonId: 'biere', intensite: 100 },
+    ]);
+    expect(normaliserGouts([{ boissonId: 'rhum', intensite: 1 }])).toEqual([
+      { boissonId: 'rhum', intensite: 25 },
+    ]);
+  });
+
+  it('laisse tranquille ce qui est deja un pourcentage', () => {
+    // Le curseur avance de 5 en 5 : aucune saisie actuelle ne tombe entre 1 et 4.
+    expect(normaliserGouts([{ boissonId: 'gin', intensite: 45 }])).toEqual([
+      { boissonId: 'gin', intensite: 45 },
+    ]);
+    expect(normaliserGouts([{ boissonId: 'gin', intensite: 0 }])).toEqual([
+      { boissonId: 'gin', intensite: 0 },
+    ]);
+  });
+
+  it('accepte une liste absente', () => {
+    expect(normaliserGouts(undefined)).toEqual([]);
+  });
+});
+
+describe('libelleBoissonsAimees', () => {
+  it('affiche le pourcentage et ignore les gouts a zero', () => {
+    const texte = libelleBoissonsAimees([
+      { boissonId: 'biere-blonde', intensite: 75 },
+      { boissonId: 'vin-rouge', intensite: 0 },
+      { boissonId: 'rhum', intensite: 2 },
+    ]);
+    expect(texte).toBe('Biere blonde (75 %) · Rhum (50 %)');
+  });
+});
+
+describe('les bieres', () => {
+  it('se declinent en blonde, blanche et rouge', () => {
+    const bieres = boissonsDeFamille('biere').map((x) => x.id);
+    expect(bieres).toContain('biere-blonde');
+    expect(bieres).toContain('biere-blanche');
+    expect(bieres).toContain('biere-rouge');
+    // L'ancien gout generique reste : les fiches deja remplies le portent.
+    expect(bieres).toContain('biere');
+  });
+
+  it('ne laisse aucun identifiant en double', () => {
+    const ids = BOISSONS_AIMEES.map((x) => x.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+});

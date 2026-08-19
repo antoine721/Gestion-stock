@@ -228,7 +228,7 @@ h2 {
 
 .gout {
   display: grid;
-  grid-template-columns: 6.5rem 1fr 8rem;
+  grid-template-columns: 7.5rem 1fr 9.5rem;
   align-items: center;
   gap: 0.625rem;
   padding: 0.25rem 0;
@@ -251,9 +251,25 @@ h2 {
 }
 
 .gout-avis {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.375rem;
   font-size: 0.71875rem;
   color: var(--texte-doux);
   text-align: right;
+}
+
+/* Le pourcentage se lit avant le mot : c'est lui qu'on ajuste. */
+.gout-part {
+  min-width: 2.5rem;
+  color: var(--texte);
+  font-weight: 650;
+}
+
+.gout:not(.choisi) .gout-part {
+  color: var(--texte-doux);
+  font-weight: 500;
 }
 
 .gout.choisi .gout-avis {

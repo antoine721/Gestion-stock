@@ -19,8 +19,16 @@ export interface OptionFamille {
   id: FamilleAlcool;
   libelle: string;
   emoji: string;
+  /** L'invitation a bouger les curseurs : « quelles bieres tu aimes ? ». */
+  gouts: string;
   /** La question de rythme, formulee avec le mot de la famille. */
   question: string;
+  /**
+   * L'unite de comptage, en clair. « Combien de verres » ne veut rien dire
+   * tant qu'on n'a pas dit de quel verre on parle : c'est la que les
+   * reponses partent dans tous les sens.
+   */
+  repere: string;
 }
 
 export const FAMILLES_ALCOOL: readonly OptionFamille[] = [
@@ -28,19 +36,25 @@ export const FAMILLES_ALCOOL: readonly OptionFamille[] = [
     id: 'biere',
     libelle: 'Les bieres',
     emoji: '🍺',
-    question: 'Sur une soiree, tu bois combien de bieres ?',
+    gouts: 'Quelles bieres tu aimes ?',
+    question: 'En general, tu bois combien de bieres dans une soiree ?',
+    repere: 'On compte en pintes : une pinte = 50 cl, un demi = 25 cl.',
   },
   {
     id: 'vin',
     libelle: 'Les vins & bulles',
     emoji: '🍷',
-    question: 'Sur une soiree, tu bois combien de verres de vin ?',
+    gouts: 'Quels vins et bulles tu aimes ?',
+    question: 'En general, tu bois combien de verres de vin dans une soiree ?',
+    repere: 'On compte en verres de 12 cl : cinq verres dans une bouteille.',
   },
   {
     id: 'spiritueux',
     libelle: 'Les spiritueux',
     emoji: '🥃',
-    question: 'Sur une soiree, tu bois combien de verres de spiritueux ?',
+    gouts: 'Quels spiritueux tu aimes ?',
+    question: 'En general, tu bois combien de verres de spiritueux dans une soiree ?',
+    repere: 'On compte en doses de 4 cl : le verre servi au bar.',
   },
 ];
 
@@ -51,7 +65,10 @@ export interface OptionBoissonAimee {
 }
 
 export const BOISSONS_AIMEES: readonly OptionBoissonAimee[] = [
-  { id: 'biere', libelle: 'Biere', famille: 'biere' },
+  { id: 'biere-blonde', libelle: 'Biere blonde', famille: 'biere' },
+  { id: 'biere-blanche', libelle: 'Biere blanche', famille: 'biere' },
+  { id: 'biere-rouge', libelle: 'Biere rouge', famille: 'biere' },
+  { id: 'biere', libelle: 'Biere, sans preference', famille: 'biere' },
   { id: 'vin-rouge', libelle: 'Vin rouge', famille: 'vin' },
   { id: 'vin-blanc', libelle: 'Vin blanc', famille: 'vin' },
   { id: 'vin-rose', libelle: 'Vin rose', famille: 'vin' },
@@ -90,28 +107,28 @@ export const PALIERS_CONSO: readonly PalierConso[] = [
   {
     id: 'aucun',
     libelle: 'Rien du tout',
-    reperes: { biere: '0 biere', vin: '0 verre', spiritueux: '0 verre' },
+    reperes: { biere: '0 pinte', vin: '0 verre', spiritueux: '0 verre' },
   },
   {
     id: 'peu',
     libelle: 'Peu',
-    reperes: { biere: '1 a 2 bieres', vin: '1 a 2 verres', spiritueux: '1 verre' },
+    reperes: { biere: '1 a 2 pintes', vin: '1 a 2 verres', spiritueux: '1 verre' },
   },
   {
     id: 'moyen',
     libelle: 'Moyen',
-    reperes: { biere: '3 a 5 bieres', vin: '3 a 5 verres', spiritueux: '2 a 3 verres' },
+    reperes: { biere: '3 a 5 pintes', vin: '3 a 5 verres', spiritueux: '2 a 3 verres' },
   },
   {
     id: 'beaucoup',
     libelle: 'Beaucoup',
-    reperes: { biere: '6 a 9 bieres', vin: '6 a 9 verres', spiritueux: '4 a 6 verres' },
+    reperes: { biere: '6 a 9 pintes', vin: '6 a 9 verres', spiritueux: '4 a 6 verres' },
   },
   {
     id: 'abuse',
     libelle: 'Abuse',
     reperes: {
-      biere: '10 bieres et plus',
+      biere: '10 pintes et plus',
       vin: '10 verres et plus',
       spiritueux: '7 verres et plus',
     },
@@ -162,21 +179,48 @@ export const PLAFOND_TEAM: Record<TeamBuveur, number> = {
 };
 
 /**
- * Les crans du curseur de gout. Zero est le defaut : tous les curseurs sont
- * affiches d'emblee, et ne rien toucher revient a dire « je n'en bois pas ».
- * C'est moins de clics qu'une case a cocher, et ca evite les listes vides.
+ * Le curseur de gout, en pourcentage.
+ *
+ * Il ne dit pas « combien tu bois » — ca, c'est la question de rythme juste
+ * en dessous. Il dit quelle PART de cette famille va a cette boisson-la :
+ * quelqu'un qui met 80 % sur la blonde et 20 % sur la blanche boit autant
+ * qu'avant, on sait juste quoi acheter. Un curseur a cinq crans donnait
+ * l'impression d'un interrupteur ; en pourcentage, la nuance se voit.
+ *
+ * Zero est le defaut : tous les curseurs sont affiches d'emblee, et ne rien
+ * toucher revient a dire « je n'en bois pas ».
  */
-export const INTENSITES: readonly { valeur: number; libelle: string }[] = [
-  { valeur: 0, libelle: "J'en bois pas" },
-  { valeur: 1, libelle: 'De temps en temps' },
-  { valeur: 2, libelle: "J'aime bien" },
-  { valeur: 3, libelle: 'Je suis fan' },
-  { valeur: 4, libelle: 'Je bois que ca' },
+export const INTENSITE_MAX = 100;
+
+/** Le curseur avance par crans de 5 % : assez fin pour nuancer, assez gros
+ *  pour ne pas jouer au millimetre. */
+export const PAS_INTENSITE = 5;
+
+const PALIERS_INTENSITE: readonly { seuil: number; libelle: string }[] = [
+  { seuil: 75, libelle: 'Je bois que ca' },
+  { seuil: 50, libelle: 'Je suis fan' },
+  { seuil: 25, libelle: "J'aime bien" },
+  { seuil: 1, libelle: 'De temps en temps' },
+  { seuil: 0, libelle: "J'en bois pas" },
 ];
 
-export const INTENSITE_MAX = 4;
+/** Le mot qui va avec le pourcentage : « 60 % · Je suis fan ». */
+export function libelleIntensite(valeur: number): string {
+  const propre = Math.min(INTENSITE_MAX, Math.max(0, Math.round(valeur)));
+  return PALIERS_INTENSITE.find((x) => propre >= x.seuil)?.libelle ?? '';
+}
 
-export const LIBELLE_INTENSITE = new Map(INTENSITES.map((x) => [x.valeur, x.libelle]));
+/**
+ * Les fiches d'avant notaient le gout de 0 a 4. Les valeurs 1 a 4 ne peuvent
+ * pas etre des pourcentages saisis aujourd'hui — le curseur avance de 5 en 5
+ * — donc on les reconnait a coup sur et on les remonte a l'echelle actuelle.
+ */
+export function normaliserGouts(gouts: readonly GoutBoisson[] | undefined): GoutBoisson[] {
+  return (gouts ?? []).map((x) => ({
+    boissonId: x.boissonId,
+    intensite: x.intensite > 0 && x.intensite <= 4 ? x.intensite * 25 : x.intensite,
+  }));
+}
 
 /** Les quatre equipes de buveurs, du chameau au bateau ivre. */
 export interface OptionTeam {
@@ -335,15 +379,14 @@ export function resumerGoodies(choix: readonly { goodies: string[] }[]): Demande
     .sort((a, b) => b.nombre - a.nombre || a.libelle.localeCompare(b.libelle));
 }
 
-/** « Biere (je bois que ca) · Rhum (j'aime bien) » — les gouts, en clair. */
+/** « Biere blonde (75 %) · Rhum (25 %) » — les gouts, en clair. */
 export function libelleBoissonsAimees(gouts: readonly GoutBoisson[]): string {
-  return gouts
+  return normaliserGouts(gouts)
     .filter((x) => x.intensite > 0)
     .map((x) => {
       const nom = LIBELLE_BOISSON_AIMEE.get(x.boissonId);
-      const intensite = LIBELLE_INTENSITE.get(x.intensite);
       if (!nom) return '';
-      return intensite ? `${nom} (${intensite.toLowerCase()})` : nom;
+      return `${nom} (${Math.round(x.intensite)} %)`;
     })
     .filter((x) => x.length > 0)
     .join(' · ');

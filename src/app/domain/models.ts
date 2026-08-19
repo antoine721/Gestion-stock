@@ -171,9 +171,13 @@ export type NiveauxParFamille = Record<FamilleAlcool, NiveauConso>;
 export type TeamBuveur = 'chameau' | 'degustation' | 'croisiere' | 'bateau-ivre';
 
 /**
- * Un gout declare : une boisson, et a quel point la personne l'aime, de 0
- * (« j'en bois pas ») a 4 (« je bois que ca »). L'intensite sert a repartir
- * une consommation estimee entre les boissons aimees — jamais a l'augmenter.
+ * Un gout declare : une boisson, et quelle part de sa famille lui revient,
+ * en pourcentage de 0 (« j'en bois pas ») a 100 (« je bois que ca »).
+ * L'intensite sert a repartir une consommation estimee entre les boissons
+ * aimees — jamais a l'augmenter.
+ *
+ * Les fiches d'avant notaient ce gout de 0 a 4 : normaliserGouts() les
+ * remonte a l'echelle actuelle a la lecture.
  */
 export interface GoutBoisson {
   boissonId: string;
