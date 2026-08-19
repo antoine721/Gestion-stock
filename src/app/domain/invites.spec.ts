@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  TACHES_INVITE,
   calculerEncaissements,
   compterParRegime,
   effectifsAvecInvites,
@@ -124,7 +125,7 @@ describe('taches d’une fiche', () => {
       personneTypeId: 'biere',
       joursPresents: [1, 2],
     });
-    expect(etatTaches(pret, categories).faites).toBe(4);
+    expect(etatTaches(pret, categories).faites).toBe(3);
   });
 
   it('n’attend aucun paiement sur un tarif gratuit', () => {
@@ -133,12 +134,11 @@ describe('taches d’une fiche', () => {
     expect(etat.paiement).toBe(true);
   });
 
-  it('n’attend aucun profil alcool de qui ne boit pas', () => {
+  it('ne demande plus de profil alcool : le formulaire s’en charge', () => {
     const chameau = invite('a', { team: 'chameau' });
     expect(neBoitPas(chameau)).toBe(true);
-    expect(etatTaches(chameau, categories).profil).toBe(true);
-    // Celui qui boit, lui, a bien un profil a choisir.
-    expect(etatTaches(invite('b', { team: 'croisiere' }), categories).profil).toBe(false);
+    // Trois taches, et aucune ne parle d'alcool.
+    expect(TACHES_INVITE.map((x) => x.id)).toEqual(['tarif', 'paiement', 'presence']);
   });
 });
 

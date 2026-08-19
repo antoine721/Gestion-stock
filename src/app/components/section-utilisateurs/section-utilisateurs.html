@@ -128,8 +128,9 @@
     }
 
     <p class="hint">
-      Ce que la personne declare boire n'entre pas dans le calcul. Ce sont les quantites du profil
-      alcool que tu lui attaches qui comptent. Un non-buveur n'en a pas besoin.
+      Valider une fiche lui attache un profil de consommation : ce sont ses quantites qui entrent
+      dans le calcul, pas la declaration elle-meme. C'est ici qu'on repere une reponse fantaisiste
+      avant qu'elle ne parte dans les courses.
     </p>
   </section>
 }
@@ -298,7 +299,7 @@
       </select>
     </label>
     <label class="champ">
-      <span>Profil alcool</span>
+      <span>Profil de conso</span>
       <select (change)="filtreProfil.set($any($event.target).value)">
         <option value="" [selected]="filtreProfil() === ''">Tous</option>
         <option value="sans" [selected]="filtreProfil() === 'sans'">Sans profil</option>
@@ -364,7 +365,7 @@
         <thead>
           <tr>
             <th>Invite</th>
-            <th>Profil alcool</th>
+            <th>Alcool prefere</th>
             <th>Tarif</th>
             <th class="droite">Paiement</th>
             <th>Sur place</th>
@@ -391,12 +392,15 @@
                 </span>
               </td>
               <td>
-                @if (nomDuProfil(invite.personneTypeId); as profil) {
-                  {{ profil }}
-                } @else if (neBoitPas(invite)) {
+                <!-- Ce que la personne a declare elle-meme, pas ce qu'on a
+                     estime pour elle : c'est plus parlant devant le bar. -->
+                @if (neBoitPas(invite)) {
                   <span class="pill">🐫 Ne boit pas</span>
+                } @else if (alcoolPrefere(invite); as prefere) {
+                  <span class="principal">{{ prefere.libelle }}</span>
+                  <span class="secondaire num">{{ prefere.part }} %</span>
                 } @else {
-                  <span class="pill warn">Sans profil</span>
+                  <span class="muted">Rien de declare</span>
                 }
               </td>
               <td>
@@ -528,7 +532,7 @@
     </label>
     <div class="grid-champs">
       <label class="champ">
-        <span>Profil alcool</span>
+        <span>Profil de consommation</span>
         <select (change)="majBrouillon({ personneTypeId: $any($event.target).value })">
           <option value="" [selected]="!brouillon().personneTypeId">— Sans profil</option>
           @for (type of store.personnesTypes(); track type.id) {
@@ -618,7 +622,7 @@
         </select>
       </label>
       <label class="champ large">
-        <span>Profil alcool</span>
+        <span>Profil de consommation</span>
         <select (change)="maj(invite, { personneTypeId: $any($event.target).value })">
           <option value="" [selected]="!invite.personneTypeId">
             {{ neBoitPas(invite) ? '— Ne boit pas' : '— Sans profil' }}
