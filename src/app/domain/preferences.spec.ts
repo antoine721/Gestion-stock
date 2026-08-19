@@ -115,4 +115,9 @@ describe('les bieres declinees', () => {
     expect(goutsIntraduisibles([{ boissonId: 'biere-blanche', intensite: 70 }])).toEqual([]);
     expect(goutsIntraduisibles([{ boissonId: 'biere-rouge', intensite: 70 }])).toEqual([]);
   });
+
+  it('le kir aussi : il existe au catalogue, blanc et cassis', () => {
+    expect(goutsIntraduisibles([{ boissonId: 'kir', intensite: 50 }])).toEqual([]);
+    expect(boissonsDeFamille('vin').map((x) => x.id)).toContain('kir');
+  });
 });
