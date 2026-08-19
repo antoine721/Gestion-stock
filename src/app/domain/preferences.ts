@@ -72,6 +72,7 @@ export const BOISSONS_AIMEES: readonly OptionBoissonAimee[] = [
   { id: 'vin-rouge', libelle: 'Vin rouge', famille: 'vin' },
   { id: 'vin-blanc', libelle: 'Vin blanc', famille: 'vin' },
   { id: 'vin-rose', libelle: 'Vin rose', famille: 'vin' },
+  { id: 'kir', libelle: 'Kir', famille: 'vin' },
   { id: 'spritz', libelle: 'Spritz', famille: 'vin' },
   { id: 'rhum', libelle: 'Rhum', famille: 'spiritueux' },
   { id: 'captain', libelle: 'Captain Morgan', famille: 'spiritueux' },

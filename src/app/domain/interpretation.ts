@@ -46,6 +46,7 @@ const BOISSONS_PAR_GOUT: Record<string, string[]> = {
   'vin-rouge': ['vin-rouge'],
   'vin-blanc': ['vin-blanc'],
   'vin-rose': ['rose'],
+  kir: ['kir'],
   spritz: ['spritz'],
   rhum: ['rhum-coca', 'mojito'],
   captain: ['captain-coca'],
