@@ -2,61 +2,45 @@ import { describe, expect, it } from 'vitest';
 import { goutsIntraduisibles } from './interpretation';
 import {
   BOISSONS_AIMEES,
-  alcoolPrefere,
+  basculerGout,
+  boissonsBues,
+  boitCa,
   boissonsDeFamille,
   libelleBoissonsAimees,
-  libelleIntensite,
   normaliserGouts,
 } from './preferences';
 
-describe('le curseur de gout, en pourcentage', () => {
-  it('met un mot sur chaque tranche', () => {
-    expect(libelleIntensite(0)).toBe("J'en bois pas");
-    expect(libelleIntensite(5)).toBe('De temps en temps');
-    expect(libelleIntensite(25)).toBe("J'aime bien");
-    expect(libelleIntensite(60)).toBe('Je suis fan');
-    expect(libelleIntensite(100)).toBe('Je bois que ca');
-  });
-
-  it('borne ce qui sort de l’echelle', () => {
-    expect(libelleIntensite(-10)).toBe("J'en bois pas");
-    expect(libelleIntensite(500)).toBe('Je bois que ca');
-  });
-});
-
-describe('normaliserGouts', () => {
-  it('remonte les fiches notees de 0 a 4 a l’echelle en pourcentage', () => {
-    expect(normaliserGouts([{ boissonId: 'biere', intensite: 4 }])).toEqual([
+describe('les gouts se cochent', () => {
+  it('ramene toute ancienne nuance a une case cochee', () => {
+    // Les fiches d'avant portaient un dosage : 0 a 4, puis un pourcentage.
+    expect(normaliserGouts([{ boissonId: 'biere', intensite: 3 }])).toEqual([
       { boissonId: 'biere', intensite: 100 },
     ]);
-    expect(normaliserGouts([{ boissonId: 'rhum', intensite: 1 }])).toEqual([
-      { boissonId: 'rhum', intensite: 25 },
-    ]);
-  });
-
-  it('laisse tranquille ce qui est deja un pourcentage', () => {
-    // Le curseur avance de 5 en 5 : aucune saisie actuelle ne tombe entre 1 et 4.
     expect(normaliserGouts([{ boissonId: 'gin', intensite: 45 }])).toEqual([
-      { boissonId: 'gin', intensite: 45 },
-    ]);
-    expect(normaliserGouts([{ boissonId: 'gin', intensite: 0 }])).toEqual([
-      { boissonId: 'gin', intensite: 0 },
+      { boissonId: 'gin', intensite: 100 },
     ]);
   });
 
-  it('accepte une liste absente', () => {
+  it('laisse tomber ce qui est a zero', () => {
+    expect(normaliserGouts([{ boissonId: 'gin', intensite: 0 }])).toEqual([]);
     expect(normaliserGouts(undefined)).toEqual([]);
+  });
+
+  it('coche et decoche', () => {
+    const apres = basculerGout([], 'rhum');
+    expect(boitCa(apres, 'rhum')).toBe(true);
+    expect(boitCa(basculerGout(apres, 'rhum'), 'rhum')).toBe(false);
   });
 });
 
 describe('libelleBoissonsAimees', () => {
-  it('affiche le pourcentage et ignore les gouts a zero', () => {
+  it('liste ce qui est coche, dans l ordre de la liste', () => {
     const texte = libelleBoissonsAimees([
-      { boissonId: 'biere-blonde', intensite: 75 },
-      { boissonId: 'vin-rouge', intensite: 0 },
       { boissonId: 'rhum', intensite: 2 },
+      { boissonId: 'vin-rouge', intensite: 0 },
+      { boissonId: 'biere-blonde', intensite: 75 },
     ]);
-    expect(texte).toBe('Biere blonde (75 %) · Rhum (50 %)');
+    expect(texte).toBe('Biere blonde · Rhum');
   });
 });
 
@@ -76,34 +60,19 @@ describe('les bieres', () => {
   });
 });
 
-describe('alcoolPrefere', () => {
-  it('sort la boisson qui porte la plus grosse part', () => {
+describe('boissonsBues', () => {
+  it('rend les boissons cochees, les inconnues en moins', () => {
     expect(
-      alcoolPrefere([
-        { boissonId: 'biere-blonde', intensite: 40 },
-        { boissonId: 'rhum', intensite: 80 },
-        { boissonId: 'gin', intensite: 0 },
+      boissonsBues([
+        { boissonId: 'rhum', intensite: 100 },
+        { boissonId: 'absinthe', intensite: 100 },
+        { boissonId: 'biere-blonde', intensite: 100 },
       ]),
-    ).toEqual({ boissonId: 'rhum', libelle: 'Rhum', part: 80 });
+    ).toEqual(['Biere blonde', 'Rhum']);
   });
 
-  it('lit aussi les fiches notees de 0 a 4', () => {
-    expect(alcoolPrefere([{ boissonId: 'biere', intensite: 2 }])?.part).toBe(50);
-  });
-
-  it('tranche les egalites par l’ordre du catalogue', () => {
-    const premier = alcoolPrefere([
-      { boissonId: 'vodka', intensite: 50 },
-      { boissonId: 'biere-blonde', intensite: 50 },
-    ]);
-    expect(premier?.boissonId).toBe('biere-blonde');
-  });
-
-  it('ne renvoie rien quand rien n’est declare', () => {
-    expect(alcoolPrefere([])).toBeUndefined();
-    expect(alcoolPrefere([{ boissonId: 'biere', intensite: 0 }])).toBeUndefined();
-    // Un gout inconnu du catalogue ne peut pas etre affiche.
-    expect(alcoolPrefere([{ boissonId: 'absinthe', intensite: 90 }])).toBeUndefined();
+  it('ne rend rien quand rien n est coche', () => {
+    expect(boissonsBues([])).toEqual([]);
   });
 });
 

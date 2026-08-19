@@ -91,9 +91,7 @@ export class ValidationFiche {
     }),
   );
 
-  protected readonly resultat = computed(() =>
-    interpreter(this.inviteProvisoire(), this.store.personnesTypes()),
-  );
+  protected readonly resultat = computed(() => interpreter(this.inviteProvisoire()));
 
   protected readonly totalVerres = computed(() =>
     this.consommation().reduce((somme, x) => somme + x.verresParJour, 0),

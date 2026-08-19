@@ -180,7 +180,10 @@ describe('calculerAlertes', () => {
 
   it('signale ce qui ne passera pas la nuit sur un evenement long', () => {
     const surTroisJours: Cadre = { ...CADRE, jours: 3 };
-    const panier = panierDe([{ boissonId: 'whisky-coca', verres: 20 }]);
+    // Un fut perce s'oxyde en quelques jours : c'est le cas type.
+    const panier = panierDe([{ boissonId: 'biere', verres: 40 }], {
+      formats: new Map([['biere', 'biere-fut-20']]),
+    });
 
     expect(messages(calculerAlertes(surTroisJours, panier, 0))).toContain('conservation');
     expect(messages(calculerAlertes(CADRE, panier, 0))).not.toContain('conservation');

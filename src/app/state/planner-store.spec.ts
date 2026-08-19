@@ -120,8 +120,6 @@ describe('PlannerStore', () => {
     store.majInvite(id, { prenom: 'Paul', personneTypeId: 'p2' });
 
     expect(store.cadre().invites).toBe(13);
-    // 4 anonymes de Marie + le Paul d'Antoine.
-    expect(store.resumePersonnesTypes().find((x) => x.personneType.id === 'p2')?.effectif).toBe(5);
   });
 
   it('vide les effectifs anonymes herites de l’ancienne saisie', () => {
@@ -140,36 +138,12 @@ describe('PlannerStore', () => {
     expect(cree?.consommation).toHaveLength(0);
   });
 
-  it("duplique un profil pour le retoucher sans casser l'original", () => {
-    const id = store.dupliquerPersonneType('p1');
-    const copie = store.personnesTypes().find((x) => x.id === id);
-
-    expect(copie?.nom).toBe('Le buveur de biere (copie)');
-    expect(copie?.consommation).toEqual(BUVEUR_BIERE.consommation);
-    store.majConsommation(id, 'biere', 1);
-    expect(store.personnesTypes().find((x) => x.id === 'p1')?.consommation[0].verresParJour).toBe(
-      5,
-    );
-  });
-
   it('regle et retire une boisson dans un profil', () => {
     store.majConsommation('p1', 'whisky-coca', 2);
     expect(store.personnesTypes().find((x) => x.id === 'p1')?.consommation).toHaveLength(2);
 
     store.majConsommation('p1', 'whisky-coca', 0);
     expect(store.personnesTypes().find((x) => x.id === 'p1')?.consommation).toHaveLength(1);
-  });
-
-  it('supprime un profil, les effectifs et les rattachements qui le visaient', () => {
-    const invite = store.ajouterInvite('a');
-    store.majInvite(invite, { personneTypeId: 'p1' });
-    store.supprimerPersonneType('p1');
-
-    expect(store.personnesTypes().some((x) => x.id === 'p1')).toBe(false);
-    expect(store.participants().find((x) => x.id === 'a')?.effectifs).toEqual([
-      { personneTypeId: 'p3', nombre: 2 },
-    ]);
-    expect(store.invitesNommes().find((x) => x.id === invite)?.personneTypeId).toBe('');
   });
 
   it('repartit le cout au prorata du volume consomme', () => {
@@ -363,12 +337,5 @@ describe('PlannerStore', () => {
 
     const invite = store.invitesNommes().find((x) => x.id === id);
     expect(invite?.boissonsAimees).toEqual([{ boissonId: 'biere-blonde', intensite: 60 }]);
-  });
-
-  it('met une fiche en avant, puis la relache', () => {
-    store.mettreEnAvant('abc');
-    expect(store.inviteEnAvant()).toBe('abc');
-    store.mettreEnAvant('');
-    expect(store.inviteEnAvant()).toBe('');
   });
 });

@@ -9,7 +9,6 @@ import {
   consommationDe,
   invitesDe,
   repartirCout,
-  resumerPersonnesTypes,
 } from '../domain/calcul';
 import { personneTypeVierge } from '../domain/personnes-types';
 import { PROFILS, calculerAlertes, calculerRatios } from '../domain/validation';
@@ -263,11 +262,6 @@ export class PlannerStore {
 
   readonly personnesTypes = computed(() => this.partage().personnesTypes);
 
-  /** Ce que chaque profil pese, effectifs et invites nommes compris. */
-  readonly resumePersonnesTypes = computed(() =>
-    resumerPersonnesTypes(this.participantsComplets(), this.personnesTypes()),
-  );
-
   readonly lienPartage = computed(() =>
     typeof location === 'undefined' ? '' : `${location.origin}/e/${this.code()}`,
   );
@@ -406,20 +400,6 @@ export class PlannerStore {
     } finally {
       this.chargement.set(false);
     }
-  }
-
-  /**
-   * La fiche qu'on vient de demander a voir dans le tableau des declarations.
-   *
-   * Le detail d'un invite et le tableau vivent dans deux composants voisins :
-   * ce signal est le fil entre les deux, pour que « voir dans le tableau »
-   * amene sur la bonne ligne au lieu d'un tableau de trente lignes ouvert au
-   * hasard.
-   */
-  readonly inviteEnAvant = signal('');
-
-  mettreEnAvant(inviteId: string): void {
-    this.inviteEnAvant.set(inviteId);
   }
 
   /** Toute navigation entre espaces passe par ici : le retour sait d'ou l'on vient. */
@@ -596,26 +576,6 @@ export class PlannerStore {
     return id;
   }
 
-  /** Dupliquer plutot que repartir de zero, quand un profil est presque bon. */
-  dupliquerPersonneType(personneTypeId: string): string {
-    const modele = this.personnesTypes().find((x) => x.id === personneTypeId);
-    if (!modele) return '';
-    const id = identifiant();
-    this.majPartage({
-      personnesTypes: [
-        ...this.personnesTypes(),
-        {
-          ...modele,
-          id,
-          nom: `${modele.nom} (copie)`,
-          creeParNom: this.moi()?.nom ?? modele.creeParNom,
-          consommation: modele.consommation.map((x) => ({ ...x })),
-        },
-      ],
-    });
-    return id;
-  }
-
   majPersonneType(personneTypeId: string, patch: Partial<Omit<PersonneType, 'id'>>): void {
     this.majPartage({
       personnesTypes: this.personnesTypes().map((x) =>
@@ -634,27 +594,6 @@ export class PlannerStore {
     this.majPersonneType(personneTypeId, {
       consommation: valeur > 0 ? [...autres, { boissonId, verresParJour: valeur }] : autres,
     });
-  }
-
-  /**
-   * Supprimer un profil retire aussi les effectifs qui le visaient, sinon ils
-   * resteraient dans les participants sans rien designer.
-   */
-  supprimerPersonneType(personneTypeId: string): void {
-    this.majPartage({
-      personnesTypes: this.personnesTypes().filter((x) => x.id !== personneTypeId),
-      // Les invites nommes qui portaient ce profil redeviennent « sans profil ».
-      invites: this.invitesNommes().map((x) =>
-        x.personneTypeId === personneTypeId ? { ...x, personneTypeId: '' } : x,
-      ),
-    });
-    for (const participant of this.participants()) {
-      if (participant.effectifs.some((x) => x.personneTypeId === personneTypeId)) {
-        this.majParticipant(participant.id, {
-          effectifs: participant.effectifs.filter((x) => x.personneTypeId !== personneTypeId),
-        });
-      }
-    }
   }
 
   // -- Conditionnement, prix, materiel (communs) ---------------------------

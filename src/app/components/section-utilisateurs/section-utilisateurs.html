@@ -6,8 +6,7 @@
     </div>
 
     <p class="intro muted">
-      « Examiner » deroule la fiche etape par etape : qui c'est, son sejour, sa consommation, ce
-      qu'il apporte. Elle n'entre dans les invites qu'une fois la derniere etape validee.
+      Relis la fiche en quatre etapes. Elle entre dans les invites a la derniere.
     </p>
 
     <ul class="propositions">
@@ -28,10 +27,7 @@
       }
     </ul>
 
-    <p class="hint">
-      La consommation relue a l'etape « Sa consommation » est celle qui part dans les courses. C'est
-      le moment de rattraper une reponse fantaisiste.
-    </p>
+    <p class="hint">La consommation validee ici part dans les courses.</p>
   </section>
 }
 
@@ -206,12 +202,8 @@
       <span>Consommation</span>
       <select (change)="filtreProfil.set($any($event.target).value)">
         <option value="" [selected]="filtreProfil() === ''">Tous</option>
-        <option value="sans" [selected]="filtreProfil() === 'sans'">Sans profil</option>
-        @for (type of store.personnesTypes(); track type.id) {
-          <option [value]="type.id" [selected]="filtreProfil() === type.id">
-            {{ type.emoji }} {{ type.nom }}
-          </option>
-        }
+        <option value="avec" [selected]="filtreProfil() === 'avec'">Validee</option>
+        <option value="sans" [selected]="filtreProfil() === 'sans'">A valider</option>
       </select>
     </label>
     <!-- Le filtre le plus utile : « montre-moi ce qu'il me reste a faire ». -->
@@ -241,9 +233,8 @@
 
   @if (sansProfil() > 0) {
     <p class="avertissement">
-      <span class="num">{{ sansProfil() }}</span> invite(s) sans consommation : ils comptent comme
-      des tetes a nourrir, mais ne boivent rien dans le calcul du bar. Leur consommation se pose en
-      validant leur fiche.
+      <span class="num">{{ sansProfil() }}</span> invite(s) sans consommation : ils mangent, mais ne
+      boivent rien dans le calcul.
     </p>
   }
 
@@ -270,7 +261,7 @@
         <thead>
           <tr>
             <th>Invite</th>
-            <th>Alcool prefere</th>
+            <th>Ce qu'il boit</th>
             <th>Tarif</th>
             <th class="droite">Paiement</th>
             <th>Sur place</th>
@@ -301,11 +292,15 @@
                      estime pour elle : c'est plus parlant devant le bar. -->
                 @if (neBoitPas(invite)) {
                   <span class="pill">🐫 Ne boit pas</span>
-                } @else if (alcoolPrefere(invite); as prefere) {
-                  <span class="principal">{{ prefere.libelle }}</span>
-                  <span class="secondaire num">{{ prefere.part }} %</span>
-                } @else {
-                  <span class="muted">Rien de declare</span>
+                } @else if (boissonsBues(invite); as bues) {
+                  @if (bues.length > 0) {
+                    <span class="principal">{{ bues[0] }}</span>
+                    @if (bues.length > 1) {
+                      <span class="secondaire">+ {{ bues.length - 1 }} autre(s)</span>
+                    }
+                  } @else {
+                    <span class="muted">Rien de declare</span>
+                  }
                 }
               </td>
               <td>
@@ -350,8 +345,7 @@
   }
 
   <p class="hint">
-    Chaque fiche porte sa propre consommation, posee en la validant. L'espace Bar &amp; boissons,
-    section « Les consommations », les met toutes cote a cote.
+    Chaque fiche porte sa consommation. Bar &amp; boissons › Les consommations les reunit.
   </p>
 </section>
 
@@ -436,17 +430,6 @@
       </select>
     </label>
     <div class="grid-champs">
-      <label class="champ">
-        <span>Profil de consommation</span>
-        <select (change)="majBrouillon({ personneTypeId: $any($event.target).value })">
-          <option value="" [selected]="!brouillon().personneTypeId">— Sans profil</option>
-          @for (type of store.personnesTypes(); track type.id) {
-            <option [value]="type.id" [selected]="type.id === brouillon().personneTypeId">
-              {{ type.emoji }} {{ type.nom }}
-            </option>
-          }
-        </select>
-      </label>
       <label class="champ">
         <span>Tarif</span>
         <select (change)="majBrouillon({ categoriePaiementId: $any($event.target).value })">
@@ -535,33 +518,23 @@
           }
         </select>
       </label>
-      <label class="champ large">
-        <span>Profil de consommation</span>
-        <select (change)="maj(invite, { personneTypeId: $any($event.target).value })">
-          <option value="" [selected]="!invite.personneTypeId">
-            {{ neBoitPas(invite) ? '— Ne boit pas' : '— Sans profil' }}
-          </option>
-          @for (type of store.personnesTypes(); track type.id) {
-            <option [value]="type.id" [selected]="type.id === invite.personneTypeId">
-              {{ type.emoji }} {{ type.nom }}
-            </option>
-          }
-        </select>
-      </label>
     </div>
 
-    <!-- Le detail montre l'essentiel ; le tableau montre les dix-sept alcools
-         cote a cote, et se corrige sur place. -->
     <p class="declare">
-      Alcool prefere :
-      @if (alcoolPrefere(invite); as prefere) {
-        <b>{{ prefere.libelle }}</b> ({{ prefere.part }} %)
+      Ce qu'il boit :
+      @if (neBoitPas(invite)) {
+        <b>rien, il est chameau</b>
+      } @else if (boissonsBues(invite).length > 0) {
+        <b>{{ boissonsBues(invite).join(' · ') }}</b>
       } @else {
         <span class="muted">rien de declare</span>
       }
-      <button type="button" class="discret" (click)="voirDansLeTableau(invite)">
-        Voir dans le tableau des declarations →
-      </button>
+      ·
+      @if (consommationDe(invite); as conso) {
+        {{ conso }}
+      } @else {
+        <span class="muted">consommation a valider</span>
+      }
     </p>
 
     <span class="sous-titre">Paiement</span>

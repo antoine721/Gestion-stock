@@ -122,6 +122,13 @@ export function calculerPanier(entree: EntreeCalcul): Panier {
         volumeDiluantMl += ml;
       }
 
+      // Les diluants ne s'achetent pas par le calcul. On sait qu'il faut du
+      // coca avec le rhum, mais la marque, le format et la quantite se
+      // decident devant le rayon — et personne ne veut se voir imposer
+      // dix-sept bouteilles de tonic. Leur volume reste compte dans les
+      // statistiques, il ne part simplement pas dans les courses.
+      if (produit.degre <= 0) continue;
+
       const besoin = besoins.get(produit.id);
       if (besoin) {
         besoin.ml += ml;

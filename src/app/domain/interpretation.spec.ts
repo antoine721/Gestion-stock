@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  aDeclareQuelqueChose,
-  alerterSurEstimation,
-  estimerConsommation,
-  interpreter,
-  scorerProfil,
-} from './interpretation';
+import { alerterSurEstimation, estimerConsommation, interpreter } from './interpretation';
 import { inviteVierge } from './invites';
 import { Invite, PersonneType } from './models';
 
@@ -13,20 +7,8 @@ function fiche(patch: Partial<Invite>): Invite {
   return { ...inviteVierge('i1', 'a'), prenom: 'Paul', ...patch };
 }
 
-function profil(id: string, consommation: [string, number][]): PersonneType {
-  return {
-    id,
-    nom: id,
-    description: '',
-    emoji: '🍺',
-    creeParNom: 'Antoine',
-    consommation: consommation.map(([boissonId, verresParJour]) => ({ boissonId, verresParJour })),
-  };
-}
-
 describe('estimation de consommation', () => {
   it('ne rend rien pour une fiche qui n’a rien declare', () => {
-    expect(aDeclareQuelqueChose(fiche({}))).toBe(false);
     expect(estimerConsommation(fiche({}))).toEqual([]);
   });
 
@@ -156,44 +138,5 @@ describe('garde-fous', () => {
     });
     const alertes = alerterSurEstimation(invite, estimerConsommation(invite));
     expect(alertes.some((x) => /catalogue/i.test(x.texte))).toBe(true);
-  });
-});
-
-describe('correspondance avec les profils', () => {
-  it('donne 100 a un profil identique et moins a un profil eloigne', () => {
-    const estimation = [{ boissonId: 'biere', verresParJour: 4 }];
-    expect(scorerProfil(estimation, profil('exact', [['biere', 4]]))).toBe(100);
-    expect(scorerProfil(estimation, profil('autre', [['vin-rouge', 4]]))).toBe(0);
-    expect(scorerProfil(estimation, profil('proche', [['biere', 3]]))).toBeGreaterThan(70);
-  });
-
-  it('propose le meilleur profil quand il colle assez', () => {
-    const invite = fiche({
-      team: 'croisiere',
-      niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' },
-      boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
-    });
-    const resultat = interpreter(invite, [
-      profil('buveur-biere', [['biere', 4]]),
-      profil('team-vin', [['vin-rouge', 5]]),
-    ]);
-
-    expect(resultat.verresParJour).toBe(4);
-    expect(resultat.meilleur?.personneType.id).toBe('buveur-biere');
-    expect(resultat.meilleur?.score).toBe(100);
-    // Les correspondances sont triees, la meilleure en tete.
-    expect(resultat.correspondances[0].score).toBeGreaterThanOrEqual(
-      resultat.correspondances[1].score,
-    );
-  });
-
-  it('ne propose rien quand aucun profil ne ressemble', () => {
-    const invite = fiche({
-      team: 'croisiere',
-      niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' },
-      boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
-    });
-    const resultat = interpreter(invite, [profil('team-vin', [['vin-rouge', 5]])]);
-    expect(resultat.meilleur).toBeUndefined();
   });
 });
