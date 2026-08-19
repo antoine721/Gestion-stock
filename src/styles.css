@@ -285,7 +285,9 @@ input[type='date'],
 textarea,
 select {
   width: 100%;
-  padding: 0.5625rem 0.75rem;
+  /* Assez haut pour se cliquer au pouce, pas plus : un formulaire de dix
+     champs ne doit pas remplir l'ecran a lui seul. */
+  padding: 0.4375rem 0.6875rem;
   font-family: var(--corps);
   font-size: 0.875rem;
   color: var(--texte);
@@ -310,7 +312,7 @@ select {
 /* Le texte long se redimensionne a la verticale seulement. */
 textarea {
   resize: vertical;
-  min-height: 4.5rem;
+  min-height: 3.5rem;
 }
 
 /* Toute saisie chiffree s'aligne en colonnes. */
@@ -842,7 +844,7 @@ summary::-webkit-details-marker {
   textarea,
   select {
     font-size: 1rem;
-    padding: 0.5625rem 0.6875rem;
+    padding: 0.5rem 0.625rem;
   }
 
   /* Des cibles tactiles dignes d'un pouce, sauf les petites croix discretes. */
