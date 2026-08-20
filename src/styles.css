@@ -9,30 +9,37 @@
 --------------------------------------------------------------------------- */
 
 :root {
+  /*
+   * Le fond est bleu : tout le neutre l'est aussi. Des gris chauds sur un
+   * ciel, ca se voit — les surfaces, les bords et le texte sont donc tires
+   * vers le meme bleu, a luminosite egale. Les couleurs de donnees, elles,
+   * ne bougent pas : leur job est de se distinguer, pas de s'accorder.
+   */
   --fond: #ccefff;
-  --surface: #faffffec;
-  --surface-2: #efeeeb;
-  --bord: #ebeae6;
-  --bord-verre: #e8e7e3;
-  --bord-champ: #dcdbd5;
-  --bord-fort: #c8c7c1;
-  --texte: #1a1a18;
-  --texte-doux: #6b6a66;
+  /* Les surfaces sont du verre : elles laissent passer le fond. */
+  --surface: rgba(255, 255, 255, 0.82);
+  --surface-2: #e1f0f9;
+  --bord: #cfe3ef;
+  --bord-verre: rgba(255, 255, 255, 0.65);
+  --bord-champ: #bcd8e8;
+  --bord-fort: #9ac0d6;
+  --texte: #10222b;
+  --texte-doux: #4e6a78;
 
   /* Le bleu du logo : reserve a la marque, jamais aux etats. */
   --marque: #17365d;
 
-  /* L'encre est l'accent : les actions principales sont noires, pas colorees. */
-  --accent: #1a1a18;
-  --accent-doux: rgba(26, 26, 24, 0.08);
-  --accent-fort: #000000;
+  /* L'encre est l'accent : les actions principales sont sombres, pas colorees. */
+  --accent: #10222b;
+  --accent-doux: rgba(16, 34, 43, 0.08);
+  --accent-fort: #05141c;
 
-  --ok: #17845c;
-  --ok-doux: #e4f5ec;
-  --warn: #b3721c;
-  --warn-doux: #fdf2e0;
-  --ko: #c23c2e;
-  --ko-doux: #fbe9e6;
+  --ok: #0c6a4c;
+  --ok-doux: #d8f1e6;
+  --warn: #8a5a0f;
+  --warn-doux: #fbeed6;
+  --ko: #bd3a2c;
+  --ko-doux: #fbe3e0;
 
   /* Couleurs de donnees des graphiques, validees daltonisme + contraste. */
   --donnee-alcool: #5fa8e0;
@@ -53,8 +60,8 @@
   --famille-spiritueux-fond: #eef4fa;
 
   /* Les teintes des pieces du hub : des points de couleur, pas des fonds. */
-  --teinte-ardoise: #6b6a66;
-  --teinte-ardoise-doux: rgba(107, 106, 102, 0.12);
+  --teinte-ardoise: #5b7482;
+  --teinte-ardoise-doux: rgba(91, 116, 130, 0.14);
   --teinte-petrole: #17847c;
   --teinte-petrole-doux: rgba(23, 132, 124, 0.12);
   --teinte-orange: #e0813f;
@@ -84,8 +91,8 @@
   --rayon-petit: 9px;
   --flou: none;
   --lueur: 0 0 0 0 rgba(0, 0, 0, 0);
-  --ombre: 0 1px 2px rgba(20, 20, 18, 0.04), 0 4px 16px rgba(20, 20, 18, 0.04);
-  --ombre-haute: 0 10px 30px rgba(20, 20, 18, 0.12);
+  --ombre: 0 1px 2px rgba(16, 44, 60, 0.05), 0 4px 16px rgba(16, 44, 60, 0.06);
+  --ombre-haute: 0 10px 30px rgba(16, 44, 60, 0.16);
 
   --titre: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --corps: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -106,31 +113,32 @@
  */
 :root[data-theme='sombre'] {
   color-scheme: dark;
-  --fond: #131311;
-  --surface: #1d1d1b25;
-  --surface-2: #282826;
-  --bord: #2c2c29;
-  --bord-verre: #2c2c29;
-  --bord-champ: #3a3a36;
-  --bord-fort: #4a4a45;
-  --texte: #f0efec;
-  --texte-doux: #a3a29d;
+  /* Le meme bleu, en negatif : une nuit claire, pas un noir chaud. */
+  --fond: #0d161c;
+  --surface: rgba(23, 40, 51, 0.58);
+  --surface-2: #17262f;
+  --bord: #24363f;
+  --bord-verre: rgba(255, 255, 255, 0.07);
+  --bord-champ: #2f4552;
+  --bord-fort: #43606f;
+  --texte: #e9f3f8;
+  --texte-doux: #94abb9;
 
   --marque: #7fb4e0;
 
-  --accent: #f0efec;
-  --accent-doux: rgba(240, 239, 236, 0.1);
+  --accent: #e9f3f8;
+  --accent-doux: rgba(233, 243, 248, 0.1);
   --accent-fort: #ffffff;
 
   --ok: #4fc08d;
-  --ok-doux: #1b3128;
+  --ok-doux: #123128;
   --warn: #d9a44a;
-  --warn-doux: #362b18;
+  --warn-doux: #332a15;
   --ko: #e0705f;
-  --ko-doux: #3a2320;
+  --ko-doux: #38211e;
 
-  --ombre: 0 0 0 0.5px rgba(255, 255, 255, 0.05);
-  --ombre-haute: 0 0 0 0.5px rgba(255, 255, 255, 0.07), 0 12px 32px rgba(0, 0, 0, 0.5);
+  --ombre: 0 0 0 0.5px rgba(255, 255, 255, 0.06);
+  --ombre-haute: 0 0 0 0.5px rgba(255, 255, 255, 0.08), 0 12px 32px rgba(0, 8, 14, 0.55);
 
   --donnee-alcool: #3a90d6;
   --donnee-nourriture: #cc763a;
@@ -143,8 +151,8 @@
   --famille-spiritueux: #3a90d6;
   --famille-spiritueux-fond: #1c242c;
 
-  --teinte-ardoise: #a3a29d;
-  --teinte-ardoise-doux: rgba(163, 162, 157, 0.14);
+  --teinte-ardoise: #94abb9;
+  --teinte-ardoise-doux: rgba(148, 171, 185, 0.14);
   --teinte-petrole: #3fb0a6;
   --teinte-petrole-doux: rgba(63, 176, 166, 0.14);
   --teinte-orange: #cc763a;
