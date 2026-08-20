@@ -827,6 +827,28 @@ export class PlannerStore {
     });
   }
 
+  /**
+   * Corriger une declaration depuis le bar : la fiche change, et la
+   * consommation qui en decoule est refaite dans la foulee. Sans ca, on
+   * corrigerait un pourcentage sans que les courses bougent d'un millilitre.
+   *
+   * Un profil partage par plusieurs fiches n'est pas touche : il n'a pas de
+   * source unique, et l'ecraser depuis une seule fiche serait un mensonge.
+   */
+  majDeclaration(
+    inviteId: string,
+    patch: Partial<Pick<Invite, 'verresParFamille' | 'boissonsAimees'>>,
+  ): void {
+    this.majInvite(inviteId, patch);
+
+    const invite = this.invitesNommes().find((x) => x.id === inviteId);
+    if (!invite?.personneTypeId) return;
+    const sources = this.invitesNommes().filter((x) => x.personneTypeId === invite.personneTypeId);
+    if (sources.length !== 1) return;
+
+    this.majPersonneType(invite.personneTypeId, { consommation: estimerConsommation(invite) });
+  }
+
   supprimerInvite(inviteId: string): void {
     this.majPartage({ invites: this.invitesNommes().filter((x) => x.id !== inviteId) });
   }

@@ -28,8 +28,8 @@
         <thead>
           <tr>
             <th>Invite</th>
-            <th>Ce qu'il declare</th>
-            <th>Ce qu'on lui prevoit</th>
+            <th>Ce qu'il aime</th>
+            <th>Ce qu'il declare boire</th>
             <th class="droite">Verres / jour</th>
             <th></th>
           </tr>
@@ -51,14 +51,9 @@
                 <span class="declare">{{
                   libelleBoissonsAimees(ligne.invite.boissonsAimees) || 'Aucun alcool declare'
                 }}</span>
-                <span class="secondaire">{{ rythme(ligne.invite) }}</span>
               </td>
               <td>
-                @if (ligne.consommation.length > 0) {
-                  {{ resumeConso(ligne.consommation) }}
-                } @else {
-                  <span class="pill warn">Rien de prevu</span>
-                }
+                <span class="principal">{{ rythme(ligne.invite) }}</span>
               </td>
               <td class="droite num">{{ fmtNombre(ligne.total) }}</td>
               <td class="chevron droite">›</td>
@@ -102,17 +97,69 @@
     "
     (fermee)="detailId.set('')"
   >
-    <span class="sous-titre">Ce qu'il a declare</span>
-    <dl class="declaration">
-      <div>
-        <dt>Gouts</dt>
-        <dd>{{ libelleBoissonsAimees(ligne.invite.boissonsAimees) || 'Rien de declare' }}</dd>
+    <p class="intro muted">
+      Exactement ce que l'invite a rempli, et modifiable : corriger ici corrige les courses.
+    </p>
+
+    @for (famille of familles; track famille.id) {
+      <div class="famille">
+        <span class="famille-titre">
+          <span aria-hidden="true">{{ famille.emoji }}</span> {{ famille.libelle }}
+        </span>
+
+        <div class="compteur">
+          <button
+            type="button"
+            class="pas"
+            aria-label="Un verre de moins"
+            (click)="majVerresDe(ligne.invite, famille.id, verresDe(ligne.invite, famille.id) - 1)"
+          >
+            −
+          </button>
+          <span class="compte">
+            <input
+              type="number"
+              min="0"
+              max="30"
+              step="1"
+              inputmode="numeric"
+              [value]="verresDe(ligne.invite, famille.id)"
+              [attr.aria-label]="famille.question"
+              (change)="majVerresDe(ligne.invite, famille.id, +$any($event.target).value)"
+            />
+            <span class="unite">verre(s) / jour</span>
+          </span>
+          <button
+            type="button"
+            class="pas"
+            aria-label="Un verre de plus"
+            (click)="majVerresDe(ligne.invite, famille.id, verresDe(ligne.invite, famille.id) + 1)"
+          >
+            +
+          </button>
+        </div>
+
+        @if (verresDe(ligne.invite, famille.id) > 0) {
+          <div class="gouts">
+            @for (boisson of boissonsDe(famille.id); track boisson.id) {
+              <label class="gout" [class.choisi]="partDe(ligne.invite, boisson.id) > 0">
+                <span class="gout-nom">{{ boisson.libelle }}</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  [attr.step]="pasGout"
+                  [value]="partDe(ligne.invite, boisson.id)"
+                  [attr.aria-label]="'Part de ' + boisson.libelle"
+                  (input)="majPart(ligne.invite, famille.id, boisson.id, $any($event.target).value)"
+                />
+                <span class="gout-part num">{{ partDe(ligne.invite, boisson.id) }} %</span>
+              </label>
+            }
+          </div>
+        }
       </div>
-      <div>
-        <dt>Rythme</dt>
-        <dd>{{ rythme(ligne.invite) }}</dd>
-      </div>
-    </dl>
+    }
 
     @if (ligne.alertes.length > 0) {
       <div class="alertes-panneau">
@@ -124,39 +171,14 @@
       </div>
     }
 
-    <span class="sous-titre">Sa consommation, par jour</span>
+    <span class="sous-titre">Ce qu'on servira</span>
     @if (ligne.consommation.length === 0) {
-      <p class="vide">
-        Rien de prevu pour cette fiche. Sa consommation se pose a la validation, dans l'espace
-        Invites.
-      </p>
+      <p class="vide">Rien a servir : aucun verre declare, ou aucun gout coche.</p>
     } @else {
-      <table class="tableau">
-        <thead>
-          <tr>
-            <th>Boisson</th>
-            <th class="droite">Verres / jour</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (item of ligne.consommation; track item.boissonId) {
-            <tr>
-              <td class="principal">{{ nomBoisson(item.boissonId) }}</td>
-              <td class="droite">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  [value]="item.verresParJour"
-                  [attr.aria-label]="'Verres par jour de ' + nomBoisson(item.boissonId)"
-                  (change)="majVerres(ligne.invite, item.boissonId, $any($event.target).value)"
-                />
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-      <p class="hint">Ces chiffres n'appartiennent qu'a cette fiche.</p>
+      <p class="servira">{{ resumeConso(ligne.consommation) }}</p>
+      <p class="hint">
+        Ces verres se deduisent de la declaration ci-dessus : ils se corrigent en la corrigeant.
+      </p>
     }
   </app-panneau>
 }

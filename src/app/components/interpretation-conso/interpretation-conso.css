@@ -115,3 +115,103 @@
 .corr-score.bon {
   color: var(--ok);
 }
+
+/* -- Le panneau : le formulaire de l'invite, tel qu'il l'a rempli ---------- */
+
+.famille + .famille {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--bord);
+}
+
+.famille-titre {
+  display: block;
+  margin-bottom: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 620;
+}
+
+.compteur {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.compteur .pas {
+  width: 2.5rem;
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.compteur .compte {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.375rem;
+  flex: 1;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--bord-champ);
+  border-radius: var(--rayon-petit);
+  background: var(--surface);
+}
+
+.compteur input {
+  width: 3rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--chiffres);
+  font-size: 1.25rem;
+  font-weight: 640;
+  text-align: right;
+  appearance: textfield;
+}
+
+.compteur input::-webkit-outer-spin-button,
+.compteur input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.compteur .unite {
+  font-size: 0.6875rem;
+  color: var(--texte-doux);
+}
+
+/* Les parts d'une famille : un curseur par boisson, 100 % a eux tous. */
+.gouts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.625rem;
+}
+
+.gout {
+  display: grid;
+  grid-template-columns: minmax(6rem, 1fr) minmax(4rem, 8rem) 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--texte-doux);
+}
+
+.gout.choisi {
+  color: var(--texte);
+  font-weight: 560;
+}
+
+.gout input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.gout-part {
+  text-align: right;
+  font-size: 0.6875rem;
+}
+
+.servira {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 560;
+}

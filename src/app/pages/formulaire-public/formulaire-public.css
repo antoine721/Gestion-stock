@@ -274,6 +274,56 @@ h2 {
 }
 
 /* Les paliers de consommation : le libelle, et son repere chiffre dessous. */
+/* Le nombre qui fait les courses : il porte le poids visuel, les paliers en
+   dessous ne font que le pre-remplir. */
+.compteur {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  margin-bottom: 0.625rem;
+}
+
+.compteur .pas {
+  width: 2.75rem;
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.compteur .compte {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.375rem;
+  flex: 1;
+  padding: 0.4375rem 0.75rem;
+  border: 1px solid var(--bord-champ);
+  border-radius: var(--rayon-petit);
+  background: var(--surface);
+}
+
+.compteur input {
+  width: 3.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--chiffres);
+  font-size: 1.5rem;
+  font-weight: 640;
+  text-align: right;
+  appearance: textfield;
+}
+
+.compteur input::-webkit-outer-spin-button,
+.compteur input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.compteur .unite {
+  font-size: 0.75rem;
+  color: var(--texte-doux);
+}
+
 .paliers {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));

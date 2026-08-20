@@ -395,13 +395,47 @@
 
                   <span class="intitule famille-question">{{ famille.question }}</span>
                   <p class="muted aide">{{ famille.repere }}</p>
+                  <!-- Un nombre, pas un palier : c'est lui qui fait les
+                       courses. Les paliers ne font que le pre-remplir. -->
+                  <div class="compteur">
+                    <button
+                      type="button"
+                      class="pas"
+                      aria-label="Un verre de moins"
+                      (click)="majVerres(famille.id, verresDe(famille.id) - 1)"
+                    >
+                      −
+                    </button>
+                    <span class="compte">
+                      <input
+                        type="number"
+                        min="0"
+                        max="30"
+                        step="1"
+                        inputmode="numeric"
+                        [value]="verresDe(famille.id)"
+                        [attr.aria-label]="famille.question"
+                        (input)="majVerres(famille.id, +$any($event.target).value)"
+                      />
+                      <span class="unite">verre(s)</span>
+                    </span>
+                    <button
+                      type="button"
+                      class="pas"
+                      aria-label="Un verre de plus"
+                      (click)="majVerres(famille.id, verresDe(famille.id) + 1)"
+                    >
+                      +
+                    </button>
+                  </div>
+
                   <div class="paliers">
                     @for (palier of paliers; track palier.id) {
                       <button
                         type="button"
                         class="palier"
                         [attr.aria-pressed]="palierChoisi(famille.id, palier.id)"
-                        (click)="majNiveau(famille.id, palier.id)"
+                        (click)="poserPalier(famille.id, palier.id)"
                       >
                         <span class="palier-nom">{{ palier.libelle }}</span>
                         <span class="palier-repere">{{ palier.reperes[famille.id] }}</span>
