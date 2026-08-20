@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Api, InfosPubliques } from '../../state/api';
-import { REGIMES, logistiqueVierge, niveauxVierges } from '../../domain/invites';
+import { REGIMES, logistiqueVierge, verresVierges } from '../../domain/invites';
 import {
   FAMILLES_ALCOOL,
   GOODIES,
@@ -9,15 +9,16 @@ import {
   SERVICES,
   TEAMS,
   PAS_GOUT,
+  VERRES_PAR_FAMILLE,
   repartirGouts,
   boissonsDeFamille,
 } from '../../domain/preferences';
 import {
   FamilleAlcool,
   NiveauConso,
-  NiveauxParFamille,
   Regime,
   TeamBuveur,
+  VerresParFamille,
 } from '../../domain/models';
 import { Logo } from '../../components/logo/logo';
 
@@ -95,7 +96,8 @@ export class FormulairePublic {
   protected readonly allergies = signal('');
   /** boissonId -> cran du curseur, de 0 (« j'en bois pas ») a 4. */
   protected readonly boissonsAimees = signal<ReadonlyMap<string, number>>(new Map());
-  protected readonly niveaux = signal<NiveauxParFamille>(niveauxVierges());
+  /** Combien de verres par soiree, famille par famille. Un nombre, pas un palier. */
+  protected readonly verres = signal<VerresParFamille>(verresVierges());
   protected readonly autreAlcool = signal('');
   protected readonly team = signal<TeamBuveur | ''>('');
   protected readonly servicesPreferes = signal<ReadonlySet<string>>(new Set());
@@ -205,26 +207,29 @@ export class FormulairePublic {
     this.boissonsAimees.set(suivantes);
   }
 
-  protected niveauDe(famille: FamilleAlcool): NiveauConso {
-    return this.niveaux()[famille];
+  protected verresDe(famille: FamilleAlcool): number {
+    return this.verres()[famille];
+  }
+
+  /** Personne ne boit trente verres : au-dela, c'est une faute de frappe. */
+  protected majVerres(famille: FamilleAlcool, valeur: number): void {
+    if (!Number.isFinite(valeur)) return;
+    const verres = Math.min(30, Math.max(0, Math.round(valeur * 2) / 2));
+    this.verres.set({ ...this.verres(), [famille]: verres });
   }
 
   /**
-   * Les familles dont le rythme a vraiment ete repondu.
-   *
-   * « Rien du tout » est la valeur de depart du modele : l'afficher comme
-   * choisie ferait passer un silence pour une reponse. Tant que personne n'a
-   * clique, aucun palier n'est allume.
+   * Les paliers ne decident plus : ils remplissent le compteur. « Moyen » pose
+   * quatre bieres, qu'on corrige ensuite si on en boit cinq.
    */
-  private readonly rythmesRepondus = signal<ReadonlySet<FamilleAlcool>>(new Set());
-
-  protected palierChoisi(famille: FamilleAlcool, niveau: NiveauConso): boolean {
-    return this.rythmesRepondus().has(famille) && this.niveaux()[famille] === niveau;
+  protected poserPalier(famille: FamilleAlcool, niveau: NiveauConso): void {
+    this.majVerres(famille, VERRES_PAR_FAMILLE[famille][niveau]);
   }
 
-  protected majNiveau(famille: FamilleAlcool, niveau: NiveauConso): void {
-    this.niveaux.set({ ...this.niveaux(), [famille]: niveau });
-    this.rythmesRepondus.set(new Set(this.rythmesRepondus()).add(famille));
+  protected palierChoisi(famille: FamilleAlcool, niveau: NiveauConso): boolean {
+    return (
+      this.verresDe(famille) === VERRES_PAR_FAMILLE[famille][niveau] && this.verresDe(famille) > 0
+    );
   }
 
   /** Le chameau ne repond pas aux questions d'alcool : elles disparaissent. */
@@ -285,7 +290,7 @@ export class FormulairePublic {
           : [...this.boissonsAimees().entries()]
               .filter(([, intensite]) => intensite > 0)
               .map(([boissonId, intensite]) => ({ boissonId, intensite })),
-        niveaux: this.sansAlcool() ? niveauxVierges() : this.niveaux(),
+        verresParFamille: this.sansAlcool() ? verresVierges() : this.verres(),
         autreAlcool: this.sansAlcool() ? '' : this.autreAlcool().trim(),
         team: this.team(),
         servicesPreferes: [...this.servicesPreferes()],
@@ -331,7 +336,7 @@ export class FormulairePublic {
     this.aDesAllergies.set('');
     this.allergies.set('');
     this.boissonsAimees.set(new Map());
-    this.niveaux.set(niveauxVierges());
+    this.verres.set(verresVierges());
     this.autreAlcool.set('');
     this.team.set('');
     this.servicesPreferes.set(new Set());

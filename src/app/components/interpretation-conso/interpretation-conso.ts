@@ -5,12 +5,14 @@ import { BOISSON_PAR_ID } from '../../domain/catalogue';
 import { alerterSurEstimation } from '../../domain/interpretation';
 import {
   FAMILLES_ALCOOL,
-  LIBELLE_NIVEAU,
   LIBELLE_TEAM,
+  PAS_GOUT,
+  boissonsDeFamille,
   libelleBoissonsAimees,
+  repartirGouts,
 } from '../../domain/preferences';
 import { fmtEntier, fmtNombre } from '../../domain/format';
-import { ConsommationType, Invite } from '../../domain/models';
+import { ConsommationType, FamilleAlcool, Invite } from '../../domain/models';
 
 /**
  * Les consommations des fiches validees.
@@ -34,6 +36,8 @@ export class InterpretationConso {
   protected readonly fmtEntier = fmtEntier;
   protected readonly fmtNombre = fmtNombre;
   protected readonly libelleBoissonsAimees = libelleBoissonsAimees;
+  protected readonly familles = FAMILLES_ALCOOL;
+  protected readonly pasGout = PAS_GOUT;
 
   /** Masquer les fiches a zero : elles n'apprennent rien sur le bar. */
   protected readonly seulementBuveurs = signal(false);
@@ -73,16 +77,55 @@ export class InterpretationConso {
     return invite.team ? (LIBELLE_TEAM.get(invite.team) ?? '') : '';
   }
 
-  /** « Bieres moyen · vins peu » — le rythme declare, famille par famille. */
+  /** « 4 bieres · 2 vins » — ce qu'il a declare boire, famille par famille. */
   protected rythme(invite: Invite): string {
-    const dit = FAMILLES_ALCOOL.filter((x) => invite.niveaux[x.id] !== 'aucun');
-    if (dit.length === 0) return 'Aucun rythme declare';
+    const dit = FAMILLES_ALCOOL.filter((x) => (invite.verresParFamille[x.id] ?? 0) > 0);
+    if (dit.length === 0) return 'Aucun verre declare';
     return dit
-      .map(
-        (x) =>
-          `${x.libelle.replace('Les ', '')} ${LIBELLE_NIVEAU.get(invite.niveaux[x.id])?.toLowerCase()}`,
-      )
+      .map((x) => `${fmtNombre(invite.verresParFamille[x.id])} ${x.libelle.replace('Les ', '')}`)
       .join(' · ');
+  }
+
+  // -- La declaration, corrigible : le meme formulaire que l'invite a rempli --
+
+  protected verresDe(invite: Invite, famille: FamilleAlcool): number {
+    return invite.verresParFamille[famille] ?? 0;
+  }
+
+  protected majVerresDe(invite: Invite, famille: FamilleAlcool, valeur: number): void {
+    if (!Number.isFinite(valeur)) return;
+    const verres = Math.min(30, Math.max(0, Math.round(valeur * 2) / 2));
+    this.store.majDeclaration(invite.id, {
+      verresParFamille: { ...invite.verresParFamille, [famille]: verres },
+    });
+  }
+
+  protected partDe(invite: Invite, boissonId: string): number {
+    return invite.boissonsAimees.find((x) => x.boissonId === boissonId)?.intensite ?? 0;
+  }
+
+  /** Les parts d'une famille font 100 % : ce qu'on donne a l'un se prend aux autres. */
+  protected majPart(
+    invite: Invite,
+    famille: FamilleAlcool,
+    boissonId: string,
+    valeur: string,
+  ): void {
+    const brut = Number(valeur);
+    if (!Number.isFinite(brut)) return;
+
+    const ids = boissonsDeFamille(famille).map((x) => x.id);
+    const actuelles = new Map(ids.map((id) => [id, this.partDe(invite, id)] as const));
+    const gardees = invite.boissonsAimees.filter((x) => !ids.includes(x.boissonId));
+    const refaites = [...repartirGouts(actuelles, boissonId, brut)]
+      .filter(([, intensite]) => intensite > 0)
+      .map(([id, intensite]) => ({ boissonId: id, intensite }));
+
+    this.store.majDeclaration(invite.id, { boissonsAimees: [...gardees, ...refaites] });
+  }
+
+  protected boissonsDe(famille: FamilleAlcool) {
+    return boissonsDeFamille(famille);
   }
 
   protected nomBoisson(boissonId: string): string {

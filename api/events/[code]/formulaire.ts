@@ -29,8 +29,6 @@ function champ(valeur: unknown): string {
   return typeof valeur === 'string' ? valeur.trim().slice(0, MAX_CHAMP) : '';
 }
 
-const NIVEAUX = new Set(['aucun', 'peu', 'moyen', 'beaucoup', 'abuse', 'sans-limite']);
-
 const TEAMS = new Set(['chameau', 'degustation', 'croisiere', 'bateau-ivre']);
 
 const FAMILLES = ['biere', 'vin', 'spiritueux'] as const;
@@ -71,13 +69,16 @@ function gouts(valeur: unknown): { boissonId: string; intensite: number }[] {
   return retenus;
 }
 
-/** Le rythme declare, famille par famille : biere, vin, spiritueux. */
-function niveaux(valeur: unknown): Record<string, string> {
+/**
+ * Le nombre de verres declare, famille par famille. Trente est un plafond de
+ * bon sens : au-dela, c'est une faute de frappe, pas une soiree.
+ */
+function verresParFamille(valeur: unknown): Record<string, number> {
   const brut = (valeur ?? {}) as Record<string, unknown>;
-  const sortie: Record<string, string> = {};
+  const sortie: Record<string, number> = {};
   for (const famille of FAMILLES) {
-    const niveau = champ(brut[famille]);
-    sortie[famille] = NIVEAUX.has(niveau) ? niveau : 'aucun';
+    const verres = Number(brut[famille]);
+    sortie[famille] = Number.isFinite(verres) ? Math.min(30, Math.max(0, verres)) : 0;
   }
   return sortie;
 }
@@ -146,7 +147,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     surnom: champ(corps['surnom']),
     telephone: champ(corps['telephone']).slice(0, 30),
     boissonsAimees: gouts(corps['boissonsAimees']),
-    niveaux: niveaux(corps['niveaux']),
+    verresParFamille: verresParFamille(corps['verresParFamille']),
     autreAlcool: champ(corps['autreAlcool']),
     team: TEAMS.has(team) ? team : '',
     servicesPreferes: identifiants(corps['servicesPreferes'], 20),

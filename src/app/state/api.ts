@@ -2,11 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import {
   GoutBoisson,
   Logistique,
-  NiveauxParFamille,
   Partage,
   Participant,
   Regime,
   TeamBuveur,
+  VerresParFamille,
 } from '../domain/models';
 import { SessionStore } from './session';
 
@@ -35,7 +35,7 @@ export interface ReponsePublique {
   surnom: string;
   telephone: string;
   boissonsAimees: GoutBoisson[];
-  niveaux: NiveauxParFamille;
+  verresParFamille: VerresParFamille;
   autreAlcool: string;
   team: TeamBuveur | '';
   servicesPreferes: string[];
