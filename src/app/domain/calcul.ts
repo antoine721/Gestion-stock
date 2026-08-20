@@ -13,6 +13,7 @@ import {
   Participant,
   PersonneType,
   Produit,
+  ReglagesCalcul,
   ResumeBoisson,
   ResumePersonneType,
   VerresBoisson,
@@ -35,6 +36,17 @@ export interface EntreeCalcul {
   ajustements: ReadonlyMap<string, Ajustement>;
   materiel: Materiel;
   jours: number;
+  /** Marges et coup de pouce ; absent, le moteur prend ses valeurs d'usine. */
+  reglages?: ReglagesCalcul;
+}
+
+/** Les valeurs d'usine : celles qui tenaient dans des constantes avant. */
+export function reglagesCalculParDefaut(): ReglagesCalcul {
+  return {
+    margeAlcoolPct: MARGE_ALCOOL * 100,
+    margeDiluantPct: MARGE_DILUANT * 100,
+    coefficientPct: 0,
+  };
 }
 
 /**
@@ -191,8 +203,11 @@ export function calculerPanier(entree: EntreeCalcul): Panier {
     }
   }
 
+  const reglages = entree.reglages ?? reglagesCalculParDefaut();
   const lignes = [...besoins.values()]
-    .map((besoin) => construireLigne(besoin, ajustementDe(besoin.produit.id, entree.ajustements)))
+    .map((besoin) =>
+      construireLigne(besoin, ajustementDe(besoin.produit.id, entree.ajustements), reglages),
+    )
     .filter((ligne) => ligne.bouteilles > 0)
     .sort(comparerLignes);
 
@@ -223,7 +238,7 @@ export function calculerPanier(entree: EntreeCalcul): Panier {
     volumeAlcoolMl,
     volumeSpiritueuxMl,
     volumeDiluantMl,
-    besoinsDiluants: construireDiluants(diluants),
+    besoinsDiluants: construireDiluants(diluants, reglages),
     volumeSoftMl,
     volumeServiMl: volumeAlcoolMl + volumeDiluantMl,
     volumeAcheteMl,
@@ -246,10 +261,16 @@ export function coutDuMateriel(materiel: Materiel): number {
  * Le besoin en diluant, du plus gros au plus petit. La marge y est plus large
  * que sur l'alcool : c'est le coca qui manque a 1 h du matin, jamais le rhum.
  */
-function construireDiluants(diluants: Map<string, Besoin>): BesoinDiluant[] {
+function construireDiluants(
+  diluants: Map<string, Besoin>,
+  reglages: ReglagesCalcul,
+): BesoinDiluant[] {
+  const coup = 1 + Math.max(0, reglages.coefficientPct) / 100;
+  const marge = 1 + Math.max(0, reglages.margeDiluantPct) / 100;
+
   return [...diluants.values()]
     .map(({ produit, ml, detail }) => {
-      const mlAvecMarge = ml * (1 + MARGE_DILUANT);
+      const mlAvecMarge = ml * coup * marge;
       return {
         produit,
         ml,
@@ -261,10 +282,17 @@ function construireDiluants(diluants: Map<string, Besoin>): BesoinDiluant[] {
     .sort((a, b) => b.ml - a.ml);
 }
 
-function construireLigne(besoin: Besoin, ajustement: Ajustement): LigneAchat {
-  const { produit, ml } = besoin;
-  const marge = produit.degre > 0 ? MARGE_ALCOOL : MARGE_DILUANT;
-  const mlAvecMarge = ml * (1 + marge);
+function construireLigne(
+  besoin: Besoin,
+  ajustement: Ajustement,
+  reglages: ReglagesCalcul,
+): LigneAchat {
+  const { produit } = besoin;
+  // Le coup de pouce global gonfle le besoin avant la marge : c'est un
+  // « prevois large », pas une seconde marge de securite.
+  const ml = besoin.ml * (1 + Math.max(0, reglages.coefficientPct) / 100);
+  const margePct = produit.degre > 0 ? reglages.margeAlcoolPct : reglages.margeDiluantPct;
+  const mlAvecMarge = ml * (1 + Math.max(0, margePct) / 100);
 
   const strategie = ajustement.strategie;
   const forfait = strategie.type === 'forfait';

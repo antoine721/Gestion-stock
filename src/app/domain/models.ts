@@ -650,6 +650,8 @@ export interface Partage {
    * par defaut.
    */
   diluants?: Record<string, string>;
+  /** Les boutons du moteur de calcul : marges et coup de pouce global. */
+  reglagesCalcul?: ReglagesCalcul;
   /** Ce qu'on a ajoute a la main au rayon : PQ, sacs poubelle, charbon... */
   coursesLibres: ArticleCourse[];
   /** Le planning du festival et la tracklist. */
@@ -741,6 +743,21 @@ export interface BesoinDiluant {
   bouteilles: number;
   /** Les boissons qui le reclament, de la plus grosse consommatrice a la plus petite. */
   boissons: string[];
+}
+
+/**
+ * Ce qu'on peut regler sur le moteur, sans toucher au code.
+ *
+ * Les marges sont des pourcentages : 10 pour « +10 % ». Le coup de pouce, lui,
+ * s'applique AVANT les marges et a tout ce qui est calcule — c'est le
+ * « prevois large » qu'on decide la veille, quand on sent que la soiree va
+ * durer. Il ne touche pas aux quantites posees a la main : celles-la sont deja
+ * une decision.
+ */
+export interface ReglagesCalcul {
+  margeAlcoolPct: number;
+  margeDiluantPct: number;
+  coefficientPct: number;
 }
 
 export interface Panier {
