@@ -88,9 +88,11 @@ npm run deploy
 
 ## En ligne
 
-**https://vialcrm.vercel.app** — une fois le projet renomme `vialcrm` dans le dashboard Vercel
-(Settings → General → Project Name). Tant que le renommage n'est pas fait, l'app reste sur
-https://combien-acheter.vercel.app.
+| Ce qui tourne ou       | Adresse                                       | Branche   |
+| ---------------------- | --------------------------------------------- | --------- |
+| Production             | **https://lavialatte.com** (`www` y redirige) | `main`    |
+| Preprod                | **https://preprod.lavialatte.com**            | `preprod` |
+| L'URL Vercel d'origine | https://vialcrm.vercel.app                    | `main`    |
 
 Le projet est deja deploye et la base Neon (`combien-acheter`) est initialisee. Pour redeployer
 apres une modification :
@@ -124,8 +126,8 @@ repli se ferme.
 2. **Authorized redirect URIs** : une ligne par domaine servi, Google exige l'URL au caractere pres.
 
    ```
-   https://vialcrm.vercel.app/api/auth/callback
-   https://preprod.vialatte.com/api/auth/callback
+   https://lavialatte.com/api/auth/callback
+   https://preprod.lavialatte.com/api/auth/callback
    http://localhost:3000/api/auth/callback
    ```
 
@@ -139,7 +141,7 @@ repli se ferme.
    npm run deploy
    ```
 
-   `ADMINS_GOOGLE` accepte aussi un domaine entier : `@vialatte.com`.
+   `ADMINS_GOOGLE` accepte aussi un domaine entier : `@lavialatte.com`.
 
 4. Ajouter ou retirer quelqu'un plus tard, c'est cette seule variable :
 
@@ -154,7 +156,7 @@ repli se ferme.
 
 ## Preprod
 
-Une preprod tourne sur **un sous-domaine du domaine de prod** (`preprod.vialatte.com`), pas sur un
+Une preprod tourne sur **un sous-domaine du domaine de prod** (`preprod.lavialatte.com`), pas sur un
 second nom de domaine : un sous-domaine se cree en une ligne de DNS, ne se paie pas, ne se renouvelle
 pas, et n'a rien a voir avec des serveurs de noms enfants — ceux-la ne servent qu'a heberger soi-meme
 un DNS faisant autorite, ce qu'on ne fait pas ici.
@@ -162,14 +164,14 @@ un DNS faisant autorite, ce qu'on ne fait pas ici.
 Le montage, une fois pour toutes :
 
 1. **Une branche `preprod`** dans ce depot. C'est elle qu'on deploie ; `main` reste la production.
-2. **Vercel → Settings → Domains** : ajouter `preprod.vialatte.com` au projet et l'assigner a la
+2. **Vercel → Settings → Domains** : ajouter `preprod.lavialatte.com` au projet et l'assigner a la
    branche `preprod` (« Git Branch »). Vercel affiche l'enregistrement DNS a creer chez le
    registrar : un `CNAME preprod → cname.vercel-dns.com`, et rien d'autre.
 3. **Une base a part** : une branche Neon `preprod` (`neonctl branches create --name preprod`) dont
    la chaine de connexion va dans `DATABASE_URL` scope _Preview_. Sans ca, la preprod ecrit dans les
    vraies donnees du festival.
 4. **Les memes variables Google, scope _Preview_**, avec deux differences : `SESSION_SECRET` doit
-   etre une autre valeur, et `URL_PUBLIQUE=https://preprod.vialatte.com` doit etre pose — sinon les
+   etre une autre valeur, et `URL_PUBLIQUE=https://preprod.lavialatte.com` doit etre pose — sinon les
    deploiements de preview, dont l'URL est aleatoire, ne pourront jamais correspondre a une URI de
    redirection enregistree chez Google.
 
