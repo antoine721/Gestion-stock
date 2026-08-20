@@ -16,11 +16,12 @@
    * ne bougent pas : leur job est de se distinguer, pas de s'accorder.
    */
   --fond: #ccefff;
-  /* Les surfaces sont du verre : elles laissent passer le fond. */
-  --surface: rgba(255, 255, 255, 0.82);
+  /* Opaques : une carte qui laisse passer le fond se lit moins bien qu'elle
+     ne fait joli. La teinte reste bleutee pour rester dans la famille. */
+  --surface: #f7fcff;
   --surface-2: #e1f0f9;
   --bord: #cfe3ef;
-  --bord-verre: rgba(255, 255, 255, 0.65);
+  --bord-verre: #e0eff8;
   --bord-champ: #bcd8e8;
   --bord-fort: #9ac0d6;
   --texte: #10222b;
@@ -115,10 +116,10 @@
   color-scheme: dark;
   /* Le meme bleu, en negatif : une nuit claire, pas un noir chaud. */
   --fond: #0d161c;
-  --surface: rgba(23, 40, 51, 0.58);
+  --surface: #16242d;
   --surface-2: #17262f;
   --bord: #24363f;
-  --bord-verre: rgba(255, 255, 255, 0.07);
+  --bord-verre: #24363f;
   --bord-champ: #2f4552;
   --bord-fort: #43606f;
   --texte: #e9f3f8;
@@ -247,8 +248,6 @@ p {
 .card {
   background: var(--surface);
   border: 1px solid var(--bord-verre);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   border-radius: var(--rayon);
   box-shadow: var(--ombre);
   padding: 1.25rem 1.375rem;
