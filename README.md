@@ -50,11 +50,34 @@ npm test           # les tests du domaine et du store
 npm run build
 ```
 
-Pour travailler avec l'API en local, il faut la base (voir ci-dessous) puis :
+`npm start` ne sert que le front : il n'y a pas de `/api` sur le port 4200, donc pas de connexion
+possible. Pour travailler avec l'API il faut la base (voir ci-dessous), puis :
 
 ```bash
-npm run dev:api    # vercel dev : sert le front ET les fonctions /api
+set -a; . ./.env.local; set +a    # voir ci-dessous : sans ca, les variables manquent
+npm run dev:api                   # vercel dev : sert le front ET les fonctions /api, sur le 3000
 ```
+
+### Les variables en local
+
+Deux pieges, dans cet ordre :
+
+1. **Une variable Vercel « Sensitive » ne se relit jamais.** `vercel env pull` ne la ramenera pas —
+   c'est le principe. Les valeurs Google doivent etre recopiees a la main dans `.env.local` :
+
+   ```bash
+   vercel env pull .env.local --environment=preview --git-branch=preprod --yes
+   sed -i '/^URL_PUBLIQUE=/d' .env.local   # sinon la connexion locale repart vers la preprod
+   # puis y ajouter a la main GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SESSION_SECRET, ADMINS_GOOGLE
+   ```
+
+2. **`vercel dev` ne transmet pas toujours `.env.local` aux fonctions.** D'ou le `set -a` : les
+   variables sont deja dans le shell, il ne peut plus les rater.
+
+Le port compte : Google n'accepte que les URI de redirection declarees, et seule
+`http://localhost:3000/api/auth/callback` l'est. Si le 3000 est deja pris, `vercel dev` se rabat
+silencieusement sur le 3001 et la connexion echoue en `redirect_uri_mismatch` — libere le port
+plutot que de lancer un second serveur.
 
 ## Mise en ligne
 
