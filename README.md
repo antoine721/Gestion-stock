@@ -174,6 +174,10 @@ Chacune lance d'abord `npm test`, `npm run build`, le typage des fonctions `api/
 `SANS_TESTS=1 npm run livrer:prod` saute les verifications — a ne sortir que pour eteindre un
 incendie.
 
+La fusion se fait en avance rapide quand elle le peut : `preprod` et `main` ne sont que des
+etiquettes posees sur la meme histoire, et un commit de fusion n'apparait que si les branches ont
+reellement diverge.
+
 Le push est ce qui deploie : `main` va en production, `preprod` va sur la preprod, Vercel s'occupe
 du reste. `npm run deploy` (la CLI Vercel) ne sert plus qu'en cas de panne de l'integration Git.
 
