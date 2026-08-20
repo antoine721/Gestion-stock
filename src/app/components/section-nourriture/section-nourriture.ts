@@ -65,13 +65,6 @@ export class SectionNourriture {
   protected readonly libelleTypePlat = LIBELLE_TYPE_PLAT;
   protected readonly emojiTypePlat = EMOJI_TYPE_PLAT;
 
-  /** Combien de repas le dernier chargement de menus a poses. */
-  protected readonly menusCharges = signal(0);
-
-  protected chargerMenus(): void {
-    this.menusCharges.set(this.store.chargerMenusFestivial());
-  }
-
   /** La selection ouverte dans le panneau lateral. */
   protected readonly selection = signal<{ jour: number; moment: MomentRepas } | undefined>(
     undefined,
