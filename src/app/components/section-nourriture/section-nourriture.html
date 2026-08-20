@@ -35,20 +35,11 @@
     </div>
   </div>
 
-  <div class="actions-entete">
-    <button type="button" (click)="chargerMenus()">Charger les menus du Festivial</button>
-    <p class="hint">
-      Un plat par case, un cout par personne : le total suit les
-      <span class="num">{{ fmtEntier(store.cadre().invites) }}</span> invites. Les dates viennent de
-      l'espace Profil.
-    </p>
-  </div>
-
-  @if (menusCharges() > 0) {
-    <p class="pose-ok">
-      {{ fmtEntier(menusCharges()) }} repas poses. Les cases deja remplies n'ont pas ete touchees.
-    </p>
-  }
+  <p class="hint">
+    Un plat par case, un cout par personne : le total suit les
+    <span class="num">{{ fmtEntier(store.cadre().invites) }}</span> invites. Les dates viennent de
+    l'espace Profil.
+  </p>
 </section>
 
 <!-- La grille : une carte par case, la saisie dans le panneau. -->

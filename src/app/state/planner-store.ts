@@ -33,7 +33,6 @@ import {
   repasPour,
   repasVierge,
 } from '../domain/nourriture';
-import { JOURS_MENUS_FESTIVIAL, MENUS_FESTIVIAL } from '../domain/menus-festivial';
 import { infosVierges } from '../domain/evenement';
 import { articleVierge, budgetMateriel, normaliserArticle } from '../domain/materiel-liste';
 import { budgetGlobal, repartitionGlobale } from '../domain/stats';
@@ -792,42 +791,6 @@ export class PlannerStore {
       ? nourriture.repas.map((x) => (x.id === existant.id ? { ...x, ...patch } : x))
       : [...nourriture.repas, { ...repasVierge(identifiant(), jour, moment), ...patch }];
     this.majPartage({ nourriture: { ...nourriture, repas } });
-  }
-
-  /**
-   * Pose le menu complet du Festivial sur le calendrier, en une fois. Les
-   * cases deja remplies a la main ne sont pas touchees : on complete, on
-   * n'ecrase pas le travail de quelqu'un d'autre.
-   */
-  chargerMenusFestivial(): number {
-    const nourriture = this.nourriture();
-    const repas = [...nourriture.repas];
-    let poses = 0;
-
-    for (const menu of MENUS_FESTIVIAL) {
-      const existant = repas.find((x) => x.jour === menu.jour && x.moment === menu.moment);
-      if (existant && existant.plat.trim().length > 0) continue;
-
-      const pose: Repas = {
-        ...repasVierge(existant?.id ?? identifiant(), menu.jour, menu.moment),
-        plat: menu.plat,
-        typePlat: menu.typePlat,
-        vegetarienPrevu: menu.vegetarienPrevu,
-        notes: menu.notes,
-        ingredients: menu.ingredients.map((x) => ({ ...x, id: identifiant() })),
-      };
-      const index = repas.findIndex((x) => x.id === pose.id);
-      if (index >= 0) repas[index] = pose;
-      else repas.push(pose);
-      poses += 1;
-    }
-
-    if (poses === 0) return 0;
-    // Le menu couvre trois jours : inutile de le poser si l'evenement est plus
-    // court, les repas hors duree ne seraient jamais comptes.
-    const jours = Math.max(this.partage().jours, JOURS_MENUS_FESTIVIAL);
-    this.majPartage({ jours, nourriture: { ...nourriture, repas } });
-    return poses;
   }
 
   ajouterIngredient(repasId: string): string {
