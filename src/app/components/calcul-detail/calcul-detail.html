@@ -1,0 +1,194 @@
+<!-- Les boutons du moteur : ce qu'on peut tourner sans toucher au code. -->
+<section class="card">
+  <div class="card-head">
+    <h2>⚙️ Les parametres du calcul</h2>
+    @if (modifie()) {
+      <button type="button" class="discret" (click)="store.reinitialiserReglagesCalcul()">
+        Revenir aux valeurs d'usine
+      </button>
+    }
+  </div>
+
+  <div class="reglages">
+    <label class="champ">
+      <span>Duree de l'evenement</span>
+      <input
+        type="number"
+        min="1"
+        max="30"
+        step="1"
+        [value]="store.partage().jours"
+        (change)="majJours($any($event.target).value)"
+      />
+      <small>Chaque verre declare est un verre par jour : c'est ce nombre qui les multiplie.</small>
+    </label>
+
+    <label class="champ">
+      <span>Coup de pouce global (%)</span>
+      <input
+        type="number"
+        min="0"
+        max="300"
+        step="5"
+        [value]="reglages().coefficientPct"
+        (change)="majReglage('coefficientPct', $any($event.target).value)"
+      />
+      <small>« Prevois large » : gonfle le besoin AVANT les marges. 0 = rien.</small>
+    </label>
+
+    <label class="champ">
+      <span>Marge sur l'alcool (%)</span>
+      <input
+        type="number"
+        min="0"
+        max="100"
+        step="5"
+        [value]="reglages().margeAlcoolPct"
+        (change)="majReglage('margeAlcoolPct', $any($event.target).value)"
+      />
+      <small>D'usine : 10 %. Ce qu'on prend en plus pour ne pas tomber a sec.</small>
+    </label>
+
+    <label class="champ">
+      <span>Marge sur les diluants (%)</span>
+      <input
+        type="number"
+        min="0"
+        max="100"
+        step="5"
+        [value]="reglages().margeDiluantPct"
+        (change)="majReglage('margeDiluantPct', $any($event.target).value)"
+      />
+      <small>D'usine : 25 %. C'est le coca qui manque a 1 h du matin, jamais le rhum.</small>
+    </label>
+  </div>
+</section>
+
+<!-- La chaine, etape par etape, avec les vrais chiffres. -->
+<section class="card">
+  <div class="card-head">
+    <h2>🧮 Comment on arrive la</h2>
+    <span class="muted">du verre declare a la bouteille payee</span>
+  </div>
+
+  <ol class="chaine">
+    @for (etape of etapes(); track etape.titre) {
+      <li>
+        <span class="etiquette">{{ etape.titre }}</span>
+        <span class="valeur num">
+          {{ etape.valeur }}
+          @if (etape.unite) {
+            <small>{{ etape.unite }}</small>
+          }
+        </span>
+        <span class="detail muted">{{ etape.detail }}</span>
+      </li>
+    }
+  </ol>
+
+  <p class="hint">
+    L'invariant du moteur : on additionne des millilitres, jamais des bouteilles. La conversion
+    n'arrive qu'a la toute fin, une seule fois, sur le total de tout le monde — c'est ce qui fait
+    qu'un prosecco servi en spritz et un prosecco servi en coupe ne sont achetes qu'une fois.
+  </p>
+</section>
+
+<!-- Le detail produit par produit : la ou le calcul se verifie. -->
+<section class="card">
+  <div class="barre-tableau">
+    <h2>🔍 Ligne par ligne</h2>
+    <span class="muted num pousse">{{ fmtEuro(store.panier().coutTotal) }}</span>
+  </div>
+
+  @if (lignes().length === 0) {
+    <p class="vide">Rien a calculer : aucune consommation declaree pour l'instant.</p>
+  } @else {
+    <div class="boite-tableau">
+      <table class="tableau">
+        <thead>
+          <tr>
+            <th>Produit</th>
+            <th class="droite">Besoin</th>
+            <th class="droite">+ marge</th>
+            <th class="droite">Contenance</th>
+            <th class="droite">Bouteilles</th>
+            <th class="droite">Reste</th>
+            <th class="droite">Prix unitaire</th>
+            <th class="droite">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ligne of lignes(); track ligne.produit.id) {
+            <tr>
+              <td class="principal">
+                {{ ligne.produit.nom }}
+                <span class="secondaire">
+                  @if (ligne.forfait) {
+                    quantite posee a la main
+                  } @else if (ligne.detail.length > 0) {
+                    {{ ligne.detail[0].boissonNom }}
+                    @if (ligne.detail.length > 1) {
+                      + {{ ligne.detail.length - 1 }} autre(s)
+                    }
+                  }
+                </span>
+              </td>
+              <td class="droite num">{{ fmtVolume(ligne.mlNecessaire) }}</td>
+              <td class="droite num">{{ fmtVolume(ligne.mlAvecMarge) }}</td>
+              <td class="droite">
+                <input
+                  class="etroit"
+                  type="number"
+                  min="0"
+                  step="10"
+                  [value]="ligne.produit.contenanceMl"
+                  [attr.aria-label]="'Contenance de ' + ligne.produit.nom + ' en ml'"
+                  (change)="majContenance(ligne.produit.id, $any($event.target).value)"
+                />
+              </td>
+              <td class="droite">
+                <!-- Zero rend la main au calcul : on ne fige pas une quantite
+                     sans le vouloir. -->
+                <input
+                  class="etroit"
+                  type="number"
+                  min="0"
+                  step="1"
+                  [value]="ligne.bouteilles"
+                  [title]="ligne.forfait ? 'Forcee — 0 pour revenir au calcul' : 'Calculee'"
+                  [attr.aria-label]="'Bouteilles de ' + ligne.produit.nom"
+                  (change)="majQuantite(ligne.produit.id, $any($event.target).value)"
+                />
+              </td>
+              <td class="droite num">
+                @if (ligne.resteMl > 0) {
+                  {{ fmtVolume(ligne.resteMl) }}
+                } @else {
+                  <span class="manque">manque {{ fmtVolume(-ligne.resteMl) }}</span>
+                }
+              </td>
+              <td class="droite">
+                <input
+                  class="etroit"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  [value]="ligne.produit.prixEur"
+                  [attr.aria-label]="'Prix de ' + ligne.produit.nom"
+                  (change)="majPrix(ligne.produit.id, $any($event.target).value)"
+                />
+              </td>
+              <td class="droite num principal">{{ fmtEuro(ligne.prixTotal) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p class="hint">
+      Le besoin est brut, la colonne suivante porte le coup de pouce et la marge. Les bouteilles
+      s'arrondissent au-dessus : c'est de la que vient le reste. Prix et contenances corriges ici
+      valent pour tout l'evenement.
+    </p>
+  }
+</section>

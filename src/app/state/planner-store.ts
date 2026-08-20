@@ -4,6 +4,7 @@ import {
   EntreeCalcul,
   MATERIEL_PAR_DEFAUT,
   buveursDe,
+  reglagesCalculParDefaut,
   calculerPanier,
   consoliderCadre,
   consommationDe,
@@ -67,6 +68,7 @@ import {
   Override,
   Partage,
   Participant,
+  ReglagesCalcul,
   PersonneType,
   Profil,
   Repas,
@@ -75,11 +77,12 @@ import {
 import { Api, EvenementDistant } from './api';
 
 /** Sections de l'espace Bar & boissons. */
-export type Section = 'courses' | 'interpretation' | 'extras' | 'reglages' | 'bilan';
+export type Section = 'courses' | 'interpretation' | 'calcul' | 'extras' | 'reglages' | 'bilan';
 
 export const SECTIONS: readonly { id: Section; libelle: string }[] = [
   { id: 'courses', libelle: 'Liste de courses' },
   { id: 'interpretation', libelle: 'Les consommations' },
+  { id: 'calcul', libelle: 'Le calcul' },
   { id: 'extras', libelle: 'Extras' },
   { id: 'bilan', libelle: 'Bilan' },
   { id: 'reglages', libelle: 'Reglages' },
@@ -136,6 +139,7 @@ export const PARTAGE_INITIAL: Partage = {
   categoriesPaiement: [],
   coursesCochees: [],
   diluants: {},
+  reglagesCalcul: reglagesCalculParDefaut(),
   coursesLibres: [],
   programme: { creneaux: [], tracklist: [] },
   djSets: [],
@@ -229,8 +233,23 @@ export class PlannerStore {
       ajustements: new Map(partage.ajustements),
       materiel: partage.materiel,
       jours: partage.jours,
+      reglages: this.reglagesCalcul(),
     };
   });
+
+  /** Les boutons du moteur : marges et coup de pouce, valeurs d'usine par defaut. */
+  readonly reglagesCalcul = computed<ReglagesCalcul>(() => ({
+    ...reglagesCalculParDefaut(),
+    ...this.partage().reglagesCalcul,
+  }));
+
+  majReglageCalcul(patch: Partial<ReglagesCalcul>): void {
+    this.majPartage({ reglagesCalcul: { ...this.reglagesCalcul(), ...patch } });
+  }
+
+  reinitialiserReglagesCalcul(): void {
+    this.majPartage({ reglagesCalcul: reglagesCalculParDefaut() });
+  }
 
   readonly panier = computed(() => calculerPanier(this.entree()));
 
@@ -342,7 +361,7 @@ export class PlannerStore {
    * qu'un rhum se boit au coca, et il te dit combien il en faut.
    */
   readonly alcoolsADiluer = computed(() =>
-    alcoolsADiluer(this.entree().consommation, this.choixDiluants()),
+    alcoolsADiluer(this.entree().consommation, this.choixDiluants(), this.reglagesCalcul()),
   );
 
   /** Le meme besoin vu depuis le caddie : une ligne par bouteille. */

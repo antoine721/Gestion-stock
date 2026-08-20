@@ -1,0 +1,82 @@
+.reglages {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1rem;
+}
+
+.reglages small {
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--texte-doux);
+}
+
+/* La chaine de calcul : une etape par ligne, le chiffre au milieu pour qu'on
+   puisse les lire en colonne sans lire les phrases. */
+.chaine {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: etape;
+}
+
+.chaine li {
+  display: grid;
+  grid-template-columns: minmax(7rem, 1fr) minmax(6rem, auto) minmax(0, 1.4fr);
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.5625rem 0;
+  border-top: 1px solid var(--bord);
+}
+
+.chaine li:first-child {
+  border-top: 0;
+}
+
+.chaine .etiquette {
+  font-size: 0.75rem;
+  font-weight: 620;
+}
+
+.chaine .valeur {
+  font-size: 1.0625rem;
+  font-weight: 640;
+  text-align: right;
+}
+
+.chaine .valeur small {
+  margin-left: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--texte-doux);
+}
+
+.chaine .detail {
+  font-size: 0.75rem;
+}
+
+.etroit {
+  width: 5rem;
+  text-align: right;
+}
+
+/* Un reste negatif n'est pas un reste : c'est un manque. */
+.manque {
+  font-size: 0.6875rem;
+  color: var(--ko);
+}
+
+.tableau .secondaire {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--texte-doux);
+}
+
+@media (max-width: 40rem) {
+  .chaine li {
+    grid-template-columns: 1fr auto;
+  }
+
+  .chaine .detail {
+    grid-column: 1 / -1;
+  }
+}

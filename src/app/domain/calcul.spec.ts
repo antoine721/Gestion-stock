@@ -149,6 +149,53 @@ describe('calculerPanier', () => {
     expect(ligne(panier, 'eau-gazeuse')).toBeUndefined();
   });
 
+  it('sans reglages, garde les marges d’usine', () => {
+    // 20 verres x 40 ml = 800 ml, +10 % = 880 ml.
+    const panier = calculerPanier(entree([{ boissonId: 'whisky', verres: 20 }]));
+
+    expect(ligne(panier, 'whisky')?.mlAvecMarge).toBeCloseTo(880);
+  });
+
+  it('applique la marge choisie plutot que celle d’usine', () => {
+    const sansMarge = calculerPanier(
+      entree([{ boissonId: 'whisky', verres: 20 }], {
+        reglages: { margeAlcoolPct: 0, margeDiluantPct: 25, coefficientPct: 0 },
+      }),
+    );
+
+    expect(ligne(sansMarge, 'whisky')?.mlAvecMarge).toBeCloseTo(800);
+    expect(ligne(sansMarge, 'whisky')?.bouteilles).toBe(2);
+  });
+
+  it('le coup de pouce gonfle le besoin avant la marge', () => {
+    // 800 ml, +50 % de coup de pouce = 1200, +10 % de marge = 1320.
+    const panier = calculerPanier(
+      entree([{ boissonId: 'whisky', verres: 20 }], {
+        reglages: { margeAlcoolPct: 10, margeDiluantPct: 25, coefficientPct: 50 },
+      }),
+    );
+
+    expect(ligne(panier, 'whisky')?.mlAvecMarge).toBeCloseTo(1320);
+    // Le besoin brut, lui, reste ce que les recettes reclament.
+    expect(ligne(panier, 'whisky')?.mlNecessaire).toBeCloseTo(1200);
+  });
+
+  it('ne gonfle pas une quantite posee a la main', () => {
+    const ajustements = new Map<string, Ajustement>([
+      ['whisky', { plaisir: false, strategie: { type: 'forfait', bouteilles: 2 } }],
+    ]);
+    const panier = calculerPanier(
+      entree([{ boissonId: 'whisky', verres: 20 }], {
+        ajustements,
+        reglages: { margeAlcoolPct: 10, margeDiluantPct: 25, coefficientPct: 100 },
+      }),
+    );
+
+    // Deux bouteilles, c'est deux bouteilles : le coup de pouce ne touche pas
+    // a une decision deja prise.
+    expect(ligne(panier, 'whisky')?.bouteilles).toBe(2);
+  });
+
   it('suit le prix corrige a la main', () => {
     const conso: VerresBoisson[] = [{ boissonId: 'whisky', verres: 20 }];
     const catalogue = calculerPanier(entree(conso));
