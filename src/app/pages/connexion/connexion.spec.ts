@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { Connexion } from './connexion';
 import { Api } from '../../state/api';
 import { SessionStore } from '../../state/session';
@@ -15,16 +15,38 @@ class ApiFausse {
   }
 }
 
+/** Personne n'est connecte cote serveur, sauf mention contraire. */
+function serveurSansSession() {
+  return async () => new Response('{}', { status: 401 });
+}
+
 describe('Connexion', () => {
   let api: ApiFausse;
+  const fetchOriginal = globalThis.fetch;
 
-  beforeEach(() => {
-    localStorage.clear();
+  function preparer(parametres: Record<string, string> = {}) {
     api = new ApiFausse();
     TestBed.configureTestingModule({
       imports: [Connexion],
-      providers: [provideRouter(routes), { provide: Api, useValue: api }],
+      providers: [
+        provideRouter(routes),
+        { provide: Api, useValue: api },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: convertToParamMap(parametres) } },
+        },
+      ],
     });
+  }
+
+  beforeEach(() => {
+    localStorage.clear();
+    globalThis.fetch = serveurSansSession() as typeof fetch;
+    preparer();
+  });
+
+  afterEach(() => {
+    globalThis.fetch = fetchOriginal;
   });
 
   async function monter() {
@@ -33,15 +55,46 @@ describe('Connexion', () => {
     return { fixture, hote: fixture.nativeElement as HTMLElement };
   }
 
-  it('demande un prenom et un mot de passe, rien de plus', async () => {
+  it('propose Google, et rien a remplir', async () => {
     const { hote } = await monter();
-    const libelles = [...hote.querySelectorAll('.champ > span')].map((x) => x.textContent?.trim());
 
+    expect(hote.querySelector<HTMLAnchorElement>('a.google')?.getAttribute('href')).toBe(
+      '/api/auth/google?retour=%2Fevenements',
+    );
+    expect(hote.querySelectorAll('.champ').length).toBe(0);
+  });
+
+  it("renvoie apres Google vers la page qu'on voulait", async () => {
+    TestBed.resetTestingModule();
+    preparer({ retour: '/e/abcd' });
+    const { hote } = await monter();
+
+    expect(hote.querySelector<HTMLAnchorElement>('a.google')?.getAttribute('href')).toBe(
+      '/api/auth/google?retour=%2Fe%2Fabcd',
+    );
+  });
+
+  it('affiche le refus renvoye par le serveur', async () => {
+    TestBed.resetTestingModule();
+    preparer({ erreur: "zoe@exemple.com n'est pas dans l'equipe d'organisation." });
+    const { hote } = await monter();
+
+    expect(hote.querySelector('.erreur')?.textContent).toContain("n'est pas dans l'equipe");
+  });
+
+  it('ouvre le repli mot de passe a la demande', async () => {
+    const { fixture, hote } = await monter();
+    hote.querySelector<HTMLButtonElement>('.secours')?.click();
+    fixture.detectChanges();
+
+    const libelles = [...hote.querySelectorAll('.champ > span')].map((x) => x.textContent?.trim());
     expect(libelles).toEqual(['Ton prenom', 'Mot de passe']);
   });
 
   it('refuse une saisie incomplete sans appeler le serveur', async () => {
     const { fixture, hote } = await monter();
+    hote.querySelector<HTMLButtonElement>('.secours')?.click();
+    fixture.detectChanges();
     hote.querySelector<HTMLButtonElement>('.valider')?.click();
     await fixture.whenStable();
 

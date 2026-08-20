@@ -75,7 +75,7 @@ export class Evenements {
   }
 
   protected async deconnecter(): Promise<void> {
-    this.session.fermer();
+    await this.session.fermer();
     await this.router.navigate(['/']);
   }
 

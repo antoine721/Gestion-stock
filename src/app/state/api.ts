@@ -66,14 +66,15 @@ export class ErreurApi extends Error {
 }
 
 /**
- * Client HTTP. Le mot de passe commun voyage dans un en-tete a chaque appel :
- * il n'y a pas de session serveur.
+ * Client HTTP. En temps normal l'autorisation voyage dans le cookie de session
+ * pose apres la connexion Google — donc rien a faire ici. L'en-tete
+ * x-mot-de-passe n'est envoye que pour le repli mot de passe.
  */
 @Injectable({ providedIn: 'root' })
 export class Api {
   private readonly sessionStore = inject(SessionStore);
 
-  /** Verifie le mot de passe en tentant l'appel le moins couteux. */
+  /** Repli : verifie le mot de passe en tentant l'appel le moins couteux. */
   async verifier(motDePasse: string): Promise<void> {
     await this.appeler<{ evenements: EvenementResume[] }>('/api/events', { motDePasse });
   }
@@ -149,12 +150,15 @@ export class Api {
     } = {},
   ): Promise<T> {
     const motDePasse = options.motDePasse ?? this.sessionStore.session()?.motDePasse ?? '';
-    const enTetes: Record<string, string> = { 'x-mot-de-passe': motDePasse };
+    const enTetes: Record<string, string> = {};
+    if (motDePasse) enTetes['x-mot-de-passe'] = motDePasse;
     if (options.corps !== undefined) enTetes['Content-Type'] = 'application/json';
 
     const reponse = await fetch(url, {
       method: options.methode ?? 'GET',
       headers: enTetes,
+      // Le cookie de session est la vraie autorisation : il doit partir avec.
+      credentials: 'same-origin',
       body: options.corps === undefined ? undefined : JSON.stringify(options.corps),
     });
 
@@ -163,6 +167,11 @@ export class Api {
         .json()
         .then((x: { erreur?: string }) => x.erreur)
         .catch(() => undefined);
+      // Session Google expiree ou compte retire de la liste : on la lache tout
+      // de suite, sinon on resterait bloque sur une page qui ne charge plus.
+      if (reponse.status === 401 && this.sessionStore.session()?.email) {
+        void this.sessionStore.fermer();
+      }
       throw new ErreurApi(reponse.status, message ?? `Erreur ${reponse.status}`);
     }
 
