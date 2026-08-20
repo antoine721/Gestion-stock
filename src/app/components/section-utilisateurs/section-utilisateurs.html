@@ -282,6 +282,37 @@
   </section>
 }
 
+<!-- Entretien : la regle de calcul bouge, les profils deja poses non. -->
+<section class="card">
+  <div class="card-head">
+    <h2>🔄 Reaccorder les consommations</h2>
+  </div>
+
+  <p class="intro muted">
+    Les verres par jour d'un profil ont ete calcules le jour ou sa fiche a ete validee. Si la regle
+    a change depuis — le rythme par famille, la repartition des gouts, le plafond de l'equipe — les
+    profils gardent l'ancienne reponse et le budget vit sur des hypotheses perimees. Ce bouton les
+    recalcule depuis les fiches.
+  </p>
+
+  <button type="button" (click)="reaccorder()">Recalculer depuis les fiches</button>
+
+  @if (bilanRecalcul(); as bilan) {
+    <p class="bilan-recalcul">
+      <span class="num">{{ bilan.recalcules }}</span> profil(s) recalcule(s),
+      <span class="num">{{ bilan.inchanges }}</span> deja a jour.
+      @if (bilan.partages > 0) {
+        <span class="num">{{ bilan.partages }}</span> profil(s) partage(s) par plusieurs fiches
+        laisse(s) tels quels : ils n'ont pas de fiche source unique.
+      }
+    </p>
+  }
+
+  <p class="hint">
+    Une consommation corrigee a la main lors de la validation sera remplacee par le calcul.
+  </p>
+</section>
+
 <!-- Creation d'un invite : la saisie minimale, le reste va dans le panneau. -->
 @if (creationOuverte()) {
   <app-modale

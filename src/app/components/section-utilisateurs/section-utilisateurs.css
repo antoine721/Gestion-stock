@@ -170,3 +170,14 @@
   padding-left: 1rem;
   font-size: 0.8125rem;
 }
+
+/* Le compte rendu du reaccordage : une phrase, pas une alerte. */
+.bilan-recalcul {
+  margin: 0.875rem 0 0;
+  padding: 0.5625rem 0.75rem;
+  border-radius: var(--rayon-petit);
+  background: var(--ok-doux);
+  color: var(--ok);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}

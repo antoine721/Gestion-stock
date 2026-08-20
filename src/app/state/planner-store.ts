@@ -24,6 +24,7 @@ import {
   tousLesJours,
 } from '../domain/invites';
 import { normaliserGouts, resumerGoodies } from '../domain/preferences';
+import { estimerConsommation } from '../domain/interpretation';
 import {
   budgetNourriture,
   coursesCuisine,
@@ -638,6 +639,46 @@ export class PlannerStore {
         x.id === personneTypeId ? { ...x, ...patch } : x,
       ),
     });
+  }
+
+  /**
+   * Reaccorde les profils sur la regle de calcul du jour.
+   *
+   * Les verres par jour d'un profil sont un RESULTAT : ils ont ete calcules a
+   * partir d'une fiche, le jour ou elle a ete validee. Quand la regle change —
+   * le rythme par famille, la repartition des gouts, le plafond de l'equipe —
+   * les profils deja poses gardent l'ancienne reponse, et le budget continue
+   * de vivre sur des hypotheses perimees. Ceci les recalcule depuis la fiche
+   * d'origine.
+   *
+   * Un profil partage par plusieurs fiches n'a pas de source unique : on n'y
+   * touche pas, et on le signale.
+   */
+  recalculerProfilsDepuisFiches(): { recalcules: number; inchanges: number; partages: number } {
+    const invites = this.invitesNommes();
+    let recalcules = 0;
+    let inchanges = 0;
+    let partages = 0;
+
+    const profils = this.personnesTypes().map((profil) => {
+      const sources = invites.filter((x) => x.personneTypeId === profil.id);
+      if (sources.length !== 1) {
+        if (sources.length > 1) partages += 1;
+        return profil;
+      }
+
+      const consommation = estimerConsommation(sources[0]);
+      if (JSON.stringify(consommation) === JSON.stringify(profil.consommation)) {
+        inchanges += 1;
+        return profil;
+      }
+
+      recalcules += 1;
+      return { ...profil, consommation };
+    });
+
+    if (recalcules > 0) this.majPartage({ personnesTypes: profils });
+    return { recalcules, inchanges, partages };
   }
 
   /** Regle la consommation d'une boisson pour un profil ; 0 la retire. */

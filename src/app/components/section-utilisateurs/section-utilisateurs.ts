@@ -347,6 +347,18 @@ export class SectionUtilisateurs {
     });
   }
 
+  // -- Entretien : reaccorder les profils sur la regle du jour --------------
+
+  protected readonly bilanRecalcul = signal<
+    { recalcules: number; inchanges: number; partages: number } | undefined
+  >(undefined);
+
+  protected reaccorder(): void {
+    const combien = this.store.personnesTypes().length;
+    if (!confirm(`Recalculer ${combien} profil(s) depuis les fiches ?`)) return;
+    this.bilanRecalcul.set(this.store.recalculerProfilsDepuisFiches());
+  }
+
   protected supprimer(invite: Invite): void {
     const nom = `${invite.prenom} ${invite.nom}`.trim() || 'cet invite';
     if (confirm(`Retirer ${nom} de la liste ?`)) {
