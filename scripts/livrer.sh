@@ -54,7 +54,12 @@ git fetch origin
 git push -u origin "$source"
 git checkout "$cible"
 git pull --ff-only origin "$cible"
-git merge --no-ff "origin/$source" -m "Livre $source dans $cible"
+# En avance rapide quand c'est possible : preprod et main ne sont que des
+# etiquettes posees sur la meme histoire. Forcer un commit de fusion empilait
+# « Livre develop dans preprod » dans « Livre preprod dans main » pour un
+# contenu identique, et rendait le journal illisible. Un vrai commit de fusion
+# n'apparait plus que si les deux branches ont diverge — la, il dit quelque chose.
+git merge "origin/$source" -m "Livre $source dans $cible"
 git push origin "$cible"
 git checkout "$depart"
 
