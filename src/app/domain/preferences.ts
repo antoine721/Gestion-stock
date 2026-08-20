@@ -45,7 +45,7 @@ export const FAMILLES_ALCOOL: readonly OptionFamille[] = [
     libelle: 'Les vins & bulles',
     emoji: '🍷',
     gouts: 'Quels vins et bulles tu aimes ?',
-    question: 'En general, tu bois combien de verres de vin dans une soiree ?',
+    question: 'En general, tu bois combien de verres de vin/spritz/kir dans une soiree ?',
     repere: 'On compte en verres de 12 cl : cinq verres dans une bouteille.',
   },
   {
