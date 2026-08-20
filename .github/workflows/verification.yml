@@ -31,7 +31,7 @@ jobs:
       - run: npm ci
 
       - name: Tests
-        run: npm test
+        run: npm test -- --watch=false
 
       - name: Build de production
         run: npm run build

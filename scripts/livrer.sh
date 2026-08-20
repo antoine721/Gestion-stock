@@ -41,7 +41,9 @@ fi
 
 if [ "${SANS_TESTS:-}" != 1 ]; then
   echo "== Verifications"
-  npm test
+  # --watch=false : dans un vrai terminal, ng test reste ouvert a surveiller les
+  # fichiers, et le script attendrait indefiniment.
+  npm test -- --watch=false
   npm run build
   npx tsc -p api/tsconfig.json
   npm run format:check
