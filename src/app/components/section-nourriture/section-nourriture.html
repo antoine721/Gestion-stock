@@ -1,17 +1,47 @@
-<section class="card">
-  <div class="barre-tableau">
-    <h2>Les repas planifies</h2>
-    <span class="muted num">{{ fmtEntier(repasPlanifies().length) }} repas</span>
-    @if (store.budgetNourriture().repasManquants > 0) {
-      <span class="pill warn num">
-        {{ fmtEntier(store.budgetNourriture().repasManquants) }} a decider
+<!-- La ligne de tete : ou en est le remplissage, et ce que ca coute. -->
+<section class="card entete-repas">
+  <div class="chiffres-cles">
+    <div class="cle">
+      <span class="etiquette">Nourriture</span>
+      <span class="valeur num">{{ fmtEuro(resume().total) }}</span>
+      <span class="sous muted num">dont {{ fmtEuro(resume().coutRepas) }} de repas</span>
+    </div>
+    <div class="cle">
+      <span class="etiquette">Repas prevus</span>
+      <span class="valeur num">{{ fmtEntier(resume().prevus) }}</span>
+      <span class="sous muted">
+        @if (resume().aDecider > 0) {
+          <span class="delta warn num">{{ fmtEntier(resume().aDecider) }} a decider</span>
+        } @else {
+          tout est tranche
+        }
       </span>
-    }
-    @if (sautes() > 0) {
-      <span class="tag num">{{ fmtEntier(sautes()) }} sans repas</span>
-    }
-    <span class="muted num pousse">{{ fmtEuro(store.budgetNourriture().total) }}</span>
+    </div>
+    <div class="cle">
+      <span class="etiquette">Sans repas</span>
+      <span class="valeur num">{{ fmtEntier(resume().sautes) }}</span>
+      <span class="sous muted">cases assumees vides</span>
+    </div>
+    <div class="cle avancement">
+      <span class="etiquette">Avancement</span>
+      <span class="valeur num">{{ resume().avancement }} %</span>
+      <span
+        class="barre"
+        role="img"
+        [attr.aria-label]="resume().avancement + ' % des cases tranchees'"
+      >
+        <i [style.width.%]="resume().avancement"></i>
+      </span>
+    </div>
+  </div>
+
+  <div class="actions-entete">
     <button type="button" (click)="chargerMenus()">Charger les menus du Festivial</button>
+    <p class="hint">
+      Un plat par case, un cout par personne : le total suit les
+      <span class="num">{{ fmtEntier(store.cadre().invites) }}</span> invites. Les dates viennent de
+      l'espace Profil.
+    </p>
   </div>
 
   @if (menusCharges() > 0) {
@@ -19,291 +49,252 @@
       {{ fmtEntier(menusCharges()) }} repas poses. Les cases deja remplies n'ont pas ete touchees.
     </p>
   }
-
-  @if (repasPlanifies().length === 0) {
-    <p class="vide">
-      Aucun repas pose. Charge les menus du Festivial, ou remplis la grille ci-dessous case par
-      case.
-    </p>
-  } @else {
-    <div class="boite-tableau">
-      <table class="tableau">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Moment</th>
-            <th>Type de plat</th>
-            <th>Plat</th>
-            <th class="droite">Convives</th>
-            <th class="droite">Cout</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (ligne of repasPlanifies(); track ligne.repas.id) {
-            <tr>
-              <td class="principal">{{ ligne.date }}</td>
-              <td>{{ ligne.moment?.emoji }} {{ ligne.moment?.libelle }}</td>
-              <td>
-                <select
-                  class="type-plat"
-                  (change)="majTypePlat(ligne.repas, $any($event.target).value)"
-                >
-                  @for (type of typesPlat; track type.id) {
-                    <option [value]="type.id" [selected]="type.id === ligne.repas.typePlat">
-                      {{ type.emoji }} {{ type.libelle }}
-                    </option>
-                  }
-                </select>
-              </td>
-              <td>
-                @if (ligne.repas.plat) {
-                  {{ ligne.repas.plat }}
-                } @else {
-                  <span class="pill warn">A decider</span>
-                }
-              </td>
-              <td class="droite num">
-                {{ ligne.repas.convives > 0 ? ligne.repas.convives : store.cadre().invites }}
-              </td>
-              <td class="droite num principal">
-                {{ fmtEuro(coutDuRepas(ligne.repas, store.cadre().invites)) }}
-              </td>
-              <!-- Decider de ne pas faire ce repas le sort du tableau ET des
-                   repas a decider : c'est une decision, pas un oubli. -->
-              <td class="actions-ligne">
-                <button
-                  type="button"
-                  class="discret"
-                  title="On ne fait pas ce repas"
-                  (click)="sauterRepas(ligne.repas)"
-                >
-                  ×
-                </button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  }
-
-  <p class="hint">
-    Le type de plat (barbecue, raclette, buffet froid) dit quoi sortir le jour J. Les dates viennent
-    de l'espace Profil.
-  </p>
 </section>
 
-<section class="card">
-  <div class="card-head">
-    <h2>Les repas</h2>
-    <span class="muted num">{{ fmtEuro(store.budgetNourriture().coutRepas) }}</span>
-  </div>
+<!-- La grille : une carte par case, la saisie dans le panneau. -->
+@for (ligne of grille(); track ligne.jour) {
+  <section class="card jour">
+    <div class="jour-head">
+      <h2>Jour {{ ligne.jour }}</h2>
+      <span class="date muted">{{ ligne.date }}</span>
+      <span class="cout num">{{ fmtEuro(ligne.cout) }}</span>
+    </div>
 
-  <p class="intro muted">
-    Un plat par case, un cout par personne : le total suit tout seul les
-    <span class="num">{{ fmtEntier(store.cadre().invites) }}</span> invites. Laisse « convives » a
-    zero pour dire « tout le monde mange ».
-  </p>
-
-  @for (ligne of grille(); track ligne.jour) {
-    <div class="jour">
-      <h3>Jour {{ ligne.jour }}</h3>
-      <div class="cases">
-        @for (case_ of ligne.cases; track case_.moment.id) {
-          <div
-            class="case"
-            [class.vide-case]="!case_.repas"
-            [class.case-sautee]="case_.repas?.sansRepas"
-          >
-            <div class="case-head">
-              <span>{{ case_.moment.emoji }} {{ case_.moment.libelle }}</span>
-              @if (case_.repas; as repas) {
-                @if (!repas.sansRepas) {
-                  <span class="muted num">{{
-                    fmtEuro(coutDuRepas(repas, store.cadre().invites))
-                  }}</span>
-                }
-              }
-            </div>
-
-            @if (case_.repas?.sansRepas) {
-              <p class="pas-de-repas muted">On ne fait pas ce repas.</p>
-              <button type="button" class="discret" (click)="store.remettreRepas(case_.repas!.id)">
-                Remettre ce repas
-              </button>
-            } @else if (case_.repas; as repas) {
-              <label class="champ">
-                <span>Plat</span>
-                <input
-                  type="text"
-                  placeholder="Qu'est-ce qu'on mange ?"
-                  [value]="repas.plat"
-                  (input)="majPlat(repas, $any($event.target).value)"
-                />
-              </label>
-              <div class="chiffres">
-                @if (repas.ingredients.length === 0) {
-                  <label class="champ">
-                    <span>€ / pers.</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.5"
-                      [value]="repas.coutParPersonne"
-                      (input)="majCout(repas, $any($event.target).value)"
-                    />
-                  </label>
-                }
-                <label class="champ">
-                  <span>Convives</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    placeholder="tous"
-                    [value]="repas.convives || ''"
-                    (input)="majConvives(repas, $any($event.target).value)"
-                  />
-                </label>
-              </div>
-
-              @if (repas.ingredients.length > 0) {
-                <div class="ingredients">
-                  <div class="ingredient entetes">
-                    <span>Ingredient</span>
-                    <span class="droite">/pers</span>
-                    <span>Unite</span>
-                    <span class="droite">Prix</span>
-                    <span></span>
-                  </div>
-                  @for (ingredient of repas.ingredients; track ingredient.id) {
-                    <div class="ingredient">
-                      <input
-                        type="text"
-                        placeholder="Riz, viande..."
-                        [value]="ingredient.nom"
-                        (input)="
-                          majIngredientTexte(repas, ingredient, {
-                            nom: $any($event.target).value,
-                          })
-                        "
-                      />
-                      <input
-                        type="number"
-                        min="0"
-                        title="Quantite par personne"
-                        [value]="ingredient.qteParPersonne"
-                        (input)="
-                          majIngredientNombre(
-                            repas,
-                            ingredient,
-                            'qteParPersonne',
-                            $any($event.target).value
-                          )
-                        "
-                      />
-                      <select
-                        title="Unite"
-                        (change)="
-                          majIngredientTexte(repas, ingredient, {
-                            unite: $any($event.target).value,
-                          })
-                        "
-                      >
-                        @for (unite of unites; track unite.id) {
-                          <option [value]="unite.id" [selected]="unite.id === ingredient.unite">
-                            {{ unite.libelle }}
-                          </option>
-                        }
-                      </select>
-                      <!-- Le prix tel qu'il est affiche en rayon : au kilo, au
-                           litre, ou a la piece. -->
-                      <label class="prix-unitaire">
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.1"
-                          [title]="'Prix ' + libellePrix[ingredient.unite]"
-                          [value]="ingredient.prixUnitaire"
-                          (input)="
-                            majIngredientNombre(
-                              repas,
-                              ingredient,
-                              'prixUnitaire',
-                              $any($event.target).value
-                            )
-                          "
-                        />
-                        <span class="unite-prix">{{ libellePrix[ingredient.unite] }}</span>
-                      </label>
-                      <button
-                        type="button"
-                        class="discret"
-                        title="Retirer cet ingredient"
-                        (click)="store.supprimerIngredient(repas.id, ingredient.id)"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  }
-                  <button type="button" class="discret" (click)="store.ajouterIngredient(repas.id)">
-                    + Ingredient
-                  </button>
-                </div>
-              } @else {
-                <button type="button" class="discret" (click)="store.ajouterIngredient(repas.id)">
-                  + Doser en ingredients (g / ml par personne)
-                </button>
-              }
-              <label class="vegetarien">
-                <input
-                  type="checkbox"
-                  [checked]="repas.vegetarienPrevu"
-                  (change)="basculerVegetarien(repas)"
-                />
-                <span>Alternative vegetarienne prevue</span>
-              </label>
-              <label class="champ">
-                <span>Notes</span>
-                <input
-                  type="text"
-                  placeholder="Qui cuisine, quoi acheter..."
-                  [value]="repas.notes"
-                  (input)="majNotes(repas, $any($event.target).value)"
-                />
-              </label>
-              <button
-                type="button"
-                class="discret retirer"
-                title="Cette case ne comptera plus dans les repas a decider"
-                (click)="sauterRepas(repas)"
-              >
-                On ne fait pas ce repas
-              </button>
-            } @else {
-              <button
-                type="button"
-                class="discret"
-                (click)="platLibre(ligne.jour, case_.moment.id)"
-              >
-                + Ajouter un plat
-              </button>
-              <button
-                type="button"
-                class="discret"
-                title="Cette case ne comptera plus dans les repas a decider"
-                (click)="store.sauterRepas(ligne.jour, case_.moment.id)"
-              >
-                On ne mange pas
-              </button>
-            }
+    <div class="cases">
+      @for (case_ of ligne.cases; track case_.moment.id) {
+        @if (case_.etat === 'vide') {
+          <div class="case case-vide">
+            <span class="case-head">
+              <span class="moment">{{ case_.moment.emoji }} {{ case_.moment.libelle }}</span>
+            </span>
+            <button type="button" class="prevoir" (click)="prevoir(ligne.jour, case_.moment.id)">
+              + Prevoir un repas
+            </button>
+            <button
+              type="button"
+              class="discret"
+              title="Cette case ne comptera plus dans les repas a decider"
+              (click)="store.sauterRepas(ligne.jour, case_.moment.id)"
+            >
+              On ne mange pas
+            </button>
           </div>
+        } @else {
+          <button
+            type="button"
+            class="case case-remplie"
+            [class.case-sautee]="case_.etat === 'saute'"
+            [class.case-a-decider]="case_.etat === 'a-decider'"
+            (click)="ouvrir(ligne.jour, case_.moment.id)"
+          >
+            <span class="case-head">
+              <span class="moment">{{ case_.moment.emoji }} {{ case_.moment.libelle }}</span>
+              @if (case_.etat === 'prevu') {
+                <span class="muted num">{{ fmtEuro(case_.cout) }}</span>
+              }
+            </span>
+
+            @if (case_.etat === 'saute') {
+              <span class="plat muted">On ne fait pas ce repas</span>
+            } @else if (case_.etat === 'a-decider') {
+              <span class="pill warn">A decider</span>
+            } @else {
+              <span class="plat">{{ case_.repas!.plat }}</span>
+            }
+
+            @if (case_.puces.length > 0) {
+              <span class="puces">
+                @for (puce of case_.puces; track puce) {
+                  <span class="puce">{{ puce }}</span>
+                }
+              </span>
+            }
+          </button>
         }
-      </div>
+      }
     </div>
-  }
-</section>
+  </section>
+}
+
+<!-- Le detail d'une case : tout ce qu'on ne met pas sur la carte. -->
+@if (repasOuvert(); as ouvert) {
+  <app-panneau
+    [titre]="(ouvert.moment?.emoji ?? '') + ' ' + (ouvert.moment?.libelle ?? '')"
+    [sousTitre]="
+      'Jour ' +
+      ouvert.repas.jour +
+      ' · ' +
+      fmtEuro(coutDuRepas(ouvert.repas, store.cadre().invites))
+    "
+    [libelleSupprimer]="ouvert.repas.sansRepas ? '' : 'On ne fait pas ce repas'"
+    (fermee)="selection.set(undefined)"
+    (supprimee)="sauterRepas(ouvert.repas)"
+  >
+    @if (ouvert.repas.sansRepas) {
+      <p class="pas-de-repas muted">
+        Cette case est assumee vide : elle ne compte ni dans le budget, ni dans les repas a decider.
+      </p>
+      <button type="button" (click)="store.remettreRepas(ouvert.repas.id)">
+        Remettre ce repas
+      </button>
+    } @else {
+      <label class="champ">
+        <span>Plat</span>
+        <input
+          type="text"
+          placeholder="Qu'est-ce qu'on mange ?"
+          [value]="ouvert.repas.plat"
+          (input)="majPlat(ouvert.repas, $any($event.target).value)"
+        />
+      </label>
+
+      <label class="champ">
+        <span>Type de plat</span>
+        <select (change)="majTypePlat(ouvert.repas, $any($event.target).value)">
+          @for (type of typesPlat; track type.id) {
+            <option [value]="type.id" [selected]="type.id === ouvert.repas.typePlat">
+              {{ type.emoji }} {{ type.libelle }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <div class="grid-champs">
+        @if (ouvert.repas.ingredients.length === 0) {
+          <label class="champ">
+            <span>€ / personne</span>
+            <input
+              type="number"
+              min="0"
+              step="0.5"
+              [value]="ouvert.repas.coutParPersonne"
+              (input)="majCout(ouvert.repas, $any($event.target).value)"
+            />
+          </label>
+        }
+        <label class="champ">
+          <span>Convives</span>
+          <input
+            type="number"
+            min="0"
+            step="1"
+            placeholder="tous"
+            [value]="ouvert.repas.convives || ''"
+            (input)="majConvives(ouvert.repas, $any($event.target).value)"
+          />
+        </label>
+      </div>
+
+      @if (ouvert.repas.ingredients.length > 0) {
+        <div class="ingredients">
+          <div class="ingredient entetes">
+            <span>Ingredient</span>
+            <span class="droite">/pers</span>
+            <span>Unite</span>
+            <span class="droite">Prix</span>
+            <span></span>
+          </div>
+          @for (ingredient of ouvert.repas.ingredients; track ingredient.id) {
+            <div class="ingredient">
+              <input
+                type="text"
+                placeholder="Riz, viande..."
+                [value]="ingredient.nom"
+                (input)="
+                  majIngredientTexte(ouvert.repas, ingredient, {
+                    nom: $any($event.target).value,
+                  })
+                "
+              />
+              <input
+                type="number"
+                min="0"
+                title="Quantite par personne"
+                [value]="ingredient.qteParPersonne"
+                (input)="
+                  majIngredientNombre(
+                    ouvert.repas,
+                    ingredient,
+                    'qteParPersonne',
+                    $any($event.target).value
+                  )
+                "
+              />
+              <select
+                title="Unite"
+                (change)="
+                  majIngredientTexte(ouvert.repas, ingredient, {
+                    unite: $any($event.target).value,
+                  })
+                "
+              >
+                @for (unite of unites; track unite.id) {
+                  <option [value]="unite.id" [selected]="unite.id === ingredient.unite">
+                    {{ unite.libelle }}
+                  </option>
+                }
+              </select>
+              <!-- Le prix tel qu'il est affiche en rayon : au kilo, au litre,
+                   ou a la piece. -->
+              <label class="prix-unitaire">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  [title]="'Prix ' + libellePrix[ingredient.unite]"
+                  [value]="ingredient.prixUnitaire"
+                  (input)="
+                    majIngredientNombre(
+                      ouvert.repas,
+                      ingredient,
+                      'prixUnitaire',
+                      $any($event.target).value
+                    )
+                  "
+                />
+                <span class="unite-prix">{{ libellePrix[ingredient.unite] }}</span>
+              </label>
+              <button
+                type="button"
+                class="discret"
+                title="Retirer cet ingredient"
+                (click)="store.supprimerIngredient(ouvert.repas.id, ingredient.id)"
+              >
+                ×
+              </button>
+            </div>
+          }
+          <button type="button" class="discret" (click)="store.ajouterIngredient(ouvert.repas.id)">
+            + Ingredient
+          </button>
+        </div>
+      } @else {
+        <button type="button" class="discret" (click)="store.ajouterIngredient(ouvert.repas.id)">
+          + Doser en ingredients (g / ml par personne)
+        </button>
+      }
+
+      <label class="vegetarien">
+        <input
+          type="checkbox"
+          [checked]="ouvert.repas.vegetarienPrevu"
+          (change)="basculerVegetarien(ouvert.repas)"
+        />
+        <span>Alternative vegetarienne prevue</span>
+      </label>
+
+      <label class="champ">
+        <span>Notes</span>
+        <input
+          type="text"
+          placeholder="Qui cuisine, quoi acheter..."
+          [value]="ouvert.repas.notes"
+          (input)="majNotes(ouvert.repas, $any($event.target).value)"
+        />
+      </label>
+    }
+  </app-panneau>
+}
 
 @if (regimes().length > 0 || allergies().length > 0) {
   <section class="card">
