@@ -39,21 +39,6 @@
       {{ fmtEntier(store.resumeLogistique().placesOffertes) }} place(s) covoit
     </span>
   </button>
-  <button type="button" class="kpi" (click)="store.allerA('programme')">
-    <span class="etiquette">Missions pourvues</span>
-    <span class="valeur num">
-      {{ fmtEntier(missions().pourvues) }}/{{ fmtEntier(missions().total) }}
-    </span>
-    <span class="note muted">
-      @if (missions().vacantes > 0) {
-        <span class="delta ko">{{ fmtEntier(missions().vacantes) }} vacante(s)</span>
-      } @else if (missions().total > 0) {
-        <span class="delta ok">complet</span>
-      } @else {
-        planning a construire
-      }
-    </span>
-  </button>
 </section>
 
 <div class="grille">

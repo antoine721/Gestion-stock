@@ -1,0 +1,145 @@
+<!-- Les tarifs : un tableau, creation en modale, detail en panneau. -->
+<section class="card">
+  <div class="barre-tableau">
+    <h2>🎟️ Les tarifs</h2>
+    <span class="muted num">
+      {{ fmtEuro(store.encaissements().encaisse) }} /
+      {{ fmtEuro(store.encaissements().attendu) }} encaisses
+    </span>
+    @if (store.encaissements().enAttente > 0) {
+      <span class="pill warn">
+        {{ store.encaissements().enAttente }} en attente ·
+        {{ fmtEuro(store.encaissements().reste) }}
+      </span>
+    }
+    <button type="button" class="primaire pousse" (click)="ouvrirCreation()">
+      + Nouveau tarif
+    </button>
+  </div>
+
+  @if (store.categoriesPaiement().length === 0) {
+    <p class="vide">
+      Aucun tarif. Cree « Week-end complet », « Une journee »… puis attribue-les aux invites.
+    </p>
+  } @else {
+    <div class="boite-tableau">
+      <table class="tableau">
+        <thead>
+          <tr>
+            <th>Categorie</th>
+            <th class="droite">Tarif</th>
+            <th class="droite">Invites</th>
+            <th class="droite">Regles</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (categorie of store.categoriesPaiement(); track categorie.id) {
+            <tr
+              class="cliquable"
+              [class.active]="detailId() === categorie.id"
+              (click)="detailId.set(categorie.id)"
+            >
+              <td class="principal">{{ categorie.nom || 'Sans nom' }}</td>
+              <td class="droite num">{{ fmtEuro(categorie.montant) }}</td>
+              <td class="droite num">{{ fmtEntier(usage(categorie.id).total) }}</td>
+              <td class="droite">
+                @if (usage(categorie.id).total > 0) {
+                  <span
+                    class="pill"
+                    [class.ok]="usage(categorie.id).payes === usage(categorie.id).total"
+                    [class.warn]="usage(categorie.id).payes < usage(categorie.id).total"
+                  >
+                    {{ fmtEntier(usage(categorie.id).payes) }}/{{
+                      fmtEntier(usage(categorie.id).total)
+                    }}
+                  </span>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td class="chevron droite">›</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <p class="hint">
+    Le paiement se fait hors de l'app : ici tu attribues un tarif a chaque invite, et tu coches
+    quand c'est regle.
+  </p>
+</section>
+
+@if (creationOuverte()) {
+  <app-modale
+    titre="Nouveau tarif"
+    sousTitre="Une categorie de participation : week-end complet, une journee, gratuit…"
+    libelleValider="Creer le tarif"
+    [valideDesactive]="invalide()"
+    (fermee)="creationOuverte.set(false)"
+    (validee)="creer()"
+  >
+    <label class="champ">
+      <span>Nom *</span>
+      <input
+        type="text"
+        placeholder="Week-end complet"
+        autocomplete="off"
+        [value]="brouillon().nom"
+        (input)="majBrouillon({ nom: $any($event.target).value })"
+        (keyup.enter)="creer()"
+      />
+    </label>
+    <label class="champ">
+      <span>Montant demande (€)</span>
+      <input
+        type="number"
+        min="0"
+        step="1"
+        [value]="brouillon().montant"
+        (input)="majBrouillon({ montant: +$any($event.target).value })"
+        (keyup.enter)="creer()"
+      />
+    </label>
+  </app-modale>
+}
+
+@if (detail(); as categorie) {
+  <app-panneau
+    [titre]="categorie.nom || 'Sans nom'"
+    [sousTitre]="
+      fmtEntier(usage(categorie.id).total) +
+      ' invite(s) · ' +
+      fmtEntier(usage(categorie.id).payes) +
+      ' regle(s)'
+    "
+    libelleSupprimer="Supprimer ce tarif"
+    (fermee)="detailId.set('')"
+    (supprimee)="supprimer(categorie)"
+  >
+    <label class="champ">
+      <span>Nom de la categorie</span>
+      <input
+        type="text"
+        [value]="categorie.nom"
+        (input)="majNom(categorie, $any($event.target).value)"
+      />
+    </label>
+    <label class="champ">
+      <span>Montant demande (€)</span>
+      <input
+        type="number"
+        min="0"
+        step="1"
+        [value]="categorie.montant"
+        (input)="majMontant(categorie, $any($event.target).value)"
+      />
+    </label>
+    <p class="hint">
+      Supprimer ce tarif ne supprime aucun invite : les fiches concernees repassent simplement en «
+      tarif a definir ».
+    </p>
+  </app-panneau>
+}

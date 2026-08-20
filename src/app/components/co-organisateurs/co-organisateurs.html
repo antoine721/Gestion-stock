@@ -1,0 +1,26 @@
+<section class="card">
+  <div class="card-head">
+    <h2>👥 Les co-organisateurs</h2>
+    <span class="muted num">{{ fmtEntier(store.participants().length) }}</span>
+  </div>
+  <div class="organisateurs">
+    @for (participant of store.participants(); track participant.id) {
+      <span class="organisateur">
+        <strong>{{ participant.nom }}</strong>
+        <span class="muted num">{{ fichesDe(participant.id) }} invite(s)</span>
+        <button
+          type="button"
+          class="discret"
+          title="Retirer ce co-organisateur"
+          (click)="retirer(participant)"
+        >
+          ×
+        </button>
+      </span>
+    }
+    <button type="button" class="discret ajout-org" (click)="ajouter()">+ Ajouter</button>
+  </div>
+  <p class="hint">
+    Ce sont eux que les invites cochent dans le formulaire, a la question « qui t'invite ? ».
+  </p>
+</section>

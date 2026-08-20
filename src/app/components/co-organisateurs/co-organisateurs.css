@@ -1,0 +1,21 @@
+.organisateurs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.organisateur {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3125rem 0.375rem 0.3125rem 0.75rem;
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon-petit);
+  background: var(--surface-2);
+  font-size: 0.8125rem;
+}
+
+.ajout-org {
+  border: 1px dashed var(--bord-fort);
+}

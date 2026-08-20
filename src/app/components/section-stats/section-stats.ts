@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
+import { Tarifs } from '../tarifs/tarifs';
 import { fmtEntier, fmtEuro, fmtNombre, fmtVolume } from '../../domain/format';
 
 /**
@@ -10,6 +11,7 @@ import { fmtEntier, fmtEuro, fmtNombre, fmtVolume } from '../../domain/format';
  */
 @Component({
   selector: 'app-section-stats',
+  imports: [Tarifs],
   templateUrl: './section-stats.html',
   styleUrl: './section-stats.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -21,13 +21,7 @@ import {
 } from '../../domain/preferences';
 import { dateDuJour } from '../../domain/evenement';
 import { fmtEntier, fmtEuro, fmtNombre } from '../../domain/format';
-import {
-  CategoriePaiement,
-  Invite,
-  Logistique,
-  Participant,
-  ReponseFormulaire,
-} from '../../domain/models';
+import { CategoriePaiement, Invite, Logistique, ReponseFormulaire } from '../../domain/models';
 
 /** Le filtre « il me reste quoi a faire sur cette personne ? ». */
 type FiltreTache = 'tous' | 'incomplet' | 'complet' | TacheInvite;
@@ -161,10 +155,6 @@ export class SectionUtilisateurs {
   protected readonly porteurParDefaut = computed(
     () => this.store.moi()?.id ?? this.store.participants()[0]?.id ?? '',
   );
-
-  protected fichesDe(participantId: string): number {
-    return this.store.invitesNommes().filter((x) => x.participantId === participantId).length;
-  }
 
   protected tarifDe(invite: Invite): CategoriePaiement | undefined {
     return this.store.categoriesPaiement().find((x) => x.id === invite.categoriePaiementId);
@@ -362,77 +352,6 @@ export class SectionUtilisateurs {
     if (confirm(`Retirer ${nom} de la liste ?`)) {
       this.store.supprimerInvite(invite.id);
       if (this.detailId() === invite.id) this.detailId.set('');
-    }
-  }
-
-  // -- Co-organisateurs -----------------------------------------------------
-
-  protected async ajouterCoOrganisateur(): Promise<void> {
-    const nom = prompt('Prenom du co-organisateur a ajouter ?');
-    if (nom?.trim()) await this.store.ajouterParticipant(nom.trim());
-  }
-
-  protected async retirerCoOrganisateur(participant: Participant): Promise<void> {
-    if (confirm(`Retirer ${participant.nom} et ses invites de l'evenement ?`)) {
-      await this.store.retirerParticipant(participant.id);
-    }
-  }
-
-  // -- Categories de paiement : tableau, modale, panneau --------------------
-
-  protected readonly tarifCreationOuverte = signal(false);
-  protected readonly brouillonTarif = signal({ nom: '', montant: 0 });
-  protected readonly tarifDetailId = signal('');
-
-  protected readonly tarifDetail = computed(() =>
-    this.store.categoriesPaiement().find((x) => x.id === this.tarifDetailId()),
-  );
-
-  protected readonly tarifInvalide = computed(() => this.brouillonTarif().nom.trim() === '');
-
-  protected ouvrirCreationTarif(): void {
-    this.brouillonTarif.set({ nom: '', montant: 0 });
-    this.tarifCreationOuverte.set(true);
-  }
-
-  protected majBrouillonTarif(patch: Partial<{ nom: string; montant: number }>): void {
-    this.brouillonTarif.set({ ...this.brouillonTarif(), ...patch });
-  }
-
-  protected creerTarif(): void {
-    const brouillon = this.brouillonTarif();
-    if (!brouillon.nom.trim()) return;
-    const id = this.store.ajouterCategoriePaiement();
-    this.store.majCategoriePaiement(id, {
-      nom: brouillon.nom.trim(),
-      montant: Math.max(0, brouillon.montant),
-    });
-    this.tarifCreationOuverte.set(false);
-  }
-
-  /** Combien d'invites portent ce tarif, et combien l'ont deja regle. */
-  protected usageTarif(categorieId: string): { total: number; payes: number } {
-    const concernes = this.store
-      .invitesNommes()
-      .filter((x) => x.categoriePaiementId === categorieId);
-    return { total: concernes.length, payes: concernes.filter((x) => x.paye).length };
-  }
-
-  protected majCategorieNom(categorie: CategoriePaiement, nom: string): void {
-    this.store.majCategoriePaiement(categorie.id, { nom });
-  }
-
-  protected majCategorieMontant(categorie: CategoriePaiement, valeur: string): void {
-    const montant = Number(valeur);
-    if (Number.isFinite(montant)) {
-      this.store.majCategoriePaiement(categorie.id, { montant: Math.max(0, montant) });
-    }
-  }
-
-  protected supprimerCategorie(categorie: CategoriePaiement): void {
-    if (confirm(`Supprimer la categorie « ${categorie.nom || 'sans nom'} » ?`)) {
-      this.store.supprimerCategoriePaiement(categorie.id);
-      if (this.tarifDetailId() === categorie.id) this.tarifDetailId.set('');
     }
   }
 }

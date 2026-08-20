@@ -1,0 +1,5 @@
+/* Le tableau et la barre de titre viennent des styles globaux ; il ne reste
+   ici que la respiration entre la carte et ce qui la suit. */
+.card + .card {
+  margin-top: 1rem;
+}
