@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { alerterSurEstimation, estimerConsommation, interpreter } from './interpretation';
 import { inviteVierge } from './invites';
-import { Invite, PersonneType } from './models';
+import { Invite } from './models';
 
 function fiche(patch: Partial<Invite>): Invite {
   return { ...inviteVierge('i1', 'a'), prenom: 'Paul', ...patch };
+}
+
+/** Le nombre de verres declare, famille par famille. */
+function verres(biere = 0, vin = 0, spiritueux = 0) {
+  return { biere, vin, spiritueux };
 }
 
 describe('estimation de consommation', () => {
@@ -16,69 +21,96 @@ describe('estimation de consommation', () => {
     const estimation = estimerConsommation(
       fiche({
         team: 'croisiere',
-        niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' },
-        boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
+        verresParFamille: verres(4),
+        boissonsAimees: [{ boissonId: 'biere', intensite: 100 }],
       }),
     );
-    // « Moyen » vaut 4 verres, et la biere est seule a les porter.
+    // Quatre verres declares, une seule boisson pour les porter.
     expect(estimation).toEqual([{ boissonId: 'biere', verresParJour: 4 }]);
   });
 
-  it('repartit au prorata de l’intensite du gout', () => {
+  it('repartit au prorata des parts declarees', () => {
     const estimation = estimerConsommation(
       fiche({
         team: 'bateau-ivre',
-        niveaux: { biere: 'aucun', vin: 'moyen', spiritueux: 'aucun' },
+        verresParFamille: verres(0, 4),
         boissonsAimees: [
-          { boissonId: 'vin-rouge', intensite: 3 },
-          { boissonId: 'vin-blanc', intensite: 1 },
+          { boissonId: 'vin-rouge', intensite: 75 },
+          { boissonId: 'vin-blanc', intensite: 25 },
         ],
       }),
     );
-    const rouge = estimation.find((x) => x.boissonId === 'vin-rouge');
-    const blanc = estimation.find((x) => x.boissonId === 'vin-blanc');
-    // Les 4 verres de la famille « vin » se partagent 3/1 entre les deux.
-    expect(rouge?.verresParJour).toBe(3);
-    expect(blanc?.verresParJour).toBe(1);
+
+    expect(estimation.find((x) => x.boissonId === 'vin-rouge')?.verresParJour).toBe(3);
+    expect(estimation.find((x) => x.boissonId === 'vin-blanc')?.verresParJour).toBe(1);
+  });
+
+  it('rend exactement les verres declares, meme en quarts', () => {
+    // Un verre partage en trois ne tombe pas juste : les quarts perdus par
+    // l'arrondi vont aux plus gros restes, et le total reste a 1.
+    const estimation = estimerConsommation(
+      fiche({
+        team: 'croisiere',
+        verresParFamille: verres(0, 0, 1),
+        boissonsAimees: [
+          { boissonId: 'rhum', intensite: 40 },
+          { boissonId: 'vodka', intensite: 30 },
+          { boissonId: 'gin', intensite: 30 },
+        ],
+      }),
+    );
+
+    expect(estimation.reduce((somme, x) => somme + x.verresParJour, 0)).toBe(1);
+    expect(estimation.every((x) => (x.verresParJour * 4) % 1 === 0)).toBe(true);
+  });
+
+  it('ne rabat plus rien sur le plafond de l’equipe', () => {
+    // Le nombre est declare, pas devine : on le respecte et on alerte.
+    const invite = fiche({
+      team: 'degustation',
+      verresParFamille: verres(8),
+      boissonsAimees: [{ boissonId: 'biere', intensite: 100 }],
+    });
+
+    expect(estimerConsommation(invite)).toEqual([{ boissonId: 'biere', verresParJour: 8 }]);
+    expect(
+      alerterSurEstimation(invite, estimerConsommation(invite)).some((x) =>
+        /equipe/i.test(x.texte),
+      ),
+    ).toBe(true);
   });
 
   it('le chameau ne boit rien, quoi qu’il ait coche', () => {
     const estimation = estimerConsommation(
       fiche({
         team: 'chameau',
-        niveaux: { biere: 'beaucoup', vin: 'aucun', spiritueux: 'aucun' },
-        boissonsAimees: [{ boissonId: 'biere', intensite: 4 }],
+        verresParFamille: verres(6),
+        boissonsAimees: [{ boissonId: 'biere', intensite: 100 }],
       }),
     );
     expect(estimation).toEqual([]);
   });
 
-  it('rabat l’estimation sur le plafond de l’equipe', () => {
+  it('des verres declares sans aucun gout ne s’inventent pas une boisson', () => {
     const estimation = estimerConsommation(
-      fiche({
-        team: 'degustation',
-        niveaux: { biere: 'abuse', vin: 'aucun', spiritueux: 'aucun' },
-        boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
-      }),
+      fiche({ team: 'croisiere', verresParFamille: verres(0, 0, 4), boissonsAimees: [] }),
     );
-    const total = estimation.reduce((somme, x) => somme + x.verresParJour, 0);
-    // « Abuse » vaut 11 verres, mais la team degustation plafonne a 3.
-    expect(total).toBeLessThanOrEqual(3);
+    expect(estimation).toEqual([]);
   });
 
-  it('ignore les gouts absents du catalogue, sans perdre les autres', () => {
+  it('ignore un gout absent du catalogue, sans perdre les autres', () => {
     const estimation = estimerConsommation(
       fiche({
         team: 'croisiere',
-        niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'moyen' },
+        verresParFamille: verres(4, 0, 4),
         boissonsAimees: [
-          { boissonId: 'biere', intensite: 2 },
-          { boissonId: 'tequila', intensite: 2 },
+          { boissonId: 'biere', intensite: 100 },
+          { boissonId: 'cidre', intensite: 100 },
         ],
       }),
     );
-    // La tequila n'existe pas au catalogue : son budget spiritueux ne part
-    // nulle part, et surtout il ne se deverse pas sur la biere.
+    // Le cidre n'existe pas au catalogue : son budget ne part nulle part, et
+    // surtout il ne se deverse pas sur la biere.
     expect(estimation).toEqual([{ boissonId: 'biere', verresParJour: 4 }]);
   });
 });
@@ -87,7 +119,7 @@ describe('garde-fous', () => {
   it('signale le chameau qui coche des alcools', () => {
     const invite = fiche({
       team: 'chameau',
-      boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
+      boissonsAimees: [{ boissonId: 'biere', intensite: 100 }],
     });
     const alertes = alerterSurEstimation(invite, estimerConsommation(invite));
     expect(alertes.some((x) => x.gravite === 'attention' && /sans alcool/i.test(x.texte))).toBe(
@@ -98,32 +130,22 @@ describe('garde-fous', () => {
   it('signale une estimation trop haute', () => {
     const invite = fiche({
       team: 'bateau-ivre',
-      niveaux: { biere: 'abuse', vin: 'abuse', spiritueux: 'abuse' },
+      verresParFamille: verres(8, 4, 4),
       boissonsAimees: [
-        { boissonId: 'biere', intensite: 4 },
-        { boissonId: 'vin-rouge', intensite: 4 },
-        { boissonId: 'whisky', intensite: 4 },
+        { boissonId: 'biere', intensite: 100 },
+        { boissonId: 'vin-rouge', intensite: 100 },
+        { boissonId: 'whisky', intensite: 100 },
       ],
     });
     const alertes = alerterSurEstimation(invite, estimerConsommation(invite));
     expect(alertes.some((x) => x.gravite === 'attention' && /haute/i.test(x.texte))).toBe(true);
   });
 
-  it('signale le rythme declare qui depasse le plafond de l’equipe', () => {
-    const invite = fiche({
-      team: 'degustation',
-      niveaux: { biere: 'abuse', vin: 'aucun', spiritueux: 'aucun' },
-      boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
-    });
-    const alertes = alerterSurEstimation(invite, estimerConsommation(invite));
-    expect(alertes.some((x) => /plafond/i.test(x.texte))).toBe(true);
-  });
-
   it('remonte l’alcool ecrit en clair, absent de la liste', () => {
     const invite = fiche({
       team: 'croisiere',
-      niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' },
-      boissonsAimees: [{ boissonId: 'biere', intensite: 3 }],
+      verresParFamille: verres(3),
+      boissonsAimees: [{ boissonId: 'biere', intensite: 100 }],
       autreAlcool: 'Limoncello',
     });
     const alertes = alerterSurEstimation(invite, estimerConsommation(invite));
@@ -133,10 +155,28 @@ describe('garde-fous', () => {
   it('signale un gout qu’on ne sait pas servir', () => {
     const invite = fiche({
       team: 'croisiere',
-      niveaux: { biere: 'aucun', vin: 'aucun', spiritueux: 'moyen' },
-      boissonsAimees: [{ boissonId: 'tequila', intensite: 4 }],
+      verresParFamille: verres(0, 0, 3),
+      boissonsAimees: [{ boissonId: 'cidre', intensite: 100 }],
     });
     const alertes = alerterSurEstimation(invite, estimerConsommation(invite));
     expect(alertes.some((x) => /catalogue/i.test(x.texte))).toBe(true);
+  });
+});
+
+describe('interpreter', () => {
+  it('rend la consommation, son total et les alertes', () => {
+    const resultat = interpreter(
+      fiche({
+        team: 'croisiere',
+        verresParFamille: verres(2, 2),
+        boissonsAimees: [
+          { boissonId: 'biere', intensite: 100 },
+          { boissonId: 'vin-rouge', intensite: 100 },
+        ],
+      }),
+    );
+
+    expect(resultat.verresParJour).toBe(4);
+    expect(resultat.consommation).toHaveLength(2);
   });
 });

@@ -1,4 +1,4 @@
-import { normaliserGouts } from './preferences';
+import { VERRES_PAR_FAMILLE, normaliserGouts } from './preferences';
 import {
   CategoriePaiement,
   Effectif,
@@ -6,6 +6,7 @@ import {
   Logistique,
   NiveauxParFamille,
   Regime,
+  VerresParFamille,
 } from './models';
 
 /**
@@ -67,6 +68,7 @@ export function inviteVierge(id: string, participantId: string): Invite {
     telephone: '',
     boissonsAimees: [],
     niveaux: niveauxVierges(),
+    verresParFamille: verresVierges(),
     autreAlcool: '',
     team: '',
     servicesPreferes: [],
@@ -76,6 +78,10 @@ export function inviteVierge(id: string, participantId: string): Invite {
 }
 
 /** Personne ne boit rien tant qu'il ne l'a pas dit. */
+export function verresVierges(): VerresParFamille {
+  return { biere: 0, vin: 0, spiritueux: 0 };
+}
+
 export function niveauxVierges(): NiveauxParFamille {
   return { biere: 'aucun', vin: 'aucun', spiritueux: 'aucun' };
 }
@@ -103,6 +109,9 @@ export function normaliserInvite(brut: Partial<Invite> & { id: string }): Invite
     logistique: { ...logistiqueVierge(), ...brut.logistique },
     boissonsAimees: normaliserGouts(brut.boissonsAimees),
     niveaux: { ...niveauxVierges(), ...brut.niveaux },
+    // Les fiches d'avant declaraient un palier ; on le convertit en verres
+    // une fois pour toutes, a la lecture.
+    verresParFamille: verresDeclares(brut),
     servicesPreferes: brut.servicesPreferes ?? [],
     joursPresents: brut.joursPresents ?? joursHerites(brut),
     telephone: brut.telephone ?? '',
@@ -313,4 +322,24 @@ export function calculerEncaissements(
   }
 
   return { attendu, encaisse, reste: Math.max(0, attendu - encaisse), payes, enAttente };
+}
+
+/**
+ * Le nombre de verres declare, famille par famille. Les fiches d'avant ne
+ * portaient qu'un palier — « peu », « moyen » — : on lui rend le nombre de
+ * verres qu'il valait, pour que rien ne tombe a zero au passage.
+ */
+function verresDeclares(brut: Partial<Invite>): VerresParFamille {
+  const vierge = verresVierges();
+  const declares = brut.verresParFamille;
+  const niveaux = { ...niveauxVierges(), ...brut.niveaux };
+
+  for (const famille of ['biere', 'vin', 'spiritueux'] as const) {
+    const verres = declares?.[famille];
+    vierge[famille] =
+      typeof verres === 'number' && Number.isFinite(verres) && verres > 0
+        ? Math.max(0, verres)
+        : VERRES_PAR_FAMILLE[famille][niveaux[famille]];
+  }
+  return vierge;
 }

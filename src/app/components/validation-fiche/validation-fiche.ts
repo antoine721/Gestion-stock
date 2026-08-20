@@ -87,6 +87,7 @@ export class ValidationFiche {
       logistique: this.reponse().logistique,
       boissonsAimees: this.reponse().boissonsAimees,
       niveaux: this.reponse().niveaux,
+      verresParFamille: this.reponse().verresParFamille,
       team: this.reponse().team,
     }),
   );

@@ -4,7 +4,6 @@ import {
   FAMILLE_PAR_GOUT,
   LIBELLE_BOISSON_AIMEE,
   PLAFOND_TEAM,
-  VERRES_PAR_FAMILLE,
 } from './preferences';
 import { ConsommationType, GoutBoisson, Invite } from './models';
 
@@ -15,12 +14,14 @@ import { ConsommationType, GoutBoisson, Invite } from './models';
  * module traduit ca en verres par jour et par boisson, puis cherche le profil
  * de consommation existant qui s'en approche le plus.
  *
- * Rien n'est applique tout seul : la proposition attend un clic. C'est
- * volontaire — un curseur pousse trop vite ne doit pas changer les courses.
- * D'ou aussi les garde-fous : on prend le milieu de chaque fourchette, on
- * respecte le plafond de l'equipe choisie, et on signale ce qui sort des
- * clous plutot que de le lisser en silence.
+ * Deux chiffres suffisent, famille par famille : combien de verres par jour,
+ * et comment ils se repartissent entre les boissons aimees. Le nombre est
+ * declare, pas devine — on ne le rabat sur rien, pas meme sur le plafond de
+ * l'equipe : ce qui sort des clous est signale, jamais lisse en silence.
  */
+
+/** On ne coupe pas un verre plus fin que le quart. */
+const PAS_VERRE = 0.25;
 
 /** En dessous, la fiche ne pese rien au bar : ca vaut le coup de demander. */
 const SEUIL_BAS = 1;
@@ -29,44 +30,45 @@ const SEUIL_BAS = 1;
 const SEUIL_HAUT = 12;
 
 /**
- * Les boissons du catalogue qui portent chaque gout declare. Un gout sans
- * equivalent (le cidre, la tequila) ne se traduit pas en verres : il est
- * signale a l'organisateur plutot que rabattu sur une boisson approchante.
+ * La boisson du catalogue que chaque gout fait acheter. Un gout sans
+ * equivalent ne se traduit pas en verres : il est signale a l'organisateur
+ * plutot que rabattu sur une boisson approchante.
  */
-const BOISSONS_PAR_GOUT: Record<string, string[]> = {
-  biere: ['biere'],
+const BOISSON_PAR_GOUT: Record<string, string> = {
+  biere: 'biere',
   // Blonde, blanche ou rouge : le catalogue ne connait qu'une biere, et c'est
   // elle qu'on achete dans les trois cas.
-  'biere-blonde': ['biere'],
-  'biere-blanche': ['biere'],
-  'biere-rouge': ['biere'],
-  'vin-rouge': ['vin-rouge'],
-  'vin-blanc': ['vin-blanc'],
-  'vin-rose': ['rose'],
-  kir: ['kir'],
-  spritz: ['spritz'],
-  rhum: ['rhum-coca', 'mojito'],
-  captain: ['captain-coca'],
-  vodka: ['vodka-orange', 'vodka-redbull'],
-  gin: ['gin-tonic'],
-  whisky: ['whisky-coca', 'whisky-sec'],
-  tequila: [],
-  pastis: ['ricard'],
-  get: ['get-limonade'],
-  jager: ['jagger-shot'],
+  'biere-blonde': 'biere',
+  'biere-blanche': 'biere',
+  'biere-rouge': 'biere',
+  'vin-rouge': 'vin-rouge',
+  'vin-blanc': 'vin-blanc',
+  'vin-rose': 'rose',
+  kir: 'kir',
+  spritz: 'spritz',
+  rhum: 'rhum',
+  captain: 'captain',
+  vodka: 'vodka',
+  gin: 'gin',
+  whisky: 'whisky',
+  tequila: 'tequila',
+  pastis: 'pastis',
+  get: 'get',
+  jager: 'jager',
 };
 
 const CATALOGUE = new Set(BOISSONS.map((x) => x.id));
 
-/** Les boissons du catalogue qui existent vraiment pour un gout donne. */
-function boissonsDuGout(goutId: string): string[] {
-  return (BOISSONS_PAR_GOUT[goutId] ?? []).filter((x) => CATALOGUE.has(x));
+/** La boisson du catalogue qui existe vraiment pour un gout donne. */
+export function boissonDuGout(goutId: string): string | undefined {
+  const boissonId = BOISSON_PAR_GOUT[goutId];
+  return boissonId && CATALOGUE.has(boissonId) ? boissonId : undefined;
 }
 
 /** Les gouts qu'on ne sait pas traduire en boissons du catalogue. */
 export function goutsIntraduisibles(gouts: readonly GoutBoisson[]): string[] {
   return gouts
-    .filter((x) => boissonsDuGout(x.boissonId).length === 0)
+    .filter((x) => boissonDuGout(x.boissonId) === undefined)
     .map((x) => LIBELLE_BOISSON_AIMEE.get(x.boissonId) ?? x.boissonId);
 }
 
@@ -92,45 +94,64 @@ export interface Interpretation {
  * prorata de l'intensite du gout.
  */
 export function estimerConsommation(invite: Invite): ConsommationType[] {
-  const plafond = invite.team === '' ? Number.POSITIVE_INFINITY : PLAFOND_TEAM[invite.team];
-  if (plafond === 0) return [];
-
-  // Seuls les gouts traduisibles portent des verres : les autres sont
-  // signales a part, pour que rien ne se perde en silence.
-  const gouts = invite.boissonsAimees.filter(
-    (x) => x.intensite > 0 && boissonsDuGout(x.boissonId).length > 0,
-  );
-
-  const budgets: [number, typeof gouts][] = FAMILLES_ALCOOL.map((famille) => [
-    VERRES_PAR_FAMILLE[famille.id][invite.niveaux[famille.id]],
-    gouts.filter((x) => FAMILLE_PAR_GOUT.get(x.boissonId) === famille.id),
-  ]);
-
-  // Le plafond de l'equipe s'applique au total, puis se repercute a la baisse
-  // sur chaque famille : c'est la promesse que la personne a faite.
-  const total = budgets.reduce(
-    (somme, [verres, choisis]) => somme + (choisis.length ? verres : 0),
-    0,
-  );
-  const facteur = total > plafond && total > 0 ? plafond / total : 1;
+  // Le chameau a dit qu'il ne boirait pas une goutte : c'est une reponse, pas
+  // un rythme a interpreter.
+  if (invite.team === 'chameau') return [];
 
   const parBoisson = new Map<string, number>();
-  for (const [verres, choisis] of budgets) {
-    if (choisis.length === 0 || verres <= 0) continue;
-    const poids = choisis.reduce((somme, x) => somme + x.intensite, 0);
-    for (const gout of choisis) {
-      const part = (verres * facteur * gout.intensite) / poids;
-      const boissons = boissonsDuGout(gout.boissonId);
-      for (const boissonId of boissons) {
-        parBoisson.set(boissonId, (parBoisson.get(boissonId) ?? 0) + part / boissons.length);
-      }
+
+  for (const famille of FAMILLES_ALCOOL) {
+    const verres = Math.max(0, invite.verresParFamille[famille.id] ?? 0);
+    if (verres <= 0) continue;
+
+    const gouts = invite.boissonsAimees
+      .filter((x) => x.intensite > 0 && FAMILLE_PAR_GOUT.get(x.boissonId) === famille.id)
+      .map((x) => ({ boissonId: boissonDuGout(x.boissonId), part: x.intensite }))
+      .filter((x): x is { boissonId: string; part: number } => x.boissonId !== undefined);
+
+    // Des verres declares sans aucun gout coche : on ne devine pas quoi
+    // acheter, et la fiche le signale a l'organisateur.
+    const poids = gouts.reduce((somme, x) => somme + x.part, 0);
+    if (poids === 0) continue;
+
+    for (const [boissonId, part] of repartir(verres, gouts, poids)) {
+      parBoisson.set(boissonId, (parBoisson.get(boissonId) ?? 0) + part);
     }
   }
 
   return [...parBoisson.entries()]
-    .map(([boissonId, verres]) => ({ boissonId, verresParJour: arrondi(verres) }))
+    .map(([boissonId, verres]) => ({ boissonId, verresParJour: verres }))
     .filter((x) => x.verresParJour > 0)
     .sort((a, b) => b.verresParJour - a.verresParJour);
+}
+
+/**
+ * Repartit les verres d'une famille entre ses boissons, au quart de verre.
+ * Les quarts perdus par l'arrondi vont aux plus gros restes : la somme rendue
+ * fait exactement le nombre declare, sans quoi une famille a quatre gouts
+ * perdrait un verre sur quatre en route.
+ */
+function repartir(
+  verres: number,
+  gouts: readonly { boissonId: string; part: number }[],
+  poids: number,
+): Map<string, number> {
+  const exacts = gouts.map((x) => ({ ...x, exact: (verres * x.part) / poids }));
+  const rendus = exacts.map((x) => ({ ...x, verres: Math.floor(x.exact / PAS_VERRE) * PAS_VERRE }));
+
+  let distribue = rendus.reduce((somme, x) => somme + x.verres, 0);
+  const parReste = [...rendus].sort((a, b) => b.exact - b.verres - (a.exact - a.verres));
+  for (const x of parReste) {
+    if (distribue >= verres - 1e-9) break;
+    x.verres += PAS_VERRE;
+    distribue += PAS_VERRE;
+  }
+
+  const total = new Map<string, number>();
+  for (const x of rendus) {
+    if (x.verres > 0) total.set(x.boissonId, (total.get(x.boissonId) ?? 0) + x.verres);
+  }
+  return total;
 }
 
 function arrondi(valeur: number): number {
@@ -174,15 +195,13 @@ export function alerterSurEstimation(
     });
   }
 
+  // Le nombre declare fait foi : on ne le rabat pas sur le plafond de
+  // l'equipe, on signale l'ecart et l'organisateur tranche.
   const plafond = invite.team === '' ? Number.POSITIVE_INFINITY : PLAFOND_TEAM[invite.team];
-  const brut = FAMILLES_ALCOOL.reduce(
-    (somme, famille) => somme + VERRES_PAR_FAMILLE[famille.id][invite.niveaux[famille.id]],
-    0,
-  );
-  if (Number.isFinite(plafond) && brut > plafond && plafond > 0) {
+  if (Number.isFinite(plafond) && total > plafond && plafond > 0) {
     alertes.push({
       gravite: 'info',
-      texte: `Le rythme declare depasse le plafond de son equipe : ramene a ${plafond} verres/jour.`,
+      texte: `Declare ${total} verres/jour, au-dessus des ${plafond} que promet son equipe.`,
     });
   }
 

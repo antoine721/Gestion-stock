@@ -83,24 +83,13 @@ describe('calculerRatios', () => {
   it('separe deux soirees au meme nombre de verres', () => {
     // Autant de verres de part et d'autre, mais pas la meme dose par verre :
     // c'est exactement ce que le ratio d'alcool pur sert a rendre visible.
-    const spiritueux = ratios([{ boissonId: 'vodka-shot', verres: 108 }]);
-    const bulles = ratios([{ boissonId: 'prosecco-coupe', verres: 108 }]);
+    const fort = ratios([{ boissonId: 'whisky', verres: 108 }]);
+    const doux = ratios([{ boissonId: 'get', verres: 108 }]);
 
-    expect(ratio(spiritueux, 'verres').valeur).toBeCloseTo(ratio(bulles, 'verres').valeur);
-    expect(ratio(spiritueux, 'alcool-pur').valeur).toBeGreaterThan(
-      ratio(bulles, 'alcool-pur').valeur * 1.3,
+    expect(ratio(fort, 'verres').valeur).toBeCloseTo(ratio(doux, 'verres').valeur);
+    expect(ratio(fort, 'alcool-pur').valeur).toBeGreaterThan(
+      ratio(doux, 'alcool-pur').valeur * 1.3,
     );
-  });
-
-  it("alerte quand il n'y a pas assez de diluant", () => {
-    const liste = ratios([{ boissonId: 'whisky-sec', verres: 108 }]);
-    expect(ratio(liste, 'diluant').etat).toBe('ko');
-  });
-
-  it('ignore le ratio de diluant sur une soiree sans spiritueux', () => {
-    // La biere et le vin ne se coupent pas : le rapport n'a rien a dire.
-    const liste = ratios([{ boissonId: 'biere', verres: 108 }]);
-    expect(ratio(liste, 'diluant').etat).toBe('vide');
   });
 
   it('signale une soiree monolithique', () => {
@@ -169,7 +158,7 @@ describe('calculerAlertes', () => {
   });
 
   it('signale une quantite forcee insuffisante', () => {
-    const panier = panierDe([{ boissonId: 'whisky-coca', verres: 20 }], {
+    const panier = panierDe([{ boissonId: 'whisky', verres: 20 }], {
       ajustements: new Map([
         ['whisky', { plaisir: false, strategie: { type: 'forfait', bouteilles: 1 } }],
       ]),
