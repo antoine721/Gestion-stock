@@ -9,8 +9,8 @@
 --------------------------------------------------------------------------- */
 
 :root {
-  --fond: #f7f7f5;
-  --surface: #ffffff;
+  --fond: #ccefff;
+  --surface: #faffffec;
   --surface-2: #efeeeb;
   --bord: #ebeae6;
   --bord-verre: #e8e7e3;
@@ -107,7 +107,7 @@
 :root[data-theme='sombre'] {
   color-scheme: dark;
   --fond: #131311;
-  --surface: #1d1d1b;
+  --surface: #1d1d1b25;
   --surface-2: #282826;
   --bord: #2c2c29;
   --bord-verre: #2c2c29;
@@ -239,6 +239,8 @@ p {
 .card {
   background: var(--surface);
   border: 1px solid var(--bord-verre);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: var(--rayon);
   box-shadow: var(--ombre);
   padding: 1.25rem 1.375rem;

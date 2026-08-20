@@ -5,6 +5,7 @@
   grid-template-columns: 15.5rem minmax(0, 1fr);
   gap: 1.5rem;
   align-items: start;
+  
 }
 
 .sidebar {
