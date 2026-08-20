@@ -73,3 +73,45 @@
     max-width: none;
   }
 }
+
+/* -- Les groupes de diluants ----------------------------------------------- */
+
+.groupe-titre {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 620;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--texte-doux);
+}
+
+.groupe-titre:first-of-type {
+  margin-top: 1rem;
+}
+
+/* Ce qui n'a rien a decider : une liste, pas un tableau. */
+.compris {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.compris li {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.4375rem 0;
+  font-size: 0.8125rem;
+  border-top: 1px solid var(--bord);
+}
+
+.compris li .muted {
+  font-size: 0.75rem;
+}
+
+.tableau .secondaire {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--texte-doux);
+}

@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
 import { LignesCourses } from '../lignes-courses/lignes-courses';
-import { PRODUITS_DILUANTS } from '../../domain/catalogue';
+import { BOISSON_PAR_ID } from '../../domain/catalogue';
+import { DILUANTS_POSSIBLES, SANS_DILUANT } from '../../domain/bar';
 import { fmtEntier, fmtEuro, fmtNombre, fmtVolume } from '../../domain/format';
 
 /**
@@ -32,14 +33,61 @@ export class CoursesBar {
     this.store.listeCourses().filter((x) => x.groupe === 'bar'),
   );
 
-  /** Les alcools, du plus cher au moins cher : la ou part l'argent. */
+  /**
+   * Les alcools, du plus cher au moins cher : la ou part l'argent.
+   *
+   * La biere ne se compte pas en bouteilles mais en litres : on n'achete pas
+   * « 50 bouteilles », on achete « 16,5 L », et c'est au litre qu'on compare
+   * les prix au rayon.
+   */
   protected readonly alcools = computed(() =>
     this.store
       .panier()
       .lignes.filter((x) => x.produit.degre > 0)
-      .slice()
-      .sort((a, b) => b.prixTotal - a.prixTotal),
+      .map((ligne) => {
+        const contenance = ligne.produit.contenanceMl;
+        const litres = (ligne.bouteilles * contenance) / 1000;
+        return {
+          ligne,
+          auLitre: ligne.produit.categorie === 'biere',
+          litres,
+          prixAuLitre: contenance > 0 ? (ligne.produit.prixEur * 1000) / contenance : 0,
+        };
+      })
+      .sort((a, b) => b.ligne.prixTotal - a.ligne.prixTotal),
   );
+
+  /**
+   * Ce qui se coupe, ce qui se boit sec, et ce qui porte son diluant dans sa
+   * recette. Trois groupes : on voit d'un coup d'oeil ce qui reste a decider.
+   */
+  protected readonly groupesDiluants = computed(() => {
+    const alcools = this.store.alcoolsADiluer();
+    const cocktails = this.store
+      .panier()
+      .resumeBoissons.filter((x) => x.boissonId === 'spritz' || x.boissonId === 'kir')
+      .map((x) => ({
+        nom: BOISSON_PAR_ID.get(x.boissonId)?.nom ?? x.boissonId,
+        verres: x.verres,
+        compris:
+          x.boissonId === 'spritz'
+            ? 'Prosecco, Aperol et eau petillante : la recette les porte.'
+            : 'Vin blanc et creme de cassis : la recette les porte.',
+      }));
+
+    return {
+      aCouper: alcools.filter((x) => !x.sec),
+      secs: alcools.filter((x) => x.sec),
+      cocktails,
+    };
+  });
+
+  protected readonly diluantsPossibles = DILUANTS_POSSIBLES;
+  protected readonly sansDiluant = SANS_DILUANT;
+
+  protected choisirDiluant(boissonId: string, produitId: string): void {
+    this.store.majDiluant(boissonId, produitId);
+  }
 
   protected readonly couverture = computed(() =>
     Math.min(100, Math.round(this.store.diluants().couverture * 100)),
@@ -48,7 +96,7 @@ export class CoursesBar {
   /** Ce qu'on peut encore ajouter : le catalogue moins ce qui est deja pose. */
   protected readonly ajoutables = computed(() => {
     const deja = new Set(this.store.diluants().lignes.map((x) => x.produit.id));
-    return PRODUITS_DILUANTS.filter((x) => !deja.has(x.id));
+    return DILUANTS_POSSIBLES.filter((x) => !deja.has(x.id));
   });
 
   protected readonly ajout = signal('');
