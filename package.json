@@ -10,6 +10,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:init": "node scripts/db-init.mjs",
+    "livrer:preprod": "bash scripts/livrer.sh preprod",
+    "livrer:prod": "bash scripts/livrer.sh main",
     "deploy": "vercel deploy --prod",
     "dev:api": "vercel dev"
   },

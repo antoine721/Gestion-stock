@@ -1,0 +1,45 @@
+name: Verification
+
+# Le garde-fou du circuit : tests, build et formatage sur chaque proposition de
+# merge vers preprod et vers main. Vercel, lui, deploie sur le push — ce sont les
+# regles de protection de branche cote GitHub qui empechent un merge en rouge
+# d'arriver jusque-la.
+on:
+  pull_request:
+    branches: [preprod, main]
+  push:
+    branches: [preprod, main]
+
+# Un seul run par branche : un push qui en remplace un autre annule le premier.
+concurrency:
+  group: verification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # L'Angular CLI exige au moins 22.22.3 : on prend le dernier 22.x.
+          node-version: '22'
+          check-latest: true
+          cache: npm
+
+      - run: npm ci
+
+      - name: Tests
+        run: npm test
+
+      - name: Build de production
+        run: npm run build
+
+      - name: Types des fonctions serverless
+        # tsconfig.app.json ne couvre pas api/ : sans ca, une erreur de type
+        # dans une fonction ne se verrait qu'une fois deployee.
+        run: npx tsc -p api/tsconfig.json
+
+      - name: Formatage
+        run: npm run format:check
