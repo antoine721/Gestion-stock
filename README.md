@@ -101,26 +101,81 @@ npm run deploy
 
 ## Acces
 
-**Un seul mot de passe pour toute l'app**, defini par la variable d'environnement `MOT_DE_PASSE`
-(fichier `.env` en local, variables Vercel en ligne). Pas de comptes, pas de sessions serveur : le
-mot de passe voyage dans un en-tete a chaque appel.
+**La partie admin s'ouvre avec un compte Google.** Sur l'ecran de connexion : « Continuer avec
+Google ». Si l'adresse figure dans `ADMINS_GOOGLE`, le serveur pose un cookie de session signe
+(valable un mois) et tu arrives sur la liste des evenements. Ton prenom vient du compte Google —
+c'est lui qui signe les invites que tu amenes, donc le meme compte d'un appareil a l'autre reprend
+ta ligne.
 
-A la connexion tu donnes ton prenom et ce mot de passe. Tu arrives sur la liste des evenements :
-tu en ouvres un, ou tu en crees un. En ouvrant un evenement tu es automatiquement declare comme
-co-organisateur — reprendre le meme prenom depuis un autre appareil reprend ta ligne.
+Il n'y a toujours ni table utilisateurs ni permissions : la liste des gens autorises tient dans une
+variable d'environnement, et une fois entre, tout le monde peut tout modifier. Le formulaire public
+des invites (`/f/:code`) ne passe par rien de tout ca : il reste ouvert.
 
-Pour changer le mot de passe :
+`MOT_DE_PASSE` survit en repli — un lien discret sous le bouton Google — pour depanner quand la
+configuration Google casse et pour appeler l'API depuis un terminal. Laisse la variable vide et le
+repli se ferme.
+
+### Mettre en place la connexion Google
+
+1. Console Google Cloud → **APIs & Services → Credentials → Create credentials → OAuth client ID →
+   Web application**. L'ecran de consentement est « External » : en mode _Testing_ chaque compte
+   doit figurer dans _Test users_, en _In production_ n'importe quel compte Google passe l'ecran
+   Google et c'est `ADMINS_GOOGLE` qui filtre derriere.
+2. **Authorized redirect URIs** : une ligne par domaine servi, Google exige l'URL au caractere pres.
+
+   ```
+   https://vialcrm.vercel.app/api/auth/callback
+   https://preprod.vialatte.com/api/auth/callback
+   http://localhost:3000/api/auth/callback
+   ```
+
+3. Poser les variables, en local dans `.env` et en ligne dans Vercel :
+
+   ```bash
+   printf '%s' '<client-id>'      | vercel env add GOOGLE_CLIENT_ID production
+   printf '%s' '<client-secret>'  | vercel env add GOOGLE_CLIENT_SECRET production
+   printf '%s' "$(openssl rand -base64 32)" | vercel env add SESSION_SECRET production
+   printf '%s' 'antoine@exemple.com,marie@exemple.com' | vercel env add ADMINS_GOOGLE production
+   npm run deploy
+   ```
+
+   `ADMINS_GOOGLE` accepte aussi un domaine entier : `@vialatte.com`.
+
+4. Ajouter ou retirer quelqu'un plus tard, c'est cette seule variable :
+
+   ```bash
+   vercel env rm ADMINS_GOOGLE production
+   printf '%s' 'antoine@exemple.com,zoe@exemple.com' | vercel env add ADMINS_GOOGLE production
+   npm run deploy
+   ```
+
+   Le retrait prend effet immediatement, meme sur un cookie encore valide : la liste est relue a
+   chaque appel.
+
+## Preprod
+
+Une preprod tourne sur **un sous-domaine du domaine de prod** (`preprod.vialatte.com`), pas sur un
+second nom de domaine : un sous-domaine se cree en une ligne de DNS, ne se paie pas, ne se renouvelle
+pas, et n'a rien a voir avec des serveurs de noms enfants — ceux-la ne servent qu'a heberger soi-meme
+un DNS faisant autorite, ce qu'on ne fait pas ici.
+
+Le montage, une fois pour toutes :
+
+1. **Une branche `preprod`** dans ce depot. C'est elle qu'on deploie ; `main` reste la production.
+2. **Vercel → Settings → Domains** : ajouter `preprod.vialatte.com` au projet et l'assigner a la
+   branche `preprod` (« Git Branch »). Vercel affiche l'enregistrement DNS a creer chez le
+   registrar : un `CNAME preprod → cname.vercel-dns.com`, et rien d'autre.
+3. **Une base a part** : une branche Neon `preprod` (`neonctl branches create --name preprod`) dont
+   la chaine de connexion va dans `DATABASE_URL` scope _Preview_. Sans ca, la preprod ecrit dans les
+   vraies donnees du festival.
+4. **Les memes variables Google, scope _Preview_**, avec deux differences : `SESSION_SECRET` doit
+   etre une autre valeur, et `URL_PUBLIQUE=https://preprod.vialatte.com` doit etre pose — sinon les
+   deploiements de preview, dont l'URL est aleatoire, ne pourront jamais correspondre a une URI de
+   redirection enregistree chez Google.
 
 ```bash
-vercel env rm MOT_DE_PASSE production
-printf 'ton-mot-de-passe' | vercel env add MOT_DE_PASSE production
-npm run deploy
+git push -u origin preprod    # chaque push sur cette branche redeploie la preprod
 ```
-
-Tout le monde peut tout modifier : c'est fait pour des gens qui organisent ensemble, pas pour se
-proteger les uns des autres. Chaque participant a sa propre ligne en base, donc sauvegarder ta
-saisie n'ecrase jamais celle des autres. Les reglages communs (duree, profils, prix, materiel) sont
-en dernier-ecrit-gagne.
 
 ## Identite visuelle
 

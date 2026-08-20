@@ -29,9 +29,52 @@
   text-align: center;
 }
 
-/* -- Le formulaire ---------------------------------------------------------- */
+/* -- L'entree ---------------------------------------------------------------- */
+
+/* Un lien deguise en bouton : la connexion Google est une navigation, pas un appel. */
+.google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 0.6875rem;
+  font-family: var(--corps);
+  font-size: 0.875rem;
+  font-weight: 560;
+  color: var(--texte);
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--bord-champ);
+  border-radius: var(--rayon-petit);
+  box-shadow: var(--ombre);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.google:hover {
+  border-color: var(--bord-fort);
+  background: var(--surface-2);
+}
+
+.g {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+}
+
+.secours {
+  display: block;
+  width: 100%;
+  margin-top: 0.875rem;
+  font-size: 0.75rem;
+}
+
+/* -- Le repli mot de passe --------------------------------------------------- */
 
 .champs {
+  margin-top: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.875rem;

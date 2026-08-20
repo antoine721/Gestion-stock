@@ -1,6 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 import { randomBytes } from 'node:crypto';
 import type { VercelRequest } from '@vercel/node';
+import { sessionAdmin } from './_auth';
 
 /**
  * Acces base. Un evenement = une ligne `evenements` (les reglages communs) et
@@ -25,16 +26,19 @@ export function nouvelId(): string {
 }
 
 /**
- * Un seul mot de passe pour toute l'app, defini par la variable
- * d'environnement MOT_DE_PASSE. On n'est que quelques-uns : inutile de gerer
- * des comptes, des sessions ou des permissions.
+ * L'admin s'ouvre avec un compte Google present dans ADMINS_GOOGLE (voir
+ * _auth.ts). Le mot de passe commun reste accepte en repli : c'est la porte de
+ * secours quand la configuration Google casse, et de quoi appeler l'API depuis
+ * un terminal. Il n'y a toujours ni comptes ni permissions en base.
  */
 export function autorise(req: VercelRequest): boolean {
+  if (sessionAdmin(req)) return true;
+
   const attendu = process.env['MOT_DE_PASSE'];
   if (!attendu) return false;
   const brut = req.headers['x-mot-de-passe'];
   const fourni = Array.isArray(brut) ? brut[0] : brut;
-  return fourni === attendu;
+  return !!fourni && fourni === attendu;
 }
 
 export interface LigneEvenement {

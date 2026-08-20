@@ -74,6 +74,7 @@ avec un build casse — dis explicitement ce qui echoue.
 | `src/app/pages/`      | `connexion`, `evenements`, `planner`                                                                                       |
 | `src/app/routes/`     | `app.routes.ts`                                                                                                            |
 | `api/`                | Fonctions serverless Vercel + `schema.sql`. Tourne sur Node, pas dans le navigateur                                        |
+| `api/auth/`           | Connexion Google de la partie admin (`_auth.ts` : cookie signe, liste blanche). Le formulaire public n'y passe pas         |
 | `scripts/`            | Utilitaires Node (init de la base, setup de session)                                                                       |
 | `public/`             | Assets statiques copies tels quels                                                                                         |
 
@@ -115,6 +116,8 @@ avec un build casse — dis explicitement ce qui echoue.
 
 Toutes documentees dans `.env.example`. Aucune n'est necessaire pour `npm test`,
 `npm run build` ou `npm start` : elles ne servent qu'aux fonctions `api/`.
+L'admin se franchit avec un compte Google (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
+`SESSION_SECRET`, `ADMINS_GOOGLE`) ; `MOT_DE_PASSE` n'est plus qu'un repli.
 Si une commande reclame `DATABASE_URL`, c'est que tu lances quelque chose que tu
 ne devrais pas lancer — arrete-toi et signale-le.
 

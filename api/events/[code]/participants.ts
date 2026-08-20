@@ -4,7 +4,7 @@ import { autorise, chargerParticipants, nouvelId, sql } from '../../_db';
 /** POST /api/events/:code/participants — je me declare comme co-organisateur. */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!autorise(req)) {
-    return res.status(401).json({ erreur: 'Mot de passe incorrect' });
+    return res.status(401).json({ erreur: 'Connexion requise' });
   }
 
   if (req.method !== 'POST') {
