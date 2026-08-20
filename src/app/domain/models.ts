@@ -167,6 +167,14 @@ export type FamilleAlcool = 'biere' | 'vin' | 'spiritueux';
 /** Le rythme declare, famille par famille. */
 export type NiveauxParFamille = Record<FamilleAlcool, NiveauConso>;
 
+/**
+ * Combien de verres par jour la personne declare boire, famille par famille.
+ * C'est un nombre, pas un palier : « 4 bieres » se saisit, ne se devine pas.
+ * Les fiches d'avant portaient un palier (peu / moyen / beaucoup) — il est
+ * converti a la lecture, une fois pour toutes.
+ */
+export type VerresParFamille = Record<FamilleAlcool, number>;
+
 /** Les quatre equipes de buveurs, telles que l'invite se declare. */
 export type TeamBuveur = 'chameau' | 'degustation' | 'croisiere' | 'bateau-ivre';
 
@@ -269,6 +277,8 @@ export interface Invite {
   boissonsAimees: GoutBoisson[];
   /** Ce qu'elle dit boire sur une soiree, famille par famille. */
   niveaux: NiveauxParFamille;
+  /** Le nombre de verres par jour declare, famille par famille. */
+  verresParFamille: VerresParFamille;
   /** L'alcool qu'on a oublie dans la liste, dans ses mots. */
   autreAlcool: string;
   /** L'equipe dans laquelle elle se range. '' = pas repondu. */
@@ -569,6 +579,9 @@ export interface ReponseFormulaire {
   /** Ce qu'il aime boire, avec l'intensite du gout — declaratif. */
   boissonsAimees: GoutBoisson[];
   niveaux: NiveauxParFamille;
+  /** Le nombre de verres par jour declare, famille par famille. */
+  /** Absent des reponses d'avant : le palier `niveaux` en tenait lieu. */
+  verresParFamille?: VerresParFamille;
   /** L'alcool qu'on a oublie dans la liste, dans ses mots. */
   autreAlcool: string;
   team: TeamBuveur | '';
@@ -631,6 +644,12 @@ export interface Partage {
   categoriesPaiement: CategoriePaiement[];
   /** Lignes cochees de la liste de courses unifiee (le materiel a son statut). */
   coursesCochees: string[];
+  /**
+   * Le diluant retenu pour chaque alcool fort : `rhum` -> `coca`. Une chaine
+   * vide dit « celui-la, on le boit sec » ; un alcool absent prend le diluant
+   * par defaut.
+   */
+  diluants?: Record<string, string>;
   /** Ce qu'on a ajoute a la main au rayon : PQ, sacs poubelle, charbon... */
   coursesLibres: ArticleCourse[];
   /** Le planning du festival et la tracklist. */

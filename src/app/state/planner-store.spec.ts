@@ -139,10 +139,10 @@ describe('PlannerStore', () => {
   });
 
   it('regle et retire une boisson dans un profil', () => {
-    store.majConsommation('p1', 'whisky-coca', 2);
+    store.majConsommation('p1', 'whisky', 2);
     expect(store.personnesTypes().find((x) => x.id === 'p1')?.consommation).toHaveLength(2);
 
-    store.majConsommation('p1', 'whisky-coca', 0);
+    store.majConsommation('p1', 'whisky', 0);
     expect(store.personnesTypes().find((x) => x.id === 'p1')?.consommation).toHaveLength(1);
   });
 
@@ -351,7 +351,7 @@ describe('PlannerStore', () => {
           ...inviteVierge('i1', 'a'),
           prenom: 'Tiphaine',
           personneTypeId: 'p1',
-          niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' },
+          verresParFamille: { biere: 4, vin: 0, spiritueux: 0 },
           boissonsAimees: [{ boissonId: 'biere', intensite: 100 }],
         },
       ],
@@ -369,7 +369,7 @@ describe('PlannerStore', () => {
     const fiche = (id: string) => ({
       ...inviteVierge(id, 'a'),
       personneTypeId: 'p1',
-      niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' } as const,
+      verresParFamille: { biere: 4, vin: 0, spiritueux: 0 },
       boissonsAimees: [{ boissonId: 'biere', intensite: 100 }],
     });
     store.majPartage({

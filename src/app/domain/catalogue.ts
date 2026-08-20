@@ -33,6 +33,7 @@ export const PRODUITS: readonly Produit[] = [
   prod('aperol', 'Aperol', 'liqueur', 11, 1000, 14.5),
   prod('creme-cassis', 'Creme de cassis', 'liqueur', 15, 500, 9.5),
   prod('malibu', 'Malibu (coco)', 'liqueur', 21, 700, 15.5),
+  gen('tequila', 'Tequila', 'spiritueux', 38, 700, 21.9),
 
   // --- Vins ---------------------------------------------------------------
   gen('vin-blanc', 'Vin blanc', 'vin', 12.5, 750, 6.5),
@@ -146,86 +147,46 @@ function sirop(id: string, nom: string): Produit {
 // le moteur agrege les deux sur le meme produit.
 // ---------------------------------------------------------------------------
 
+/**
+ * Ce qu'on sert. Une entree = un alcool, tel qu'on l'achete et tel qu'on le
+ * declare : du rhum, pas un rhum-coca.
+ *
+ * Le calcul ne fabrique plus de cocktails. Personne ne declare « je bois 2,5
+ * vodka orange et 1,5 vodka Red Bull par jour » — on declare qu'on boit de la
+ * vodka, et le coca, le jus ou le tonic se choisissent a part, dans l'onglet
+ * des diluants. Restent ici les deux composes qui ne s'achetent pas autrement :
+ * le kir, qui est toujours du cassis, et le spritz, qui est toujours ses trois
+ * bouteilles.
+ */
 export const BOISSONS: readonly Boisson[] = [
+  // --- Biere : un verre = une canette de 33 cl ----------------------------
   boisson('biere', 'Biere', 'biere', 330, 5, [base('biere-33', 330)]),
-  boisson('spritz', 'Spritz', 'cocktail', 180, 4, [
+
+  // --- Vins & bulles : le verre de 12 cl ----------------------------------
+  boisson('vin-rouge', 'Vin rouge', 'vin', 120, 3, [base('vin-rouge', 120)]),
+  boisson('vin-blanc', 'Vin blanc', 'vin', 120, 3, [base('vin-blanc', 120)]),
+  boisson('rose', 'Rose', 'vin', 120, 4, [base('rose', 120)]),
+  boisson('kir', 'Kir', 'vin', 120, 2, [base('vin-blanc', 100), modif('creme-cassis', 20)]),
+  // Le spritz porte son eau petillante : elle fait partie de la recette, on
+  // ne la choisit pas.
+  boisson('spritz', 'Spritz', 'vin', 180, 4, [
     base('prosecco', 90),
     modif('aperol', 60),
     dilue('eau-gazeuse', 30),
   ]),
-  boisson('whisky-coca', 'Whisky coca', 'cocktail', 190, 4, [
-    base('whisky', 40),
-    dilue('coca', 150),
-  ]),
-  boisson('whisky-sec', 'Whisky sec', 'sec', 40, 2, [base('whisky', 40)]),
-  boisson('ricard', 'Ricard', 'cocktail', 150, 3, [base('ricard', 25), dilue('eau-plate', 125)]),
-  boisson('rhum-coca', 'Rhum coca', 'cocktail', 190, 3, [
-    base('rhum-blanc', 40),
-    dilue('coca', 150),
-  ]),
-  boisson('captain-coca', 'Captain coca', 'cocktail', 190, 3, [
-    base('captain-morgan', 40),
-    dilue('coca', 150),
-  ]),
-  boisson('rhum-ananas', 'Rhum ananas', 'cocktail', 190, 2, [
-    base('rhum-ambre', 40),
-    dilue('jus-ananas', 150),
-  ]),
-  boisson('mojito', 'Mojito', 'cocktail', 200, 3, [
-    base('rhum-blanc', 50),
-    modif('sirop-citron-vert', 20),
-    dilue('eau-gazeuse', 130),
-  ]),
-  boisson('malibu-ananas', 'Malibu ananas', 'cocktail', 190, 2, [
-    base('malibu', 40),
-    dilue('jus-ananas', 150),
-  ]),
-  boisson('vodka-orange', 'Vodka orange', 'cocktail', 190, 3, [
-    base('vodka', 40),
-    dilue('jus-orange', 150),
-  ]),
-  boisson('vodka-ananas', 'Vodka ananas', 'cocktail', 190, 2, [
-    base('vodka', 40),
-    dilue('jus-ananas', 150),
-  ]),
-  boisson('vodka-cranberry', 'Vodka cranberry', 'cocktail', 190, 2, [
-    base('vodka', 40),
-    dilue('jus-cranberry', 150),
-  ]),
-  boisson('vodka-pamplemousse', 'Vodka pamplemousse', 'cocktail', 190, 2, [
-    base('vodka', 40),
-    dilue('jus-pamplemousse', 150),
-  ]),
-  boisson('vodka-redbull', 'Vodka Red Bull', 'cocktail', 165, 2, [
-    base('vodka', 40),
-    dilue('red-bull', 125),
-  ]),
-  boisson('vodka-shot', 'Shot de vodka', 'shot', 40, 2, [base('vodka', 40)]),
-  boisson('gin-tonic', 'Gin tonic', 'cocktail', 195, 3, [base('gin', 45), dilue('tonic', 150)]),
-  boisson('get-limonade', 'Get limonade', 'cocktail', 190, 2, [
-    base('get-27', 40),
-    dilue('limonade', 150),
-  ]),
-  boisson('get-sec', 'Get 27 sec', 'sec', 50, 1, [base('get-27', 50)]),
-  boisson('jagger-shot', 'Shot de Jagermeister', 'shot', 40, 2, [base('jagermeister', 40)]),
-  boisson('monaco', 'Monaco', 'biere', 330, 2, [
-    base('biere-33', 250),
-    dilue('limonade', 60),
-    modif('sirop-grenadine', 20),
-  ]),
-  boisson('tango', 'Tango (biere grenadine)', 'biere', 300, 2, [
-    base('biere-33', 280),
-    modif('sirop-grenadine', 20),
-  ]),
-  boisson('vin-blanc', 'Vin blanc', 'vin', 120, 3, [base('vin-blanc', 120)]),
-  boisson('vin-rouge', 'Vin rouge', 'vin', 120, 3, [base('vin-rouge', 120)]),
-  boisson('rose', 'Rose', 'vin', 120, 4, [base('rose', 120)]),
-  boisson('prosecco-coupe', 'Prosecco (coupe)', 'vin', 100, 2, [base('prosecco', 100)]),
-  boisson('cremant-coupe', 'Cremant (coupe)', 'vin', 100, 2, [base('cremant', 100)]),
-  boisson('kir', 'Kir (blanc / cassis)', 'cocktail', 120, 2, [
-    base('vin-blanc', 100),
-    modif('creme-cassis', 20),
-  ]),
+
+  // --- Alcools forts : la dose du bar, 4 cl -------------------------------
+  boisson('rhum', 'Rhum', 'sec', 40, 3, [base('rhum-blanc', 40)]),
+  boisson('captain', 'Captain Morgan', 'sec', 40, 3, [base('captain-morgan', 40)]),
+  boisson('vodka', 'Vodka', 'sec', 40, 3, [base('vodka', 40)]),
+  boisson('gin', 'Gin', 'sec', 40, 3, [base('gin', 40)]),
+  boisson('whisky', 'Whisky', 'sec', 40, 3, [base('whisky', 40)]),
+  boisson('tequila', 'Tequila', 'sec', 40, 2, [base('tequila', 40)]),
+  // Le pastis se sert plus court, et se noie dans cinq volumes d'eau.
+  boisson('pastis', 'Ricard / Pastis', 'sec', 25, 3, [base('ricard', 25)]),
+  boisson('get', 'Get 27', 'sec', 40, 2, [base('get-27', 40)]),
+  boisson('jager', 'Jagermeister', 'sec', 40, 2, [base('jagermeister', 40)]),
+  boisson('malibu', 'Malibu', 'sec', 40, 2, [base('malibu', 40)]),
 
   // --- Sans alcool : les non-buveurs boivent aussi -------------------------
   boisson('diabolo', 'Diabolo (limonade / sirop)', 'soft', 250, 3, [

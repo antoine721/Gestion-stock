@@ -25,6 +25,7 @@ import {
 } from '../domain/invites';
 import { normaliserGouts, resumerGoodies } from '../domain/preferences';
 import { estimerConsommation } from '../domain/interpretation';
+import { alcoolsADiluer, regrouperParDiluant } from '../domain/bar';
 import {
   budgetNourriture,
   coursesCuisine,
@@ -134,6 +135,7 @@ export const PARTAGE_INITIAL: Partage = {
   reponsesFormulaire: [],
   categoriesPaiement: [],
   coursesCochees: [],
+  diluants: {},
   coursesLibres: [],
   programme: { creneaux: [], tracklist: [] },
   djSets: [],
@@ -331,38 +333,67 @@ export class PlannerStore {
     ),
   );
 
-  /**
-   * Les diluants : ce que les recettes reclament, face a ce qu'on a deja mis
-   * au caddie. Le moteur n'achete pas les diluants — le format et la marque se
-   * decident devant le rayon — mais il sait qu'il faut 12 L de coca pour les
-   * rhum-cocas prevus, et c'est ce qu'on met sous les yeux.
-   */
-  readonly diluants = computed(() => {
-    const panier = this.panier();
-    const auCaddie = new Map(panier.lignes.map((x) => [x.produit.id, x]));
+  /** Le diluant retenu pour chaque alcool, choix de l'organisateur compris. */
+  readonly choixDiluants = computed(() => new Map(Object.entries(this.partage().diluants ?? {})));
 
-    const reclames = panier.besoinsDiluants.map((besoin) => {
+  /**
+   * Les diluants, alcool par alcool. Le moteur n'achete pas le coca a ta
+   * place — le format et la marque se decident devant le rayon — mais il sait
+   * qu'un rhum se boit au coca, et il te dit combien il en faut.
+   */
+  readonly alcoolsADiluer = computed(() =>
+    alcoolsADiluer(this.entree().consommation, this.choixDiluants()),
+  );
+
+  /** Le meme besoin vu depuis le caddie : une ligne par bouteille. */
+  readonly diluants = computed(() => {
+    const auCaddie = new Map(this.panier().lignes.map((x) => [x.produit.id, x]));
+    // Deux sources : le diluant choisi pour chaque alcool fort, et celui que
+    // porte une recette (l'eau petillante du spritz n'est pas un choix).
+    const besoins = [...regrouperParDiluant(this.alcoolsADiluer())];
+    for (const recette of this.panier().besoinsDiluants) {
+      const deja = besoins.find((x) => x.produit.id === recette.produit.id);
+      if (deja) {
+        deja.besoinMl += recette.mlAvecMarge;
+        deja.alcools.push(...recette.boissons);
+      } else {
+        besoins.push({
+          produit: recette.produit,
+          besoinMl: recette.mlAvecMarge,
+          alcools: [...recette.boissons],
+        });
+      }
+    }
+    besoins.sort((a, b) => b.besoinMl - a.besoinMl);
+
+    const reclames = besoins.map((besoin) => {
       const ligne = auCaddie.get(besoin.produit.id);
       const bouteilles = ligne?.bouteilles ?? 0;
       const volume = bouteilles * besoin.produit.contenanceMl;
       return {
         produit: besoin.produit,
-        besoinMl: besoin.mlAvecMarge,
-        conseille: besoin.bouteilles,
-        boissons: besoin.boissons,
+        besoinMl: besoin.besoinMl,
+        conseille:
+          besoin.produit.contenanceMl > 0
+            ? Math.ceil(besoin.besoinMl / besoin.produit.contenanceMl)
+            : 0,
+        boissons: besoin.alcools,
         bouteilles,
         volume,
         prix: ligne?.prixTotal ?? 0,
-        couverture: besoin.mlAvecMarge > 0 ? volume / besoin.mlAvecMarge : 1,
-        manque: Math.max(0, besoin.bouteilles - bouteilles),
+        couverture: besoin.besoinMl > 0 ? volume / besoin.besoinMl : 1,
+        manque: 0,
       };
     });
+    for (const ligne of reclames) {
+      ligne.manque = Math.max(0, ligne.conseille - ligne.bouteilles);
+    }
 
-    // Ceux qu'on a choisis sans qu'aucune recette ne les reclame : le jus de
+    // Ceux qu'on a choisis sans qu'aucun alcool ne les reclame : le jus de
     // pomme pris pour les enfants a autant sa place dans le caddie.
     const reclamesIds = new Set(reclames.map((x) => x.produit.id));
-    const libres = panier.lignes
-      .filter((x) => x.produit.categorie === 'soft' && !reclamesIds.has(x.produit.id))
+    const libres = this.panier()
+      .lignes.filter((x) => x.produit.categorie === 'soft' && !reclamesIds.has(x.produit.id))
       .map((ligne) => ({
         produit: ligne.produit,
         besoinMl: 0,
@@ -376,17 +407,23 @@ export class PlannerStore {
       }));
 
     const besoinTotal = reclames.reduce((somme, x) => somme + x.besoinMl, 0);
-    const volumeTotal = [...reclames, ...libres].reduce((somme, x) => somme + x.volume, 0);
+    const lignes = [...reclames, ...libres];
+    const volumeTotal = lignes.reduce((somme, x) => somme + x.volume, 0);
     return {
-      lignes: [...reclames, ...libres],
+      lignes,
       besoinTotal,
       volumeTotal,
-      prixTotal: [...reclames, ...libres].reduce((somme, x) => somme + x.prix, 0),
+      prixTotal: lignes.reduce((somme, x) => somme + x.prix, 0),
       // Sans besoin, il n'y a rien a couvrir : la jauge est pleine, pas vide.
       couverture: besoinTotal > 0 ? volumeTotal / besoinTotal : 1,
       manque: Math.max(0, besoinTotal - volumeTotal),
     };
   });
+
+  /** Choisit le diluant d'un alcool ; chaine vide = on le boit sec. */
+  majDiluant(boissonId: string, produitId: string): void {
+    this.majPartage({ diluants: { ...(this.partage().diluants ?? {}), [boissonId]: produitId } });
+  }
 
   readonly resumeCourses = computed(() => resumerCourses(this.listeCourses()));
 
