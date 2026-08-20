@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { PARTAGE_INITIAL, PlannerStore } from './planner-store';
 import { Api, EvenementDistant } from './api';
-import { logistiqueVierge } from '../domain/invites';
+import { inviteVierge, logistiqueVierge } from '../domain/invites';
 import { Participant, PersonneType } from '../domain/models';
 
 const BUVEUR_BIERE: PersonneType = {
@@ -337,5 +337,50 @@ describe('PlannerStore', () => {
 
     const invite = store.invitesNommes().find((x) => x.id === id);
     expect(invite?.boissonsAimees).toEqual([{ boissonId: 'biere-blonde', intensite: 60 }]);
+  });
+
+  it('reaccorde un profil genere sur la regle de calcul du jour', () => {
+    // Une fiche qui boit de la biere « moyen », et un profil fige sur une
+    // ancienne formule : le recalcul doit rattraper l'ecart.
+    store.majPartage({
+      personnesTypes: [
+        { ...BUVEUR_BIERE, consommation: [{ boissonId: 'biere', verresParJour: 99 }] },
+      ],
+      invites: [
+        {
+          ...inviteVierge('i1', 'a'),
+          prenom: 'Tiphaine',
+          personneTypeId: 'p1',
+          niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' },
+          boissonsAimees: [{ boissonId: 'biere', intensite: 100 }],
+        },
+      ],
+    });
+
+    const bilan = store.recalculerProfilsDepuisFiches();
+
+    expect(bilan.recalcules).toBe(1);
+    const profil = store.personnesTypes()[0];
+    expect(profil.consommation[0].boissonId).toBe('biere');
+    expect(profil.consommation[0].verresParJour).not.toBe(99);
+  });
+
+  it('ne touche pas a un profil que plusieurs fiches se partagent', () => {
+    const fiche = (id: string) => ({
+      ...inviteVierge(id, 'a'),
+      personneTypeId: 'p1',
+      niveaux: { biere: 'moyen', vin: 'aucun', spiritueux: 'aucun' } as const,
+      boissonsAimees: [{ boissonId: 'biere', intensite: 100 }],
+    });
+    store.majPartage({
+      personnesTypes: [BUVEUR_BIERE],
+      invites: [fiche('i1'), fiche('i2')],
+    });
+
+    const bilan = store.recalculerProfilsDepuisFiches();
+
+    expect(bilan.partages).toBe(1);
+    expect(bilan.recalcules).toBe(0);
+    expect(store.personnesTypes()[0].consommation).toEqual(BUVEUR_BIERE.consommation);
   });
 });
