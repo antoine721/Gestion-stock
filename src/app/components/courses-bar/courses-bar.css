@@ -1,0 +1,75 @@
+.intro {
+  margin: 0.875rem 0 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+/* La jauge de couverture : pleine, on a de quoi couper tout ce qui se coupe. */
+.jauge {
+  display: block;
+  height: 0.5rem;
+  margin-top: 0.875rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.jauge i {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+  transition: width 0.25s ease;
+}
+
+.jauge.manque i {
+  background: var(--warn);
+}
+
+/* Le compteur de bouteilles : deux boutons et un chiffre, dans la cellule. */
+.compteur {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.compteur button {
+  padding: 0.125rem 0.4375rem;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.compteur .num {
+  min-width: 1.25rem;
+  text-align: center;
+  font-weight: 620;
+}
+
+.ajout {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--bord);
+}
+
+.ajout .champ {
+  flex: 1;
+  max-width: 22rem;
+}
+
+.etroit {
+  width: 4.5rem;
+  text-align: right;
+}
+
+@media (max-width: 40rem) {
+  .ajout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ajout .champ {
+    max-width: none;
+  }
+}

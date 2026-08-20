@@ -1,93 +1,32 @@
-<!-- Le rayon d'abord : c'est ici qu'on ajoute, la liste en dessous montre le
-     resultat de tout ce que l'app a calcule par ailleurs. -->
-<app-rayon-courses />
+<header class="entete-courses">
+  <h2>🛒 Les courses</h2>
+  <span class="addition num">{{ fmtEuro(store.resumeCourses().total) }}</span>
+  <span class="muted num">
+    {{ fmtEntier(store.resumeCourses().cochees) }}/{{ fmtEntier(store.resumeCourses().lignes) }}
+    coche(s)
+  </span>
+</header>
 
-<section class="card">
-  <div class="card-head">
-    <h2>La liste de courses</h2>
-    <span class="muted num">
-      {{ fmtEntier(store.resumeCourses().cochees) }}/{{ fmtEntier(store.resumeCourses().lignes) }} ·
-      {{ fmtEuro(store.resumeCourses().total) }}
-    </span>
-  </div>
-
-  <p class="intro muted">
-    Le bar en bouteilles, la cuisine au poids, le materiel a l'unite. Les coches sont partagees.
-  </p>
-
-  @if (store.repartitionCourses().length > 0) {
-    <app-camembert-courses
-      [parts]="store.repartitionCourses()"
-      [total]="store.resumeCourses().total"
-    />
+<nav class="onglets">
+  @for (item of onglets; track item.id) {
+    <button type="button" [attr.aria-pressed]="onglet() === item.id" (click)="onglet.set(item.id)">
+      <span class="emoji" aria-hidden="true">{{ item.emoji }}</span>
+      {{ item.libelle }}
+    </button>
   }
+</nav>
 
-  @if (store.resumeCourses().restant > 0) {
-    <p class="reste">
-      Reste a acheter : <strong class="num">{{ fmtEuro(store.resumeCourses().restant) }}</strong>
-    </p>
-  } @else if (store.resumeCourses().lignes > 0) {
-    <p class="reste fini">Tout est achete. 🎉</p>
+@switch (onglet()) {
+  @case ('global') {
+    <app-courses-global />
   }
-
-  @if (groupes().length === 0) {
-    <p class="vide">
-      Rien a acheter pour l'instant : la liste se remplit avec les consommations, les repas et le
-      materiel.
-    </p>
+  @case ('bar') {
+    <app-courses-bar />
   }
-
-  @for (groupe of groupes(); track groupe.id) {
-    <div class="groupe">
-      <div class="groupe-head">
-        <h3>{{ groupe.emoji }} {{ groupe.libelle }}</h3>
-        <span class="muted num">{{ fmtEuro(groupe.total) }}</span>
-      </div>
-      <ul class="lignes">
-        @for (ligne of groupe.lignes; track ligne.id) {
-          <li [class.cochee]="ligne.cochee">
-            <label>
-              <input
-                type="checkbox"
-                [checked]="ligne.cochee"
-                (change)="store.basculerCourse(ligne.id)"
-              />
-              <!-- La couleur du rayon, doublee de son nom : une teinte seule ne
-                   dirait rien a qui ne distingue pas ces deux verts-la. -->
-              <span
-                class="pastille-rayon"
-                [style.background]="'var(--teinte-' + teinteDe(ligne.categorie) + ')'"
-                [title]="libelleDe(ligne.categorie)"
-              ></span>
-              @if (ligne.imageUrl) {
-                <img
-                  class="miniature"
-                  [src]="ligne.imageUrl"
-                  alt=""
-                  loading="lazy"
-                  (error)="masquerImage($event)"
-                />
-              }
-              <span class="contenu">
-                <span class="nom">{{ ligne.nom }}</span>
-                <span class="quantite num">{{ ligne.quantite }}</span>
-                <span class="detail muted">
-                  {{ libelleDe(ligne.categorie) }}
-                  @if (ligne.detail) {
-                    · {{ ligne.detail }}
-                  }
-                </span>
-              </span>
-              <span class="prix num">{{ fmtEuro(ligne.prix) }}</span>
-            </label>
-          </li>
-        }
-      </ul>
-    </div>
+  @case ('cuisine') {
+    <app-courses-cuisine />
   }
-
-  <p class="hint">
-    Les quantites viennent des autres espaces. Les diluants ne sont pas calcules : ajoute-les depuis
-    Le rayon.
-  </p>
-</section>
+  @case ('supplements') {
+    <app-courses-supplements />
+  }
+}

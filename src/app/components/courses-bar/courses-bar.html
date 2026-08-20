@@ -1,0 +1,221 @@
+<!-- Les diluants d'abord : c'est le manque qu'on ne voit jamais venir. -->
+<section class="card">
+  <div class="barre-tableau">
+    <h2>🥤 Les diluants</h2>
+    <span class="muted num">
+      {{ fmtNombre(store.diluants().volumeTotal / 1000) }} L au caddie sur
+      {{ fmtNombre(store.diluants().besoinTotal / 1000) }} L
+    </span>
+    @if (store.diluants().manque > 0) {
+      <span class="pill warn num">
+        il manque {{ fmtNombre(store.diluants().manque / 1000) }} L
+      </span>
+    } @else if (store.diluants().besoinTotal > 0) {
+      <span class="pill ok">de quoi couper</span>
+    }
+    <button
+      type="button"
+      class="primaire pousse"
+      [disabled]="store.diluants().manque === 0"
+      (click)="toutCompleter()"
+    >
+      Completer ce qui manque
+    </button>
+  </div>
+
+  <div class="jauge" [class.manque]="store.diluants().manque > 0">
+    <i [style.width.%]="couverture()"></i>
+  </div>
+
+  <p class="intro muted">
+    Les recettes savent ce qu'elles reclament : un rhum coca, c'est 15 cl de coca. Le calcul ne les
+    achete pas a ta place — le format et la marque se decident devant le rayon — mais il te dit
+    combien il en faut, marge comprise.
+  </p>
+
+  @if (store.diluants().lignes.length === 0) {
+    <p class="vide">
+      Aucune recette ne reclame de diluant pour l'instant. Tu peux quand meme en poser un
+      ci-dessous.
+    </p>
+  } @else {
+    <div class="boite-tableau">
+      <table class="tableau">
+        <thead>
+          <tr>
+            <th>Diluant</th>
+            <th class="droite">Besoin</th>
+            <th class="droite">Au caddie</th>
+            <th>Couverture</th>
+            <th class="droite">Prix</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ligne of store.diluants().lignes; track ligne.produit.id) {
+            <tr>
+              <td class="principal">
+                {{ ligne.produit.nom }}
+                @if (ligne.boissons.length > 0) {
+                  <span class="secondaire">{{ ligne.boissons.join(' · ') }}</span>
+                } @else {
+                  <span class="secondaire">ajoute a la main</span>
+                }
+              </td>
+              <td class="droite num">
+                @if (ligne.besoinMl > 0) {
+                  {{ fmtVolume(ligne.besoinMl) }}
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td class="droite">
+                <span class="compteur">
+                  <button
+                    type="button"
+                    class="discret"
+                    title="Une bouteille de moins"
+                    (click)="majDiluant(ligne.produit.id, ligne.bouteilles - 1)"
+                  >
+                    −
+                  </button>
+                  <span class="num">{{ ligne.bouteilles }}</span>
+                  <button
+                    type="button"
+                    class="discret"
+                    title="Une bouteille de plus"
+                    (click)="majDiluant(ligne.produit.id, ligne.bouteilles + 1)"
+                  >
+                    +
+                  </button>
+                </span>
+              </td>
+              <td>
+                @if (ligne.besoinMl > 0) {
+                  <span
+                    class="pill"
+                    [class.ok]="ligne.manque === 0"
+                    [class.warn]="ligne.manque > 0"
+                  >
+                    {{ fmtEntier(ligne.couverture * 100) }} %
+                  </span>
+                } @else {
+                  <span class="muted">hors recette</span>
+                }
+              </td>
+              <td class="droite num">{{ fmtEuro(ligne.prix) }}</td>
+              <td class="actions-ligne droite">
+                @if (ligne.manque > 0) {
+                  <button
+                    type="button"
+                    class="discret"
+                    [title]="'Poser les ' + ligne.conseille + ' bouteille(s) qu il faut'"
+                    (click)="completer(ligne.produit.id, ligne.conseille)"
+                  >
+                    completer
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <div class="ajout">
+    <label class="champ">
+      <span>Ajouter un diluant</span>
+      <select [value]="ajout()" (change)="ajout.set($any($event.target).value)">
+        <option value="">Choisir…</option>
+        @for (produit of ajoutables(); track produit.id) {
+          <option [value]="produit.id">{{ produit.nom }} — {{ fmtEuro(produit.prixEur) }}</option>
+        }
+      </select>
+    </label>
+    <button type="button" [disabled]="ajout() === ''" (click)="ajouter()">Ajouter au caddie</button>
+  </div>
+</section>
+
+<!-- Les alcools : ce qui part au rayon, et en quelle quantite. -->
+<section class="card">
+  <div class="barre-tableau">
+    <h2>🍾 Les alcools</h2>
+    <span class="muted num pousse">{{ fmtEuro(store.panier().coutTotal) }}</span>
+  </div>
+
+  @if (alcools().length === 0) {
+    <p class="vide">
+      Rien a acheter : les quantites viennent des consommations declarees dans l'espace Bar.
+    </p>
+  } @else {
+    <div class="boite-tableau">
+      <table class="tableau">
+        <thead>
+          <tr>
+            <th>Produit</th>
+            <th class="droite">Bouteilles</th>
+            <th class="droite">Volume</th>
+            <th class="droite">Reste</th>
+            <th class="droite">Prix</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ligne of alcools(); track ligne.produit.id) {
+            <tr>
+              <td class="principal">
+                {{ ligne.produit.nom }}
+                <span class="secondaire">
+                  @if (ligne.detail.length > 0) {
+                    {{ ligne.detail[0].boissonNom }}
+                    @if (ligne.detail.length > 1) {
+                      + {{ ligne.detail.length - 1 }} autre(s)
+                    }
+                  } @else {
+                    pose a la main
+                  }
+                </span>
+              </td>
+              <td class="droite">
+                <!-- Zero rend la main au calcul : on ne fige pas une quantite
+                     sans le vouloir. -->
+                <input
+                  class="etroit"
+                  type="number"
+                  min="0"
+                  step="1"
+                  [value]="ligne.bouteilles"
+                  [title]="
+                    ligne.forfait ? 'Quantite forcee — 0 pour revenir au calcul' : 'Calculee'
+                  "
+                  (change)="majAlcool(ligne.produit.id, $any($event.target).value)"
+                />
+              </td>
+              <td class="droite num">{{ fmtVolume(ligne.produit.contenanceMl) }}</td>
+              <td class="droite num">
+                @if (ligne.resteMl > 0) {
+                  {{ fmtVolume(ligne.resteMl) }}
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td class="droite num principal">{{ fmtEuro(ligne.prixTotal) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<!-- La meme chose en liste a cocher : c'est celle-la qu'on emporte au magasin. -->
+<section class="card">
+  <div class="card-head">
+    <h2>A cocher au magasin</h2>
+    <span class="muted num">{{ fmtEntier(lignesBar().length) }} ligne(s)</span>
+  </div>
+  <app-lignes-courses
+    [lignes]="lignesBar()"
+    vide="Rien au bar pour l'instant : declare des consommations dans l'espace Bar."
+  />
+</section>

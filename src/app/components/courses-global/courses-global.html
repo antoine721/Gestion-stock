@@ -1,0 +1,128 @@
+<section class="card">
+  <div class="chiffres-cles">
+    <div class="cle">
+      <span class="etiquette">Total du caddie</span>
+      <span class="valeur num">{{ fmtEuro(store.resumeCourses().total) }}</span>
+      <span class="sous muted num">
+        {{ fmtEntier(store.resumeCourses().lignes) }} reference(s)
+      </span>
+    </div>
+    <div class="cle">
+      <span class="etiquette">Reste a acheter</span>
+      <span class="valeur num">{{ fmtEuro(store.resumeCourses().restant) }}</span>
+      <span class="sous muted num">
+        {{ fmtEntier(store.resumeCourses().cochees) }}/{{ fmtEntier(store.resumeCourses().lignes) }}
+        coche(s)
+      </span>
+    </div>
+    <div class="cle">
+      <span class="etiquette">Par personne</span>
+      <span class="valeur num">{{ fmtEuro(store.budgetGlobal().parPersonne) }}</span>
+      <span class="sous muted num">{{ fmtEntier(store.cadre().invites) }} invites</span>
+    </div>
+    <div class="cle">
+      <span class="etiquette">Courses faites</span>
+      <span class="valeur num">{{ avancement() }} %</span>
+      <span class="barre" role="img" [attr.aria-label]="avancement() + ' % des lignes cochees'">
+        <i [style.width.%]="avancement()"></i>
+      </span>
+    </div>
+  </div>
+</section>
+
+<div class="deux-colonnes">
+  <section class="card">
+    <div class="card-head">
+      <h2>La repartition</h2>
+      <span class="muted num">{{ fmtEuro(store.resumeCourses().total) }}</span>
+    </div>
+
+    @if (store.repartitionCourses().length > 0) {
+      <app-camembert-courses
+        [parts]="store.repartitionCourses()"
+        [total]="store.resumeCourses().total"
+      />
+    } @else {
+      <p class="vide">
+        Le camembert se dessinera tout seul : il suit les consommations, les repas et le materiel.
+      </p>
+    }
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Ou en est chaque rayon</h2>
+    </div>
+
+    @if (groupes().length === 0) {
+      <p class="vide">Rien a acheter pour l'instant.</p>
+    }
+
+    @for (groupe of groupes(); track groupe.id) {
+      <div class="groupe-ligne">
+        <span class="nom">{{ groupe.emoji }} {{ groupe.libelle }}</span>
+        <span class="avancee">
+          <span class="barre">
+            <i [style.width.%]="groupe.avancement"></i>
+          </span>
+          <span class="muted num">{{ groupe.cochees }}/{{ groupe.lignes }}</span>
+        </span>
+        <span class="montant num">{{ fmtEuro(groupe.total) }}</span>
+      </div>
+    }
+  </section>
+</div>
+
+<!-- L'equilibre : ce qui dit si la soiree tient debout, pas si elle coute cher. -->
+<section class="card">
+  <div class="card-head">
+    <h2>Equilibre</h2>
+    <span class="muted">assez de diluant, pas une boisson qui ecrase tout</span>
+  </div>
+
+  <div class="jauge-diluant" [class.manque]="store.diluants().manque > 0">
+    <div class="jauge-texte">
+      <b>Diluants couverts a {{ couvertureDiluant() }} %</b>
+      @if (store.diluants().manque > 0) {
+        <span class="muted num">
+          il manque {{ fmtNombre(store.diluants().manque / 1000) }} L — onglet Bar &amp; boissons
+        </span>
+      } @else if (store.diluants().besoinTotal > 0) {
+        <span class="muted">de quoi couper tout ce qui se coupe</span>
+      } @else {
+        <span class="muted">aucune recette ne reclame de diluant</span>
+      }
+    </div>
+    <span class="barre">
+      <i [style.width.%]="couvertureDiluant()"></i>
+    </span>
+  </div>
+
+  @if (equilibre().length === 0 && logistique().length === 0) {
+    <p class="vide">Les indicateurs arrivent des que des consommations sont declarees.</p>
+  }
+
+  @for (ratio of equilibre(); track ratio.id) {
+    <div class="ratio">
+      <span class="etat" [class]="'etat-' + ratio.etat" [title]="ratio.aide"></span>
+      <span class="label">{{ ratio.label }}</span>
+      <span class="valeur num">{{ fmtNombre(ratio.valeur) }} {{ ratio.unite }}</span>
+      <span class="cible muted num">
+        {{ ratio.sens === 'min' ? 'mini' : ratio.sens === 'max' ? 'maxi' : 'cible' }}
+        {{ fmtNombre(ratio.cible) }}
+      </span>
+    </div>
+  }
+
+  @for (ratio of logistique(); track ratio.id) {
+    <div class="ratio secondaire">
+      <span class="etat" [class]="'etat-' + ratio.etat" [title]="ratio.aide"></span>
+      <span class="label">{{ ratio.label }}</span>
+      <span class="valeur num">{{ fmtNombre(ratio.valeur) }} {{ ratio.unite }}</span>
+      <span class="cible muted num">
+        {{ ratio.sens === 'min' ? 'mini' : ratio.sens === 'max' ? 'maxi' : 'cible' }}
+        {{ fmtNombre(ratio.cible) }}
+      </span>
+    </div>
+  }
+</section>

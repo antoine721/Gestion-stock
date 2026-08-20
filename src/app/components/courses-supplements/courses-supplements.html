@@ -1,0 +1,25 @@
+<!-- Le rayon : la recherche produit et l'ajout a la main. -->
+<app-rayon-courses />
+
+<section class="card">
+  <div class="card-head">
+    <h2>🛒 Ce qu'on a pose a la main</h2>
+    <span class="muted num">
+      {{ fmtEntier(poses().length) }} ligne(s) · {{ fmtEuro(total()) }}
+    </span>
+  </div>
+  <app-lignes-courses
+    [lignes]="poses()"
+    vide="Rien encore. Cherche un produit ci-dessus, ou pose une ligne libre : sacs poubelle, glacons, charbon, gobelets."
+  />
+</section>
+
+@if (materiel().length > 0) {
+  <section class="card">
+    <div class="card-head">
+      <h2>🛠️ Materiel a acheter</h2>
+      <span class="muted">depuis l'espace Materiel</span>
+    </div>
+    <app-lignes-courses [lignes]="materiel()" />
+  </section>
+}

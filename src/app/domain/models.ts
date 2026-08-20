@@ -707,6 +707,23 @@ export interface ResumeBoisson {
   alcoolisee: boolean;
 }
 
+/**
+ * Ce qu'une recette reclame en diluant, produit par produit. Le moteur ne les
+ * achete pas — la marque et le format se decident devant le rayon — mais il
+ * sait exactement combien de coca il faut pour les rhum-cocas prevus.
+ */
+export interface BesoinDiluant {
+  produit: Produit;
+  /** Ce que les recettes reclament, sans marge. */
+  ml: number;
+  /** Avec la marge de securite : ce qu'il faut vraiment mettre au caddie. */
+  mlAvecMarge: number;
+  /** Le nombre de bouteilles qui couvre le besoin, arrondi au-dessus. */
+  bouteilles: number;
+  /** Les boissons qui le reclament, de la plus grosse consommatrice a la plus petite. */
+  boissons: string[];
+}
+
 export interface Panier {
   lignes: LigneAchat[];
   resumeBoissons: ResumeBoisson[];
@@ -718,6 +735,8 @@ export interface Panier {
   /** Spiritueux et liqueurs seuls : ce sont eux qui reclament un diluant. */
   volumeSpiritueuxMl: number;
   volumeDiluantMl: number;
+  /** Le detail du besoin en diluant, produit par produit. */
+  besoinsDiluants: BesoinDiluant[];
   /** Volume des boissons sans alcool, pour ceux qui ne boivent pas. */
   volumeSoftMl: number;
   volumeServiMl: number;

@@ -1,28 +1,22 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
-import { GROUPES_COURSES, LigneCourses } from '../../domain/courses';
-import { CATEGORIE_COURSE_PAR_ID } from '../../domain/categories-courses';
-import { CamembertCourses } from '../camembert-courses/camembert-courses';
-import { RayonCourses } from '../rayon-courses/rayon-courses';
+import { CoursesBar } from '../courses-bar/courses-bar';
+import { CoursesCuisine } from '../courses-cuisine/courses-cuisine';
+import { CoursesGlobal } from '../courses-global/courses-global';
+import { CoursesSupplements } from '../courses-supplements/courses-supplements';
 import { fmtEntier, fmtEuro } from '../../domain/format';
-import { CategorieCourse } from '../../domain/models';
 
-interface GroupeAffiche {
-  id: string;
-  libelle: string;
-  emoji: string;
-  lignes: LigneCourses[];
-  total: number;
-}
+type Onglet = 'global' | 'bar' | 'cuisine' | 'supplements';
 
 /**
- * La liste de courses unifiee : tout ce qu'il faut acheter, d'ou que ca
- * vienne. Chaque moteur (bar, cuisine) a deja fait ses arrondis ; ici on
- * pousse le caddie et on coche.
+ * La liste de courses unifiee, en quatre onglets. Tout affiche d'un bloc, elle
+ * demandait de lire trois cents lignes pour repondre a « il me manque quoi
+ * au bar ? ». Chaque onglet repond a une question : ou en est-on, qu'est-ce
+ * qu'on boit, qu'est-ce qu'on mange, qu'est-ce qu'on a oublie.
  */
 @Component({
   selector: 'app-section-courses',
-  imports: [CamembertCourses, RayonCourses],
+  imports: [CoursesBar, CoursesCuisine, CoursesGlobal, CoursesSupplements],
   templateUrl: './section-courses.html',
   styleUrl: './section-courses.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,34 +26,12 @@ export class SectionCourses {
   protected readonly fmtEuro = fmtEuro;
   protected readonly fmtEntier = fmtEntier;
 
-  protected readonly groupes = computed<GroupeAffiche[]>(() => {
-    const lignes = this.store.listeCourses();
-    return GROUPES_COURSES.map((groupe) => {
-      const siennes = lignes.filter((x) => x.groupe === groupe.id);
-      return {
-        id: groupe.id,
-        libelle: groupe.libelle,
-        emoji: groupe.emoji,
-        lignes: siennes,
-        total: siennes.reduce((somme, x) => somme + x.prix, 0),
-      };
-    }).filter((x) => x.lignes.length > 0);
-  });
+  protected readonly onglets: { id: Onglet; libelle: string; emoji: string }[] = [
+    { id: 'global', libelle: 'Global', emoji: '📊' },
+    { id: 'bar', libelle: 'Bar & boissons', emoji: '🍹' },
+    { id: 'cuisine', libelle: 'Cuisine', emoji: '🍳' },
+    { id: 'supplements', libelle: 'Achats en plus', emoji: '🛒' },
+  ];
 
-  /** La teinte du rayon d'une ligne, pour son liseré et sa pastille. */
-  protected teinteDe(categorie: CategorieCourse): string {
-    return CATEGORIE_COURSE_PAR_ID.get(categorie)?.teinte ?? 'neutre';
-  }
-
-  protected libelleDe(categorie: CategorieCourse): string {
-    return CATEGORIE_COURSE_PAR_ID.get(categorie)?.libelle ?? 'Autre';
-  }
-
-  /**
-   * La miniature vient d'un hebergeur tiers : si elle tombe, la ligne se lit
-   * tres bien sans, et une image cassee ne doit pas la defigurer.
-   */
-  protected masquerImage(evenement: Event): void {
-    (evenement.target as HTMLElement).style.display = 'none';
-  }
+  protected readonly onglet = signal<Onglet>('global');
 }

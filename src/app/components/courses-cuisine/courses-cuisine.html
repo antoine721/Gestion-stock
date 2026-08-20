@@ -1,0 +1,120 @@
+<section class="card">
+  <div class="barre-tableau">
+    <h2>🍳 Ce qu'il faut acheter</h2>
+    <span class="muted num">{{ fmtEuro(totalFiltre()) }}</span>
+    @if (filtreActif()) {
+      <span class="pill">{{ fmtEntier(lignes().length) }} ligne(s) filtree(s)</span>
+    }
+    <span class="pousse"></span>
+    @if (filtreActif()) {
+      <button type="button" class="discret" (click)="reinitialiser()">Tout revoir</button>
+    }
+  </div>
+
+  <!-- Les filtres ne touchent pas au calcul : ils ne changent que ce qu'on lit.
+       L'arrondi au paquet reste fait sur le besoin de TOUS les repas. -->
+  <div class="filtres">
+    <div class="groupe-filtre">
+      <button type="button" [attr.aria-pressed]="filtreJour() === 0" (click)="filtreJour.set(0)">
+        Tous les jours
+      </button>
+      @for (jour of jours(); track jour) {
+        <button
+          type="button"
+          [attr.aria-pressed]="filtreJour() === jour"
+          (click)="filtreJour.set(jour)"
+        >
+          J{{ jour }}
+        </button>
+      }
+    </div>
+
+    <div class="groupe-filtre">
+      <button
+        type="button"
+        [attr.aria-pressed]="filtreMoment() === ''"
+        (click)="filtreMoment.set('')"
+      >
+        Tous les repas
+      </button>
+      @for (moment of moments; track moment.id) {
+        <button
+          type="button"
+          [attr.aria-pressed]="filtreMoment() === moment.id"
+          (click)="filtreMoment.set(moment.id)"
+        >
+          {{ moment.emoji }} {{ moment.libelle }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (lignes().length === 0) {
+    <p class="vide">
+      @if (filtreActif()) {
+        Aucun ingredient pour ce filtre. Les repas se dosent en ingredients depuis l'espace
+        Nourriture.
+      } @else {
+        Aucun ingredient dose. Ouvre un repas dans l'espace Nourriture et pose ses ingredients : ils
+        arrivent ici en quantites d'achat.
+      }
+    </p>
+  } @else {
+    <div class="boite-tableau">
+      <table class="tableau">
+        <thead>
+          <tr>
+            <th class="triable" (click)="trier('nom')">Ingredient {{ fleche('nom') }}</th>
+            <th class="triable droite" (click)="trier('quantite')">
+              @if (filtreActif()) {
+                Besoin filtre
+              } @else {
+                Besoin
+              }
+              {{ fleche('quantite') }}
+            </th>
+            <th class="droite">Au caddie</th>
+            <th class="triable" (click)="trier('jour')">Pour {{ fleche('jour') }}</th>
+            <th class="triable droite" (click)="trier('prix')">Prix {{ fleche('prix') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of lignes(); track item.ligne.cle) {
+            <tr>
+              <td class="principal">{{ item.ligne.nom }}</td>
+              <td class="droite num">{{ fmtNombre(item.besoinFiltre) }} {{ item.ligne.unite }}</td>
+              <td class="droite num">
+                {{ fmtEntier(item.ligne.quantiteAchat) }} {{ item.ligne.uniteAchat }}
+                @if (item.ligne.reste > 0) {
+                  <span class="secondaire">
+                    reste {{ fmtNombre(item.ligne.reste) }} {{ item.ligne.unite }}
+                  </span>
+                }
+              </td>
+              <td>
+                <span class="pour">{{ item.pour }}</span>
+              </td>
+              <td class="droite num principal">{{ fmtEuro(item.ligne.prixTotal) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p class="hint">
+      « Au caddie » est arrondi sur le besoin de tous les repas, pas sur le filtre : on n'achete pas
+      deux fois le meme kilo de riz parce qu'il sert deux soirs.
+    </p>
+  }
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>A cocher au magasin</h2>
+    <span class="muted num">{{ fmtEntier(aCocher().length) }} ligne(s)</span>
+  </div>
+  <app-lignes-courses
+    [lignes]="aCocher()"
+    vide="Rien en cuisine pour l'instant : dose les repas en ingredients depuis l'espace Nourriture."
+  />
+</section>

@@ -1,0 +1,44 @@
+@if (lignes().length === 0) {
+  <p class="vide">{{ vide() }}</p>
+} @else {
+  <ul class="lignes">
+    @for (ligne of lignes(); track ligne.id) {
+      <li [class.cochee]="ligne.cochee">
+        <label>
+          <input
+            type="checkbox"
+            [checked]="ligne.cochee"
+            (change)="store.basculerCourse(ligne.id)"
+          />
+          <!-- La couleur du rayon, doublee de son nom : une teinte seule ne
+               dirait rien a qui ne distingue pas ces deux verts-la. -->
+          <span
+            class="pastille-rayon"
+            [style.background]="'var(--teinte-' + teinteDe(ligne.categorie) + ')'"
+            [title]="libelleDe(ligne.categorie)"
+          ></span>
+          @if (ligne.imageUrl) {
+            <img
+              class="miniature"
+              [src]="ligne.imageUrl"
+              alt=""
+              loading="lazy"
+              (error)="masquerImage($event)"
+            />
+          }
+          <span class="contenu">
+            <span class="nom">{{ ligne.nom }}</span>
+            <span class="quantite num">{{ ligne.quantite }}</span>
+            <span class="detail muted">
+              {{ libelleDe(ligne.categorie) }}
+              @if (ligne.detail) {
+                · {{ ligne.detail }}
+              }
+            </span>
+          </span>
+          <span class="prix num">{{ fmtEuro(ligne.prix) }}</span>
+        </label>
+      </li>
+    }
+  </ul>
+}

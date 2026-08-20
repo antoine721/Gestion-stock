@@ -253,6 +253,12 @@ function boisson(
 // ---------------------------------------------------------------------------
 
 export const PRODUIT_PAR_ID = new Map(PRODUITS.map((x) => [x.id, x]));
+
+/**
+ * Ce avec quoi on coupe l'alcool : colas, tonics, jus, eaux. Les sirops ont
+ * leur propre categorie — on ne remplit pas un verre avec de la grenadine.
+ */
+export const PRODUITS_DILUANTS = PRODUITS.filter((x) => x.categorie === 'soft');
 export const BOISSON_PAR_ID = new Map(BOISSONS.map((x) => [x.id, x]));
 
 /** Derive du catalogue : une boisson est alcoolisee si un composant l'est. */
