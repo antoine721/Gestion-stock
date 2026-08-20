@@ -119,6 +119,39 @@ describe('calculerPanier', () => {
     expect(whisky?.resteMl).toBe(600);
   });
 
+  it('chiffre le besoin en diluant produit par produit', () => {
+    // 10 whisky-coca = 1,5 L de coca, +25 % de marge = 1,875 L, soit deux
+    // bouteilles d'un litre et demi.
+    const panier = calculerPanier(entree([{ boissonId: 'whisky-coca', verres: 10 }]));
+
+    const coca = panier.besoinsDiluants.find((x) => x.produit.id === 'coca');
+    expect(coca?.ml).toBe(1500);
+    expect(coca?.mlAvecMarge).toBeCloseTo(1875);
+    expect(coca?.bouteilles).toBe(2);
+    expect(coca?.boissons).toEqual(['Whisky coca']);
+  });
+
+  it('additionne le meme diluant sur toutes les recettes qui le reclament', () => {
+    const panier = calculerPanier(
+      entree([
+        { boissonId: 'whisky-coca', verres: 10 },
+        { boissonId: 'rhum-coca', verres: 10 },
+      ]),
+    );
+
+    const coca = panier.besoinsDiluants.find((x) => x.produit.id === 'coca');
+    expect(coca?.ml).toBe(3000);
+    expect(coca?.boissons).toHaveLength(2);
+  });
+
+  it('ne compte pas un soft bu pour lui-meme comme un diluant', () => {
+    // Le coca bu sec s'achete par la ligne normale : il n'est le diluant de
+    // rien, et le faire apparaitre ici doublerait le besoin.
+    const panier = calculerPanier(entree([{ boissonId: 'soft-soda', verres: 10 }]));
+
+    expect(panier.besoinsDiluants).toHaveLength(0);
+  });
+
   it('n achete pas les diluants', () => {
     // On sait qu'il faut du coca avec le whisky, mais le format et la marque
     // se decident devant le rayon : le calcul ne prend que l'alcool.

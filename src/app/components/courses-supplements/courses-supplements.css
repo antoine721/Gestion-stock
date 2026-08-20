@@ -1,0 +1,4 @@
+/* Rien de particulier : le rayon et les listes portent deja leurs styles. */
+:host {
+  display: block;
+}

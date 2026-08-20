@@ -1,0 +1,59 @@
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin: 0.875rem 0 1rem;
+}
+
+/* Les memes pilules que la navigation des espaces : un choix, pas une action. */
+.groupe-filtre {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 3px;
+  background: var(--surface-2);
+  border-radius: 999px;
+}
+
+.groupe-filtre button {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 999px;
+  padding: 0.25rem 0.6875rem;
+  font-size: 0.75rem;
+  color: var(--texte-doux);
+}
+
+.groupe-filtre button:hover {
+  color: var(--texte);
+  background: transparent;
+}
+
+.groupe-filtre button[aria-pressed='true'] {
+  color: var(--texte);
+  font-weight: 620;
+  background: var(--surface);
+  box-shadow: var(--ombre);
+}
+
+/* Un en-tete triable se clique : le curseur et la fleche le disent. */
+.triable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.triable:hover {
+  color: var(--texte);
+}
+
+.pour {
+  font-size: 0.75rem;
+  color: var(--texte-doux);
+}
+
+.secondaire {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--texte-doux);
+}

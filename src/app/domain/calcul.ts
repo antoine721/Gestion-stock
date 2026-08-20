@@ -1,6 +1,7 @@
 import { BOISSONS_ALCOOLISEES, BOISSON_PAR_ID, ORDRE_CATEGORIE, PRODUIT_PAR_ID } from './catalogue';
 import {
   Ajustement,
+  BesoinDiluant,
   Cadre,
   DetailLigne,
   LigneAchat,
@@ -88,6 +89,9 @@ interface Besoin {
  */
 export function calculerPanier(entree: EntreeCalcul): Panier {
   const besoins = new Map<string, Besoin>();
+  // Les diluants ne partent pas dans les courses, mais on garde leur detail :
+  // savoir qu'il faut 12 L de coca vaut mieux que « prevois du soft ».
+  const diluants = new Map<string, Besoin>();
   const resumeBoissons: ResumeBoisson[] = [];
   let verresTotal = 0;
   let verresAlcoolises = 0;
@@ -120,6 +124,18 @@ export function calculerPanier(entree: EntreeCalcul): Panier {
         }
       } else {
         volumeDiluantMl += ml;
+      }
+
+      // Un diluant de recette : ce que le rhum reclame en coca. Un soft bu
+      // pour lui-meme n'en est pas un — il s'achete par la ligne normale.
+      if (composant.role === 'diluant') {
+        const attendu = diluants.get(produit.id);
+        if (attendu) {
+          attendu.ml += ml;
+          attendu.detail.set(boisson.nom, (attendu.detail.get(boisson.nom) ?? 0) + ml);
+        } else {
+          diluants.set(produit.id, { produit, ml, detail: new Map([[boisson.nom, ml]]) });
+        }
       }
 
       // Les diluants ne s'achetent pas par le calcul. On sait qu'il faut du
@@ -207,6 +223,7 @@ export function calculerPanier(entree: EntreeCalcul): Panier {
     volumeAlcoolMl,
     volumeSpiritueuxMl,
     volumeDiluantMl,
+    besoinsDiluants: construireDiluants(diluants),
     volumeSoftMl,
     volumeServiMl: volumeAlcoolMl + volumeDiluantMl,
     volumeAcheteMl,
@@ -223,6 +240,25 @@ export function calculerPanier(entree: EntreeCalcul): Panier {
 /** La tireuse est un cout unique : ni par bouteille, ni par personne, ni par jour. */
 export function coutDuMateriel(materiel: Materiel): number {
   return Math.max(0, materiel.prixTireuse);
+}
+
+/**
+ * Le besoin en diluant, du plus gros au plus petit. La marge y est plus large
+ * que sur l'alcool : c'est le coca qui manque a 1 h du matin, jamais le rhum.
+ */
+function construireDiluants(diluants: Map<string, Besoin>): BesoinDiluant[] {
+  return [...diluants.values()]
+    .map(({ produit, ml, detail }) => {
+      const mlAvecMarge = ml * (1 + MARGE_DILUANT);
+      return {
+        produit,
+        ml,
+        mlAvecMarge,
+        bouteilles: produit.contenanceMl > 0 ? Math.ceil(mlAvecMarge / produit.contenanceMl) : 0,
+        boissons: [...detail.entries()].sort((a, b) => b[1] - a[1]).map(([nom]) => nom),
+      };
+    })
+    .sort((a, b) => b.ml - a.ml);
 }
 
 function construireLigne(besoin: Besoin, ajustement: Ajustement): LigneAchat {

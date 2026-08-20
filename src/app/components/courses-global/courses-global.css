@@ -1,0 +1,161 @@
+.chiffres-cles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1.25rem;
+}
+
+.cle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+}
+
+.cle .etiquette {
+  font-size: 0.625rem;
+  font-weight: 620;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--texte-doux);
+}
+
+.cle .valeur {
+  font-size: 1.375rem;
+  font-weight: 640;
+  line-height: 1.1;
+}
+
+.cle .sous {
+  font-size: 0.75rem;
+}
+
+/* Une barre de progression, partout la meme. */
+.barre {
+  display: block;
+  height: 0.375rem;
+  margin-top: 0.375rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.barre i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+
+.deux-colonnes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+
+.deux-colonnes .card {
+  margin-top: 0;
+}
+
+/* -- Ou en est chaque rayon ------------------------------------------------- */
+
+.groupe-ligne {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 8rem auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  font-size: 0.8125rem;
+}
+
+.groupe-ligne + .groupe-ligne {
+  border-top: 1px solid var(--bord);
+}
+
+.groupe-ligne .avancee {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.groupe-ligne .avancee .barre {
+  flex: 1;
+  margin-top: 0;
+}
+
+.groupe-ligne .montant {
+  font-weight: 620;
+}
+
+/* -- Equilibre -------------------------------------------------------------- */
+
+.jauge-diluant {
+  padding: 0.75rem 0.875rem;
+  margin-bottom: 0.875rem;
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon-petit);
+  background: var(--surface-2);
+}
+
+.jauge-diluant.manque {
+  border-color: var(--warn);
+  background: var(--warn-doux);
+}
+
+.jauge-texte {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-size: 0.8125rem;
+}
+
+.ratio {
+  display: grid;
+  grid-template-columns: 0.5rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  font-size: 0.8125rem;
+  border-top: 1px solid var(--bord);
+}
+
+.ratio.secondaire .label,
+.ratio.secondaire .valeur {
+  color: var(--texte-doux);
+}
+
+/* La pastille d'etat : verte, orange ou rouge. Le chiffre a cote la double. */
+.ratio .etat {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--bord-fort);
+}
+
+.ratio .etat.etat-ok {
+  background: var(--ok);
+}
+
+.ratio .etat.etat-warn {
+  background: var(--warn);
+}
+
+.ratio .etat.etat-ko {
+  background: var(--ko);
+}
+
+.ratio .valeur {
+  font-weight: 620;
+}
+
+.ratio .cible {
+  font-size: 0.75rem;
+}
+
+@media (max-width: 56rem) {
+  .deux-colonnes {
+    grid-template-columns: 1fr;
+  }
+}

@@ -198,6 +198,20 @@ export interface LigneCuisine {
   reste: number;
   /** Les plats qui consomment cet ingredient. */
   plats: string[];
+  /**
+   * Les repas qui le reclament, avec leur part du besoin. C'est ce qui permet
+   * de trier la liste de cuisine par jour ou par moment sans refaire le calcul.
+   */
+  pourRepas: PartRepas[];
+}
+
+/** La part d'un repas dans le besoin d'un ingredient. */
+export interface PartRepas {
+  jour: number;
+  moment: MomentRepas;
+  plat: string;
+  /** Dans l'unite de dosage de l'ingredient. */
+  quantite: number;
 }
 
 /**
@@ -224,9 +238,17 @@ export function coursesCuisine(
 
       const cle = `${ingredient.nom.trim().toLowerCase()}|${ingredient.unite}`;
       const existante = lignes.get(cle);
+      const part: PartRepas = {
+        jour: repas.jour,
+        moment: repas.moment,
+        plat: repas.plat,
+        quantite: besoin,
+      };
+
       if (existante) {
         existante.besoin += besoin;
         if (!existante.plats.includes(repas.plat)) existante.plats.push(repas.plat);
+        existante.pourRepas.push(part);
       } else {
         lignes.set(cle, {
           cle,
@@ -239,6 +261,7 @@ export function coursesCuisine(
           prixTotal: 0,
           reste: 0,
           plats: [repas.plat],
+          pourRepas: [part],
         });
       }
     }

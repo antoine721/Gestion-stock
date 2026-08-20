@@ -331,6 +331,63 @@ export class PlannerStore {
     ),
   );
 
+  /**
+   * Les diluants : ce que les recettes reclament, face a ce qu'on a deja mis
+   * au caddie. Le moteur n'achete pas les diluants — le format et la marque se
+   * decident devant le rayon — mais il sait qu'il faut 12 L de coca pour les
+   * rhum-cocas prevus, et c'est ce qu'on met sous les yeux.
+   */
+  readonly diluants = computed(() => {
+    const panier = this.panier();
+    const auCaddie = new Map(panier.lignes.map((x) => [x.produit.id, x]));
+
+    const reclames = panier.besoinsDiluants.map((besoin) => {
+      const ligne = auCaddie.get(besoin.produit.id);
+      const bouteilles = ligne?.bouteilles ?? 0;
+      const volume = bouteilles * besoin.produit.contenanceMl;
+      return {
+        produit: besoin.produit,
+        besoinMl: besoin.mlAvecMarge,
+        conseille: besoin.bouteilles,
+        boissons: besoin.boissons,
+        bouteilles,
+        volume,
+        prix: ligne?.prixTotal ?? 0,
+        couverture: besoin.mlAvecMarge > 0 ? volume / besoin.mlAvecMarge : 1,
+        manque: Math.max(0, besoin.bouteilles - bouteilles),
+      };
+    });
+
+    // Ceux qu'on a choisis sans qu'aucune recette ne les reclame : le jus de
+    // pomme pris pour les enfants a autant sa place dans le caddie.
+    const reclamesIds = new Set(reclames.map((x) => x.produit.id));
+    const libres = panier.lignes
+      .filter((x) => x.produit.categorie === 'soft' && !reclamesIds.has(x.produit.id))
+      .map((ligne) => ({
+        produit: ligne.produit,
+        besoinMl: 0,
+        conseille: 0,
+        boissons: [] as string[],
+        bouteilles: ligne.bouteilles,
+        volume: ligne.bouteilles * ligne.produit.contenanceMl,
+        prix: ligne.prixTotal,
+        couverture: 1,
+        manque: 0,
+      }));
+
+    const besoinTotal = reclames.reduce((somme, x) => somme + x.besoinMl, 0);
+    const volumeTotal = [...reclames, ...libres].reduce((somme, x) => somme + x.volume, 0);
+    return {
+      lignes: [...reclames, ...libres],
+      besoinTotal,
+      volumeTotal,
+      prixTotal: [...reclames, ...libres].reduce((somme, x) => somme + x.prix, 0),
+      // Sans besoin, il n'y a rien a couvrir : la jauge est pleine, pas vide.
+      couverture: besoinTotal > 0 ? volumeTotal / besoinTotal : 1,
+      manque: Math.max(0, besoinTotal - volumeTotal),
+    };
+  });
+
   readonly resumeCourses = computed(() => resumerCourses(this.listeCourses()));
 
   /** Le total des courses rayon par rayon : les parts du camembert. */

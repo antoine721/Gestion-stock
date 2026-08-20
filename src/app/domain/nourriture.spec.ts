@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { budgetNourriture, coutDesExtras, coutDuRepas, repasPour, repasVierge } from './nourriture';
-import { Nourriture, Repas } from './models';
+import {
+  budgetNourriture,
+  coursesCuisine,
+  coutDesExtras,
+  coutDuRepas,
+  repasPour,
+  repasVierge,
+} from './nourriture';
+import { IngredientRepas, Nourriture, Repas } from './models';
+
+function ingredient(qteParPersonne: number): IngredientRepas {
+  return { id: 'i1', nom: 'Riz', qteParPersonne, unite: 'g', prixUnitaire: 2 };
+}
 
 function repas(jour: number, options: Partial<Repas> = {}): Repas {
   return { ...repasVierge(`r${jour}`, jour, 'diner'), plat: 'Barbecue', ...options };
@@ -87,5 +98,24 @@ describe('nourriture', () => {
     const nourriture: Nourriture = { repas: [repas(2)], extras: [] };
     expect(repasPour(nourriture, 2, 'diner')?.plat).toBe('Barbecue');
     expect(repasPour(nourriture, 2, 'dejeuner')).toBeUndefined();
+  });
+
+  it("garde la part de chaque repas dans le besoin d'un ingredient", () => {
+    // Le riz sert deux soirs : une seule ligne de courses, mais on sait
+    // toujours quel jour en reclame combien.
+    const nourriture: Nourriture = {
+      repas: [
+        repas(1, { plat: 'Riz cantonais', ingredients: [ingredient(80)] }),
+        repas(2, { plat: 'Curry', ingredients: [ingredient(120)] }),
+      ],
+      extras: [],
+    };
+
+    const [ligne] = coursesCuisine(nourriture, 10, 2);
+    expect(ligne.besoin).toBe(2000);
+    expect(ligne.pourRepas).toEqual([
+      { jour: 1, moment: 'diner', plat: 'Riz cantonais', quantite: 800 },
+      { jour: 2, moment: 'diner', plat: 'Curry', quantite: 1200 },
+    ]);
   });
 });
