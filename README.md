@@ -154,6 +154,36 @@ repli se ferme.
    Le retrait prend effet immediatement, meme sur un cookie encore valide : la liste est relue a
    chaque appel.
 
+## Le circuit
+
+```
+branche de travail  ──livrer:preprod──>  preprod  ──livrer:prod──>  main
+                                            │                        │
+                                 preprod.lavialatte.com        lavialatte.com
+```
+
+Deux commandes, et rien d'autre a retenir :
+
+```bash
+npm run livrer:preprod   # ta branche de travail part sur la preprod
+npm run livrer:prod      # la preprod, si elle te plait, part en production
+```
+
+Chacune lance d'abord `npm test`, `npm run build`, le typage des fonctions `api/` et
+`npm run format:check` : ce qui monte en ligne a ete verifie. Un echec arrete tout avant le merge.
+`SANS_TESTS=1 npm run livrer:prod` saute les verifications — a ne sortir que pour eteindre un
+incendie.
+
+Le push est ce qui deploie : `main` va en production, `preprod` va sur la preprod, Vercel s'occupe
+du reste. `npm run deploy` (la CLI Vercel) ne sert plus qu'en cas de panne de l'integration Git.
+
+En parallele, `.github/workflows/verification.yml` rejoue les memes verifications sur GitHub a
+chaque push et sur chaque PR vers `preprod` ou `main` : le second filet, celui qui ne depend pas de
+ta machine.
+
+Une seule chose a regler cote GitHub (Settings → Branches → Add branch ruleset, pour `main` et
+`preprod`) : _Block force pushes_.
+
 ## Preprod
 
 Une preprod tourne sur **un sous-domaine du domaine de prod** (`preprod.lavialatte.com`), pas sur un
