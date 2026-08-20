@@ -1,6 +1,6 @@
-import { MARGE_DILUANT } from './calcul';
+import { reglagesCalculParDefaut } from './calcul';
 import { BOISSON_PAR_ID, PRODUITS_DILUANTS, PRODUIT_PAR_ID } from './catalogue';
-import { Produit, VerresBoisson } from './models';
+import { Produit, ReglagesCalcul, VerresBoisson } from './models';
 
 /**
  * Les diluants : ce avec quoi on coupe les alcools forts.
@@ -72,7 +72,10 @@ export function diluantDe(
 export function alcoolsADiluer(
   consommation: readonly VerresBoisson[],
   choix: ReadonlyMap<string, string>,
+  reglages: ReglagesCalcul = reglagesCalculParDefaut(),
 ): AlcoolADiluer[] {
+  const coup = 1 + Math.max(0, reglages.coefficientPct) / 100;
+  const marge = 1 + Math.max(0, reglages.margeDiluantPct) / 100;
   const verresPar = new Map<string, number>();
   for (const ligne of consommation) {
     verresPar.set(
@@ -94,7 +97,7 @@ export function alcoolsADiluer(
         produit: produitId ? PRODUIT_PAR_ID.get(produitId) : undefined,
         choisi: choix.has(boissonId),
         sec,
-        besoinMl: produitId ? verres * parVerre * (1 + MARGE_DILUANT) : 0,
+        besoinMl: produitId ? verres * parVerre * coup * marge : 0,
       };
     })
     .sort((a, b) => b.verres - a.verres);

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CalculDetail } from '../../components/calcul-detail/calcul-detail';
 import { Extras } from '../../components/extras/extras';
 import { HubAccueil } from '../../components/hub-accueil/hub-accueil';
 import { InterpretationConso } from '../../components/interpretation-conso/interpretation-conso';
@@ -36,6 +37,7 @@ const CLE_VISITE = 'vialcrm.visite';
 @Component({
   selector: 'app-planner',
   imports: [
+    CalculDetail,
     Extras,
     HubAccueil,
     InterpretationConso,
