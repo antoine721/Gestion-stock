@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { PlannerStore } from '../../state/planner-store';
+import { CoOrganisateurs } from '../co-organisateurs/co-organisateurs';
 import { dureeEnJours, joursAvant } from '../../domain/evenement';
 import { fmtEntier, fmtEuro } from '../../domain/format';
 
@@ -11,6 +12,7 @@ import { fmtEntier, fmtEuro } from '../../domain/format';
  */
 @Component({
   selector: 'app-section-profil',
+  imports: [CoOrganisateurs],
   templateUrl: './section-profil.html',
   styleUrl: './section-profil.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
