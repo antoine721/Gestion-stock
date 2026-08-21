@@ -37,6 +37,9 @@
        pas le disent. -->
   @if (groupesDiluants().aCouper.length > 0) {
     <h3 class="groupe-titre">Ce qui se coupe</h3>
+    <p class="hint">
+      Un alcool peut en prendre plusieurs : le besoin se partage alors a parts egales entre eux.
+    </p>
     <div class="boite-tableau">
       <table class="tableau">
         <thead>
@@ -52,18 +55,39 @@
             <tr>
               <td class="principal">{{ alcool.nom }}</td>
               <td>
-                <select
-                  [value]="alcool.produit?.id ?? ''"
-                  [attr.aria-label]="'Diluant de ' + alcool.nom"
-                  (change)="choisirDiluant(alcool.boissonId, $any($event.target).value)"
-                >
-                  <option value="">— se boit sec —</option>
-                  @for (produit of diluantsPossibles; track produit.id) {
-                    <option [value]="produit.id" [selected]="produit.id === alcool.produit?.id">
-                      {{ produit.nom }}
-                    </option>
+                <div class="choix-diluants">
+                  @for (diluant of alcool.diluants; track diluant.produit.id) {
+                    <span class="etiquette">
+                      {{ diluant.produit.nom }}
+                      @if (alcool.diluants.length > 1) {
+                        <span class="num muted">{{ fmtVolume(diluant.besoinMl) }}</span>
+                      }
+                      <button
+                        type="button"
+                        class="retirer"
+                        [attr.aria-label]="'Retirer ' + diluant.produit.nom + ' de ' + alcool.nom"
+                        (click)="retirerDiluant(alcool.boissonId, diluant.produit.id)"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  } @empty {
+                    <span class="muted">se boit sec</span>
                   }
-                </select>
+                  <select
+                    value=""
+                    [attr.aria-label]="'Ajouter un diluant a ' + alcool.nom"
+                    (change)="
+                      ajouterDiluant(alcool.boissonId, $any($event.target).value);
+                      $any($event.target).value = ''
+                    "
+                  >
+                    <option value="">+ ajouter…</option>
+                    @for (produit of restants(alcool.diluants); track produit.id) {
+                      <option [value]="produit.id">{{ produit.nom }}</option>
+                    }
+                  </select>
+                </div>
               </td>
               <td class="droite num">{{ fmtNombre(alcool.verres) }}</td>
               <td class="droite num">
@@ -119,9 +143,11 @@
           <tr>
             <th>Diluant</th>
             <th class="droite">Besoin</th>
+            <th class="droite">Contenance</th>
             <th class="droite">Au caddie</th>
             <th>Couverture</th>
-            <th class="droite">Prix</th>
+            <th class="droite">Prix unitaire</th>
+            <th class="droite">Total</th>
             <th></th>
           </tr>
         </thead>
@@ -144,6 +170,17 @@
                 }
               </td>
               <td class="droite">
+                <input
+                  class="etroit"
+                  type="number"
+                  min="0"
+                  step="10"
+                  [value]="ligne.produit.contenanceMl"
+                  [attr.aria-label]="'Contenance de ' + ligne.produit.nom + ' en ml'"
+                  (change)="majContenanceDiluant(ligne.produit.id, $any($event.target).value)"
+                />
+              </td>
+              <td class="droite">
                 <span class="compteur">
                   <button
                     type="button"
@@ -153,7 +190,15 @@
                   >
                     −
                   </button>
-                  <span class="num">{{ ligne.bouteilles }}</span>
+                  <input
+                    class="etroit compact"
+                    type="number"
+                    min="0"
+                    step="1"
+                    [value]="ligne.bouteilles"
+                    [attr.aria-label]="'Bouteilles de ' + ligne.produit.nom"
+                    (change)="majQuantiteDiluant(ligne.produit.id, $any($event.target).value)"
+                  />
                   <button
                     type="button"
                     class="discret"
@@ -177,7 +222,18 @@
                   <span class="muted">hors recette</span>
                 }
               </td>
-              <td class="droite num">{{ fmtEuro(ligne.prix) }}</td>
+              <td class="droite">
+                <input
+                  class="etroit"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  [value]="ligne.produit.prixEur"
+                  [attr.aria-label]="'Prix de ' + ligne.produit.nom"
+                  (change)="majPrixDiluant(ligne.produit.id, $any($event.target).value)"
+                />
+              </td>
+              <td class="droite num principal">{{ fmtEuro(ligne.prix) }}</td>
               <td class="actions-ligne droite">
                 @if (ligne.manque > 0) {
                   <button
@@ -187,6 +243,16 @@
                     (click)="completer(ligne.produit.id, ligne.conseille)"
                   >
                     completer
+                  </button>
+                }
+                @if (store.estModifie(ligne.produit.id)) {
+                  <button
+                    type="button"
+                    class="discret"
+                    title="Revenir au prix et a la contenance du catalogue"
+                    (click)="store.reinitialiserProduit(ligne.produit.id)"
+                  >
+                    defaut
                   </button>
                 }
               </td>
@@ -218,7 +284,7 @@
     <span class="muted num pousse">{{ fmtEuro(store.panier().coutTotal) }}</span>
   </div>
 
-  @if (alcools().length === 0) {
+  @if (rangees().length === 0) {
     <p class="vide">
       Rien a acheter : les quantites viennent des consommations declarees dans l'espace Bar.
     </p>
@@ -237,61 +303,94 @@
           </tr>
         </thead>
         <tbody>
-          @for (item of alcools(); track item.ligne.produit.id) {
-            <tr>
-              <td class="principal">
-                {{ item.ligne.produit.nom }}
-                <span class="secondaire">
-                  @if (item.ligne.detail.length > 0) {
-                    {{ item.ligne.detail[0].boissonNom }}
-                    @if (item.ligne.detail.length > 1) {
-                      + {{ item.ligne.detail.length - 1 }} autre(s)
-                    }
+          @for (rangee of rangees(); track rangee.cle) {
+            @if (rangee.type === 'bande') {
+              <!-- La bande coloree : ce qui suit ne se boit qu'ensemble. -->
+              <tr class="bande-cocktail">
+                <td colspan="6">
+                  🍹 <strong>{{ rangee.nom }}</strong>
+                  <span class="num">{{ fmtNombre(rangee.verres) }} verre(s)</span>
+                  <span class="muted">{{ rangee.recette }}</span>
+                </td>
+                <td class="droite num principal">{{ fmtEuro(rangee.total) }}</td>
+              </tr>
+            } @else if (rangee.type === 'rappel') {
+              <tr class="rappel-cocktail">
+                <td colspan="7">
+                  {{ rangee.rappel.nom }} — {{ fmtVolume(rangee.rappel.ml) }} pour la recette,
+                  @if (rangee.rappel.ou === 'diluants') {
+                    comptes avec les diluants ci-dessus.
                   } @else {
-                    pose a la main
+                    comptes sur sa propre ligne : on en boit surtout autrement.
                   }
-                </span>
-              </td>
-              <td class="droite num">{{ fmtVolume(item.ligne.mlAvecMarge) }}</td>
-              <td class="droite num">
-                @if (item.auLitre) {
-                  <span class="muted">au litre</span>
-                } @else {
-                  {{ fmtVolume(item.ligne.produit.contenanceMl) }}
-                }
-              </td>
-              <td class="droite">
-                @if (item.auLitre) {
-                  <span class="num">{{ fmtNombre(item.litres) }} L</span>
-                } @else {
-                  <!-- Zero rend la main au calcul : on ne fige pas une
-                       quantite sans le vouloir. -->
-                  <input
-                    class="etroit"
-                    type="number"
-                    min="0"
-                    step="1"
-                    [value]="item.ligne.bouteilles"
-                    [title]="
-                      item.ligne.forfait ? 'Quantite forcee — 0 pour revenir au calcul' : 'Calculee'
-                    "
-                    (change)="majAlcool(item.ligne.produit.id, $any($event.target).value)"
-                  />
-                }
-              </td>
-              <td class="droite num">
-                @if (item.ligne.resteMl > 0) {
-                  {{ fmtVolume(item.ligne.resteMl) }}
-                } @else {
-                  <span class="muted">—</span>
-                }
-              </td>
-              <td class="droite num">
-                {{ fmtEuro(item.auLitre ? item.prixAuLitre : item.ligne.produit.prixEur) }}
-                <span class="secondaire">{{ item.auLitre ? 'le litre' : 'la bouteille' }}</span>
-              </td>
-              <td class="droite num principal">{{ fmtEuro(item.ligne.prixTotal) }}</td>
-            </tr>
+                </td>
+              </tr>
+            } @else {
+              <tr [class.dans-cocktail]="rangee.cocktail">
+                <td class="principal">
+                  {{ rangee.item.ligne.produit.nom }}
+                  <span class="secondaire">
+                    @if (rangee.item.ligne.detail.length > 0) {
+                      {{ rangee.item.ligne.detail[0].boissonNom }}
+                      @if (rangee.item.ligne.detail.length > 1) {
+                        + {{ rangee.item.ligne.detail.length - 1 }} autre(s)
+                      }
+                    } @else {
+                      pose a la main
+                    }
+                  </span>
+                </td>
+                <td class="droite num">{{ fmtVolume(rangee.item.ligne.mlAvecMarge) }}</td>
+                <td class="droite num">
+                  @if (rangee.item.auLitre) {
+                    <span class="muted">au litre</span>
+                  } @else {
+                    {{ fmtVolume(rangee.item.ligne.produit.contenanceMl) }}
+                  }
+                </td>
+                <td class="droite">
+                  @if (rangee.item.auLitre) {
+                    <span class="num">{{ fmtNombre(rangee.item.litres) }} L</span>
+                  } @else {
+                    <!-- Zero rend la main au calcul : on ne fige pas une
+                         quantite sans le vouloir. -->
+                    <input
+                      class="etroit"
+                      type="number"
+                      min="0"
+                      step="1"
+                      [value]="rangee.item.ligne.bouteilles"
+                      [title]="
+                        rangee.item.ligne.forfait
+                          ? 'Quantite forcee — 0 pour revenir au calcul'
+                          : 'Calculee'
+                      "
+                      (change)="majAlcool(rangee.item.ligne.produit.id, $any($event.target).value)"
+                    />
+                  }
+                </td>
+                <td class="droite num">
+                  @if (rangee.item.ligne.resteMl > 0) {
+                    {{ fmtVolume(rangee.item.ligne.resteMl) }}
+                  } @else {
+                    <span class="muted">—</span>
+                  }
+                </td>
+                <td class="droite num">
+                  {{
+                    fmtEuro(
+                      rangee.item.auLitre
+                        ? rangee.item.prixAuLitre
+                        : rangee.item.ligne.produit.prixEur
+                    )
+                  }}
+                  <span class="secondaire">
+                    {{ rangee.item.auLitre ? 'le litre' : 'la bouteille' }}
+                  </span>
+                </td>
+                <td class="droite num principal">{{ fmtEuro(rangee.item.ligne.prixTotal) }}</td>
+              </tr>
+            }
           }
         </tbody>
       </table>

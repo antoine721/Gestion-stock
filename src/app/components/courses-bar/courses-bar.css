@@ -115,3 +115,81 @@
   font-size: 0.6875rem;
   color: var(--texte-doux);
 }
+
+/* -- Le choix des diluants : une etiquette par diluant retenu -------------- */
+
+.choix-diluants {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.etiquette {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0.125rem 0.25rem 0.125rem 0.5rem;
+  border: 1px solid var(--bord-champ);
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.etiquette .retirer {
+  padding: 0 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--texte-doux);
+  font-size: 0.875rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.etiquette .retirer:hover {
+  color: var(--ko);
+}
+
+/* Le champ de quantite loge entre les deux boutons du compteur. */
+.compteur .etroit.compact {
+  width: 3.25rem;
+}
+
+/* -- Les recettes composees : kir, spritz --------------------------------- */
+
+/*
+ * Une bande coloree ouvre le groupe : ce qui suit ne se boit qu'ensemble.
+ * Chaque ingredient garde sa ligne — c'est bien deux bouteilles a acheter.
+ */
+.bande-cocktail td {
+  padding-top: 0.625rem;
+  background: var(--famille-vin-fond);
+  border-top: 2px solid var(--famille-vin);
+  font-size: 0.8125rem;
+}
+
+.bande-cocktail td .muted,
+.bande-cocktail td .num {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.dans-cocktail td {
+  background: var(--famille-vin-fond);
+}
+
+.dans-cocktail td:first-child {
+  box-shadow: inset 2px 0 0 var(--famille-vin);
+}
+
+/* Ce que le cocktail consomme mais qui est compte ailleurs : pas de chiffre
+   d'achat sur cette ligne, on ne paye pas deux fois la meme bouteille. */
+.rappel-cocktail td {
+  padding-bottom: 0.625rem;
+  background: var(--famille-vin-fond);
+  color: var(--texte-doux);
+  font-size: 0.75rem;
+  box-shadow: inset 2px 0 0 var(--famille-vin);
+}

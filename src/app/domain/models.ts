@@ -645,11 +645,12 @@ export interface Partage {
   /** Lignes cochees de la liste de courses unifiee (le materiel a son statut). */
   coursesCochees: string[];
   /**
-   * Le diluant retenu pour chaque alcool fort : `rhum` -> `coca`. Une chaine
-   * vide dit « celui-la, on le boit sec » ; un alcool absent prend le diluant
-   * par defaut.
+   * Les diluants retenus pour chaque alcool fort : `rhum` -> `['coca']`. Une
+   * liste vide dit « celui-la, on le boit sec » ; un alcool absent prend le
+   * diluant par defaut. Les fiches d'avant n'en portaient qu'un, ecrit comme
+   * une chaine seule : on les relit telles quelles.
    */
-  diluants?: Record<string, string>;
+  diluants?: Record<string, string | string[]>;
   /** Les boutons du moteur de calcul : marges et coup de pouce global. */
   reglagesCalcul?: ReglagesCalcul;
   /** Ce qu'on a ajoute a la main au rayon : PQ, sacs poubelle, charbon... */

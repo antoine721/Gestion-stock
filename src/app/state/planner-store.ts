@@ -26,7 +26,7 @@ import {
 } from '../domain/invites';
 import { normaliserGouts, resumerGoodies } from '../domain/preferences';
 import { estimerConsommation } from '../domain/interpretation';
-import { alcoolsADiluer, regrouperParDiluant } from '../domain/bar';
+import { alcoolsADiluer, diluantsDe, regrouperParDiluant } from '../domain/bar';
 import {
   budgetNourriture,
   coursesCuisine,
@@ -361,7 +361,12 @@ export class PlannerStore {
    * qu'un rhum se boit au coca, et il te dit combien il en faut.
    */
   readonly alcoolsADiluer = computed(() =>
-    alcoolsADiluer(this.entree().consommation, this.choixDiluants(), this.reglagesCalcul()),
+    alcoolsADiluer(
+      this.entree().consommation,
+      this.choixDiluants(),
+      this.reglagesCalcul(),
+      this.entree().overrides,
+    ),
   );
 
   /** Le meme besoin vu depuis le caddie : une ligne par bouteille. */
@@ -439,9 +444,34 @@ export class PlannerStore {
     };
   });
 
-  /** Choisit le diluant d'un alcool ; chaine vide = on le boit sec. */
-  majDiluant(boissonId: string, produitId: string): void {
-    this.majPartage({ diluants: { ...(this.partage().diluants ?? {}), [boissonId]: produitId } });
+  /** Ajoute un diluant a un alcool : un rhum peut se boire coca ET jus. */
+  ajouterDiluant(boissonId: string, produitId: string): void {
+    if (produitId === '' || !PRODUIT_PAR_ID.has(produitId)) return;
+    const deja = diluantsDe(boissonId, this.choixDiluants());
+    if (deja.includes(produitId)) return;
+    this.majDiluants(boissonId, [...deja, produitId]);
+  }
+
+  /** Retire un diluant ; le dernier retire, l'alcool se boit sec. */
+  retirerDiluant(boissonId: string, produitId: string): void {
+    const deja = diluantsDe(boissonId, this.choixDiluants());
+    this.majDiluants(
+      boissonId,
+      deja.filter((x) => x !== produitId),
+    );
+  }
+
+  /** Revient aux diluants d'usine pour cet alcool. */
+  reinitialiserDiluants(boissonId: string): void {
+    const diluants = { ...(this.partage().diluants ?? {}) };
+    delete diluants[boissonId];
+    this.majPartage({ diluants });
+  }
+
+  private majDiluants(boissonId: string, produitIds: readonly string[]): void {
+    this.majPartage({
+      diluants: { ...(this.partage().diluants ?? {}), [boissonId]: [...produitIds] },
+    });
   }
 
   readonly resumeCourses = computed(() => resumerCourses(this.listeCourses()));
